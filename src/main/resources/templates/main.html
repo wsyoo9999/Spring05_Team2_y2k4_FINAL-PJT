@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>세로형 아코디언 + 10x10 표</title>
+    <style>
+        /* 기본 리셋 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+        }
+
+        /* 좌우 레이아웃 */
+        .layout {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            /* 화면이 좁아지면 아래로 떨어지도록 */
+            flex-wrap: wrap;
+        }
+
+        /* 왼쪽: 아코디언 */
+        .accordion-container {
+            width: 300px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .accordion-item { border-bottom: 1px solid #ddd; }
+        .accordion-header {
+            width: 100%;
+            padding: 15px;
+            text-align: left;
+            background-color: #f1f1f1;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .accordion-header:hover { background-color: #e1e1e1; }
+        .accordion-content {
+            padding: 15px;
+            background-color: #fafafa;
+            display: none;
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* 오른쪽: 표 영역이 남은 공간을 차지 */
+        .table-wrap {
+            flex: 1 1 400px; /* 최소 400px, 남은 공간은 모두 차지 */
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td, th {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+    <!-- 왼쪽: 아코디언 -->
+    <div class="accordion-container">
+        <div class="accordion-item">
+            <button class="accordion-header">재무/회계</button>
+            <div class="accordion-content">
+                <button class="menu" name="finance" id = "profit">매출</button>
+                <button class="menu" name="finance" id = "spend">지출</button>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button class="accordion-header">판매/구매</button>
+            <div class="accordion-content">
+                <button class="menu" name="transaction" id="sale">판매</button>
+                <button class="menu" name="transaction" id="purchase">구매</button>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button class="accordion-header">생산/제조</button>
+            <div class="accordion-content">
+                <button class="menu" name="production" id="work_order">작업 지시서</button>
+                <button class="menu" name="production" id="bom">자재 명세서</button>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button class="accordion-header" >재고</button>
+            <div class="accordion-content">
+                <button class="menu" name="item" id="items">물품 목록</button>
+                <button class="menu" name="item" id="inbound">입고</button>
+                <button class="menu" name="item" id="outbound">출고</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 오른쪽: 10x10 표 -->
+    <div class="table-wrap">
+        <div class="section-title">test</div>
+        <table id="grid"></table>
+    </div>
+</div>
+
+<script>
+    // 아코디언 동작
+    const accordionHeaders = document.querySelectorAll('.accordion-header');
+    accordionHeaders.forEach(header => {
+        header.addEventListener('click', function () {
+            const content = this.nextElementSibling;
+            if (content.style.display === 'block') {
+                content.style.display = 'none';
+            } else {
+                document.querySelectorAll('.accordion-content').forEach(item => {
+                    item.style.display = 'none';
+                });
+                content.style.display = 'block';
+            }
+        });
+    });
+
+</script>
+<script type="module">
+    const grid = document.getElementById('grid');
+
+    async function listClick(e){
+        const btn = e.currentTarget;
+        const file_name = btn.name;
+        const fn_name = btn.id;
+
+        try{
+            const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
+            const fn = module[fn_name]; //버튼의 id와 같은 이름의 함수 설정
+
+            const tableResult = await fn(); //함수의 리턴값은 완전한 html의 테이블 구조
+
+
+            grid.appendChild(tableResult);
+        }
+        catch(err){
+            console.error(err);
+        }
+    }
+
+    const list = document.querySelectorAll('.menu');
+    list.forEach(btn => {
+        btn.addEventListener('click',listClick)
+    });
+</script>
+
+
+
+
+</body>
+</html>
