@@ -32,7 +32,7 @@ export async function sale_listAll(){
                         <td>${row.status}</td>
                         </tr>`
         })
-        tbody += `</tbody></table>`;
+        tbody += `</tbody></table><input type="button" data-action="add" data-file="transaction" data-fn="addSale" value="추가">`;
 
 
     console.log(table)
@@ -61,31 +61,27 @@ export async function sale_list(formData){
                             </thead>
                         `;
 
-    $.ajax({
+    const data = await $.ajax({
         url: '/api/transaction/sale/list',
-        method: 'get',
+        method: 'GET',
         dataType: 'json',
-        data : {
-            emp_id: emp_id,
-            client_id: client_id,
-            order_date: order_date,
-            del_date: due_date,
-            status: status,
-        }
-    }).then(function(data){
-        table+= `<tbody>`;
 
-        $.each(data.rows, function (i, row){
-            table += `<tr>
+    });
+    let tbody;
+    tbody= `<tbody>`;
+    console.log(data);
+    $.each(data, function (i, row){
+        tbody += `<tr>
                         <td>${row.emp_id}</td>
                         <td>${row.client_id}</td>
                         <td>${row.order_date}</td>
                         <td>${row.due_date}</td>
                         <td>${row.status}</td>
                         </tr>`
-        })
     })
-    table += `</tbody></table>`;
+    tbody += `</tbody></table>`;
+    table += `</tbody></table>
+    <input type="button" data-file="transaction" data-fn="addSale" data-action="add">`;
     return table;
 }
 
@@ -104,8 +100,17 @@ export function search_form(){
                                 <input type="hidden" name="_token" value="" />
                                 <input type="date" name="order_date"  />
                                 <input type="date" name="due_date"  />
+                                <input type="button" data-file="transaction" data-fn="sale_list" value = "검색">
                                 </form>`
 
     return search_bar;
+
+}
+
+export function addSale(){
+    const url='./../popup/addSale.html';
+    const features = 'width=570,height=350,resizable=no,scrollbars=yes';
+    window.open(url,'add_Sale',features).focus();
+
 
 }

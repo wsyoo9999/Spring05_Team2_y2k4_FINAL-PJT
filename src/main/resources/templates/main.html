@@ -118,6 +118,16 @@
                 <button class="menu" data-file="item" data-fn="outbound_listAll">출고</button>
             </div>
         </div>
+        <div class="accordion-item">
+            <button class="accordion-header">인사</button>
+            <div class="accordion-content">
+                <button class="menu" data-file="hr" data-fn="employees_listAll">직원 목록</button>
+
+                <button class="menu" data-file="hr" data-fn="attendance_listAll">근태 현황</button>
+
+                <button class="menu" data-file="hr" data-fn="salary_listAll">급여 대장</button>
+            </div>
+        </div>
     </div>
 
     <div class="results">
@@ -151,7 +161,9 @@
     const search = document.getElementById('search');
     const table = document.getElementById('table');
 
-    console.log(window.location.pathname);
+    search.addEventListener('click',searchClick)
+    table.addEventListener('click',tableClick)
+
     async function listClick(e){
         const menu = e.currentTarget;
         const file_name = menu.dataset.file;
@@ -163,8 +175,6 @@
         try{
             const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
             const buildTable = module[fn_name];//버튼의 id와 같은 이름의 함수 설정
-            console.log(buildTable);
-            console.log(`./js/${file_name}.js`);
             const buildSearch = module.search_form;
 
             const tableResult = await buildTable(); //함수의 리턴값은 완전한 html의 테이블 구조
@@ -184,8 +194,7 @@
 
     //===================================================================
     //=======================위는 아코디언 메뉴 이벤트============================
-    search.addEventListener('click',searchClick)
-    table.addEventListener('click',tableClick)
+
 
     async function searchClick(e){
         const search_btn = e.target.closest('.search_btn');
@@ -213,12 +222,38 @@
         }
     }
     async function tableClick(e){
-        try{
-
+        const table_event = e.target.closest('[data-action]');
+        if (!table_event) return;
+        console.log(table_event);
+        switch(table_event.dataset.action){
+            case 'edit':
+                break;
+            case 'add':
+                await addRecord(table_event);
+                break;
+            case 'detail':
+                break;
         }
-        catch(err){
+
+
+    }
+    async function addRecord(e){
+        const container = e;
+        const file_name = container.dataset.file;  //현재 검색이 어느 테이블 검색인지
+        const fn_name = container.dataset.fn;       //어느 함수를 실행할지, 확장을 위해 생성
+
+
+        console.log(file_name, fn_name);
+        try{
+            const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
+
+            const addMenu = module[fn_name];
+
+            addMenu();
+        }catch(err){
             console.error(err);
         }
+
     }
 
 </script>
