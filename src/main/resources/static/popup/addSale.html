@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>판매 목록 추가</title>
+</head>
+<body>
+<form method="POST" action="/api/transaction/sale/add">
+    <input type="text" name="emp_id">
+    <input type="text" name="client_id">
+    <input type="date" name="order_date">
+    <input type="date" name="due_date">
+    <div class = "detail">
+        <input type="text" name="item_id">  <!--추후 이름으로 입력 되도록 변경-->
+        <input type="text" name="qty">
+    </div>
+
+</form>
+
+<input type="button" class ="createForm" value="추가 입력">
+<input type="button" value="입력 완료" onclick="window.close()">
+</body>
+
+<script>
+    const create = document.querySelector(".createForm");
+    const detail = document.querySelector(".detail");
+    create.addEventListener("click", (e) => {
+        detail.innerHTML += `    <input type="text" name="item_id">
+                                <input type="text" name="qty">`;
+    })
+</script>
+</html>
