@@ -151,10 +151,10 @@
     const search = document.getElementById('search');
     const table = document.getElementById('table');
 
-
+    console.log(window.location.pathname);
     async function listClick(e){
         const menu = e.currentTarget;
-        const file_name = menu.dataset.file_name;
+        const file_name = menu.dataset.file;
         const fn_name = menu.dataset.fn;
 
         search.innerHTML = '';
@@ -162,7 +162,9 @@
 
         try{
             const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
-            const buildTable = module[fn_name]; //버튼의 id와 같은 이름의 함수 설정
+            const buildTable = module[fn_name];//버튼의 id와 같은 이름의 함수 설정
+            console.log(buildTable);
+            console.log(`./js/${file_name}.js`);
             const buildSearch = module.search_form;
 
             const tableResult = await buildTable(); //함수의 리턴값은 완전한 html의 테이블 구조
@@ -193,7 +195,7 @@
 
         try{
             const container = e.currentTarget;  //현재 눌린 버튼의 부모 클래스, 현재 기준으론 <div id="search"></div>를 의미
-            const file_name = container.dataset.file_name;  //현재 검색이 어느 테이블 검색인지
+            const file_name = container.dataset.file;  //현재 검색이 어느 테이블 검색인지
             const fn_name = container.dataset.fn;       //어느 함수를 실행할지, 확장을 위해 생성
 
             const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
@@ -219,11 +221,6 @@
         }
     }
 
-
-
-
-    search_form.addEventListener('click',searchClick)
-    table_form.addEventListener('click',tableClick)
 </script>
 
 
