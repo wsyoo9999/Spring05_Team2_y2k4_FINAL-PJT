@@ -1,4 +1,4 @@
-/// 물품 목록 전체 조회
+// 물품 목록 전체 조회
 export async function item_listAll() {
     let table = `
         <table>
@@ -16,7 +16,7 @@ export async function item_listAll() {
     `;
 
     const data = await $.ajax({
-        url: '/api/item',
+        url: '/api/item/list',
         method: 'GET',
         dataType: 'json',
     });
@@ -41,7 +41,7 @@ export async function item_listAll() {
 // 물품 목록 조건 검색 조회
 export async function item_list(formData) {
     const data = await $.ajax({
-        url: '/api/item',
+        url: '/api/item/list',
         method: 'GET',
         dataType: 'json',
         data: formData
@@ -99,7 +99,7 @@ export async function inbound_listAll() {
     `;
 
     const data = await $.ajax({
-        url: '/api/inbound',
+        url: '/api/inbound/list',
         method: 'GET',
         dataType: 'json',
     });
@@ -126,7 +126,7 @@ export async function inbound_listAll() {
 // 입고 목록 조건 검색
 export async function inbound_list(formData) {
     const data = await $.ajax({
-        url: '/api/inbound',
+        url: '/api/inbound/list',
         method: 'GET',
         dataType: 'json',
         data: formData
@@ -186,7 +186,7 @@ export async function outbound_listAll() {
     `;
 
     const data = await $.ajax({
-        url: '/api/outbound',
+        url: '/api/outbound/list',
         method: 'GET',
         dataType: 'json',
     });
@@ -211,7 +211,7 @@ export async function outbound_listAll() {
 // 출고 목록 조건 검색
 export async function outbound_list(formData) {
     const data = await $.ajax({
-        url: '/api/outbound',
+        url: '/api/outbound/list',
         method: 'GET',
         dataType: 'json',
         data: formData
@@ -248,3 +248,6 @@ export async function outbound_list(formData) {
     table += `</tbody></table>`;
     return table;
 }
+
+export
+
