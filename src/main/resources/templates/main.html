@@ -82,9 +82,110 @@
             font-weight: bold;
             margin-bottom: 12px;
         }
+
+        <!-- 메뉴바 -->
+        :root {
+            --nav-h: 56px;
+            --nav-bg: #0f172a;     /* 슬레이트-900 느낌 */
+            --nav-fg: #e5e7eb;     /* gray-200 */
+            --nav-fg-dim: #cbd5e1; /* gray-300 */
+            --nav-accent: #60a5fa; /* blue-400 */
+        }
+
+        /* 상단 바 */
+        .nav-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            height: var(--nav-h);
+            background: var(--nav-bg);
+            color: var(--nav-fg);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.25);
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            letter-spacing: .2px;
+        }
+        .nav-brand .nav-logo {
+            width: 28px; height: 28px; border-radius: 6px;
+            background: linear-gradient(135deg,#3b82f6,#22d3ee);
+            display: inline-block;
+        }
+
+        .nav-spacer { flex: 1; }
+
+        /* 링크 영역 */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            height: 36px;
+            padding: 0 12px;
+            border-radius: 8px;
+            color: var(--nav-fg-dim);
+            text-decoration: none;
+            font-size: 14px;
+            transition: background .2s, color .2s;
+        }
+        .nav-link:hover { color: var(--nav-fg); background: rgba(255,255,255,.08); }
+        .nav-link.active { color: var(--nav-accent); background: rgba(96,165,250,.12); }
+
+        /* 우측 아이콘들 */
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 8px;
+        }
+        .nav-icon-btn {
+            width: 36px; height: 36px;
+            border: 0; border-radius: 8px;
+            background: transparent;
+            color: var(--nav-fg-dim);
+            cursor: pointer;
+            transition: background .2s, color .2s;
+        }
+        .nav-icon-btn:hover { color: var(--nav-fg); background: rgba(255,255,255,.08); }
+
+
+
+        /* 본문 상단 여백 (고정바 높이만큼) */
+        body { padding-top: 0; }
     </style>
 </head>
 <body>
+<header class="nav-bar">
+    <div class="nav-brand">
+        <span class="nav-logo" aria-hidden="true"></span>
+        <span>My ERP</span>
+    </div>
+
+    <div class="nav-spacer"></div>
+
+    <nav class="nav-links" id="navLinks">
+        <a href="#" class="nav-link active" data-topnav="dashboard">대시보드</a>
+        <a href="#" class="nav-link" data-topnav="sales">판매</a>
+        <a href="#" class="nav-link" data-topnav="production">생산</a>
+        <a href="#" class="nav-link" data-topnav="inventory">재고</a>
+        <a href="#" class="nav-link" data-topnav="reports">리포트</a>
+        <a href="#" class="nav-link" data-topnav="settings">설정</a>
+    </nav>
+
+    <div class="nav-right">
+        <button class="nav-icon-btn" title="알림" aria-label="알림">🔔</button>
+        <button class="nav-icon-btn" title="프로필" aria-label="프로필">👤</button>
+    </div>
+</header>
 
 <div class="erp">
     <!-- 왼쪽: 아코디언 -->
@@ -92,40 +193,40 @@
         <div class="accordion-item">
             <button class="accordion-header">재무/회계</button>
             <div class="accordion-content">
-                <button class="menu" data-file="finance" data-fn = "profit_listAll">매출</button>
-                <button class="menu" data-file="finance" data-fn = "spend_listAll">지출</button>
+                <button class="menu" data-file="finance" data-fn = "profit_listAll" data-table="profit">매출</button>
+                <button class="menu" data-file="finance" data-fn = "spend_listAll" data-table="spend">지출</button>
             </div>
         </div>
         <div class="accordion-item">
             <button class="accordion-header">판매/구매</button>
             <div class="accordion-content">
-                <button class="menu" data-file="transaction" data-fn="sale_listAll">판매</button>
-                <button class="menu" data-file="transaction" data-fn="purchase">구매</button>
+                <button class="menu" data-file="transaction" data-fn="sale_listAll" data-table="sale">판매</button>
+                <button class="menu" data-file="transaction" data-fn="purchase_listAll" data-table="purchase">구매</button>
             </div>
         </div>
         <div class="accordion-item">
             <button class="accordion-header">생산/제조</button>
             <div class="accordion-content">
-                <button class="menu" data-file="production" data-fn="work_order_listAll">작업 지시서</button>
-                <button class="menu" data-file="production" data-fn="bom_listAll">자재 명세서</button>
+                <button class="menu" data-file="production" data-fn="work_order_listAll" data-table="work_order">작업 지시서</button>
+                <button class="menu" data-file="production" data-fn="bom_listAll"   data-table="bom">자재 명세서</button>
             </div>
         </div>
         <div class="accordion-item">
             <button class="accordion-header" >재고</button>
             <div class="accordion-content">
-                <button class="menu" data-file="item" data-fn="items_listAll">물품 목록</button>
-                <button class="menu" data-file="item" data-fn="inbound_listAll">입고</button>
-                <button class="menu" data-file="item" data-fn="outbound_listAll">출고</button>
+                <button class="menu" data-file="item" data-fn="items_listAll" data-table="items">물품 목록</button>
+                <button class="menu" data-file="item" data-fn="inbound_listAll" data-table="inbound">입고</button>
+                <button class="menu" data-file="item" data-fn="outbound_listAll" data-table="outbound">출고</button>
             </div>
         </div>
         <div class="accordion-item">
             <button class="accordion-header">인사</button>
             <div class="accordion-content">
-                <button class="menu" data-file="hr" data-fn="employees_listAll">직원 목록</button>
+                <button class="menu" data-file="hr" data-fn="employees_listAll" data-table="employees">직원 목록</button>
 
-                <button class="menu" data-file="hr" data-fn="attendance_listAll">근태 현황</button>
+                <button class="menu" data-file="hr" data-fn="attendance_listAll" data-table="attendance">근태 현황</button>
 
-                <button class="menu" data-file="hr" data-fn="salary_listAll">급여 대장</button>
+                <button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button>
             </div>
         </div>
     </div>
@@ -168,14 +269,17 @@
         const menu = e.currentTarget;
         const file_name = menu.dataset.file;
         const fn_name = menu.dataset.fn;
+        const table_name = menu.dataset.table;
 
         search.innerHTML = '';
         table.innerHTML = '';
 
         try{
             const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
+
+            const search_bar = table_name+'_search_form';
             const buildTable = module[fn_name];//버튼의 id와 같은 이름의 함수 설정
-            const buildSearch = module.search_form;
+            const buildSearch = module[search_bar];
 
             const tableResult = await buildTable(); //함수의 리턴값은 완전한 html의 테이블 구조
             const searchUI = await buildSearch();
@@ -197,23 +301,27 @@
 
 
     async function searchClick(e){
-        const search_btn = e.target.closest('.search_btn');
-        if (!search_btn) return;    //search_btn값이 없다면(= 검색버튼이 아닌 다른 부분의 클릭) 무시
+        const search_btn = e.target.closest('[data-action]');
+        if (!search_btn) return;
+        if (search_btn.dataset.action!=='search') return;    //search_btn값이 없다면(= 검색버튼이 아닌 다른 부분의 클릭) 무시
+
 
         e.preventDefault(); //새로고침 방지
 
+        console.log(search_btn);
+
         try{
-            const container = e.currentTarget;  //현재 눌린 버튼의 부모 클래스, 현재 기준으론 <div id="search"></div>를 의미
-            const file_name = container.dataset.file;  //현재 검색이 어느 테이블 검색인지
-            const fn_name = container.dataset.fn;       //어느 함수를 실행할지, 확장을 위해 생성
+
+            const file_name = search_btn.dataset.file;  //현재 검색이 어느 테이블 검색인지
+            const fn_name = search_btn.dataset.fn;       //어느 함수를 실행할지, 확장을 위해 생성
 
             const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
 
             const buildTable = module[fn_name];
 
-            const form = container.querySelector('form');   //<div id="search"></div> 내의 form 태그 가져옴
+            const form = search_btn.closest('form');   //<div id="search"></div> 내의 form 태그 가져옴
             const formData = Object.fromEntries(new FormData(form).entries());      //form 태그의 입력값들을 iterator로 가져옴,그리고 이를 객체로 바꿈
-
+            console.log(formData);
             const tableResult = await buildTable(formData); //함수의 리턴값은 완전한 html의 테이블 구조
             table.innerHTML = tableResult;
         }
@@ -224,6 +332,7 @@
     async function tableClick(e){
         const table_event = e.target.closest('[data-action]');
         if (!table_event) return;
+
         console.log(table_event);
         switch(table_event.dataset.action){
             case 'edit':
@@ -238,12 +347,10 @@
 
     }
     async function addRecord(e){
-        const container = e;
-        const file_name = container.dataset.file;  //현재 검색이 어느 테이블 검색인지
-        const fn_name = container.dataset.fn;       //어느 함수를 실행할지, 확장을 위해 생성
+        const file_name = e.dataset.file;  //현재 검색이 어느 테이블 검색인지
+        const fn_name = e.dataset.fn;       //어느 함수를 실행할지, 확장을 위해 생성
 
 
-        console.log(file_name, fn_name);
         try{
             const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
 
@@ -256,6 +363,45 @@
 
     }
 
+
+    // 햄버거 토글
+    (function() {
+        const navLinks  = document.getElementById('navLinks');
+
+        // 링크 클릭 시 활성화 표시 + 모바일에서 닫기
+        navLinks?.addEventListener('click', (e) => {
+            const link = e.target.closest('.nav-link');     //클릭한 메뉴바에서 가장 가까운 nav-link 테그 지정
+            if (!link) return;
+            // active 관리
+            navLinks.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));  //일단 모든 메뉴 active 삭제
+            link.classList.add('active');       //클릭한 메뉴만 활성화
+        });
+    })();
+
+    // (선택) 상단 메뉴 ↔ 왼쪽 아코디언 연동 예시
+    // data-topnav 값과 좌측 버튼의 data-file, data-fn 등을 매핑해서 자동 클릭
+    (function() {
+        const map = {
+            sales:    { file: 'transaction', fn: 'sale_listAll' },
+            production: { file: 'production', fn: 'work_order_listAll' },
+            item:  { file: 'item', fn: 'items_listAll' },
+            reports: null, // 나중에 구현
+            settings: null
+        };
+
+        document.getElementById('navLinks')?.addEventListener('click', (e) => {
+            const link = e.target.closest('.nav-link');
+            if (!link) return;
+
+            const key = link.dataset.topnav;
+            const target = map[key];
+            if (!target) return;
+
+            // 좌측 아코디언에서 해당 버튼을 찾아 클릭
+            const btn = document.querySelector(`.menu[data-file="${target.file}"][data-fn="${target.fn}"]`);
+            if (btn) btn.click();
+        });
+    })();
 </script>
 
 
