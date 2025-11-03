@@ -20,7 +20,7 @@
         }
 
         /* 좌우 레이아웃 */
-        .layout {
+        .erp {
             display: flex;
             gap: 20px;
             align-items: flex-start;
@@ -58,7 +58,7 @@
         }
 
         /* 오른쪽: 표 영역이 남은 공간을 차지 */
-        .table-wrap {
+        .results {
             flex: 1 1 400px; /* 최소 400px, 남은 공간은 모두 차지 */
             background: #fff;
             border-radius: 8px;
@@ -86,44 +86,44 @@
 </head>
 <body>
 
-<div class="layout">
+<div class="erp">
     <!-- 왼쪽: 아코디언 -->
     <div class="accordion-container">
         <div class="accordion-item">
             <button class="accordion-header">재무/회계</button>
             <div class="accordion-content">
-                <button class="menu" name="finance" id = "profit">매출</button>
-                <button class="menu" name="finance" id = "spend">지출</button>
+                <button class="menu" data-file="finance" data-fn = "profit_listAll">매출</button>
+                <button class="menu" data-file="finance" data-fn = "spend_listAll">지출</button>
             </div>
         </div>
         <div class="accordion-item">
             <button class="accordion-header">판매/구매</button>
             <div class="accordion-content">
-                <button class="menu" name="transaction" id="sale">판매</button>
-                <button class="menu" name="transaction" id="purchase">구매</button>
+                <button class="menu" data-file="transaction" data-fn="sale_listAll">판매</button>
+                <button class="menu" data-file="transaction" data-fn="purchase">구매</button>
             </div>
         </div>
         <div class="accordion-item">
             <button class="accordion-header">생산/제조</button>
             <div class="accordion-content">
-                <button class="menu" name="production" id="work_order">작업 지시서</button>
-                <button class="menu" name="production" id="bom">자재 명세서</button>
+                <button class="menu" data-file="production" data-fn="work_order_listAll">작업 지시서</button>
+                <button class="menu" data-file="production" data-fn="bom_listAll">자재 명세서</button>
             </div>
         </div>
         <div class="accordion-item">
             <button class="accordion-header" >재고</button>
             <div class="accordion-content">
-                <button class="menu" name="item" id="items">물품 목록</button>
-                <button class="menu" name="item" id="inbound">입고</button>
-                <button class="menu" name="item" id="outbound">출고</button>
+                <button class="menu" data-file="item" data-fn="items_listAll">물품 목록</button>
+                <button class="menu" data-file="item" data-fn="inbound_listAll">입고</button>
+                <button class="menu" data-file="item" data-fn="outbound_listAll">출고</button>
             </div>
         </div>
     </div>
 
-    <!-- 오른쪽: 10x10 표 -->
-    <div class="table-wrap">
+    <div class="results">
         <div class="section-title">test</div>
-        <table id="grid"></table>
+        <div id="search"></div>             <!-- 검색 UI 출력 위치-->
+        <div id="table"></div>           <!-- DB 결과 출력 위치-->
     </div>
 </div>
 
@@ -146,31 +146,84 @@
 
 </script>
 <script type="module">
-    const grid = document.getElementById('grid');
+
+    const list = document.querySelectorAll('.menu');
+    const search = document.getElementById('search');
+    const table = document.getElementById('table');
+
 
     async function listClick(e){
-        const btn = e.currentTarget;
-        const file_name = btn.name;
-        const fn_name = btn.id;
+        const menu = e.currentTarget;
+        const file_name = menu.dataset.file_name;
+        const fn_name = menu.dataset.fn;
+
+        search.innerHTML = '';
+        table.innerHTML = '';
 
         try{
             const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
-            const fn = module[fn_name]; //버튼의 id와 같은 이름의 함수 설정
+            const buildTable = module[fn_name]; //버튼의 id와 같은 이름의 함수 설정
+            const buildSearch = module.search_form;
 
-            const tableResult = await fn(); //함수의 리턴값은 완전한 html의 테이블 구조
+            const tableResult = await buildTable(); //함수의 리턴값은 완전한 html의 테이블 구조
+            const searchUI = await buildSearch();
 
 
-            grid.appendChild(tableResult);
+            table.innerHTML = tableResult;
+            search.innerHTML = searchUI;
+        }
+        catch(err){
+            console.error(err);
+        }
+    }
+    list.forEach(btn => {
+        btn.addEventListener('click',listClick)
+    });
+
+    //===================================================================
+    //=======================위는 아코디언 메뉴 이벤트============================
+    search.addEventListener('click',searchClick)
+    table.addEventListener('click',tableClick)
+
+    async function searchClick(e){
+        const search_btn = e.target.closest('.search_btn');
+        if (!search_btn) return;    //search_btn값이 없다면(= 검색버튼이 아닌 다른 부분의 클릭) 무시
+
+        e.preventDefault(); //새로고침 방지
+
+        try{
+            const container = e.currentTarget;  //현재 눌린 버튼의 부모 클래스, 현재 기준으론 <div id="search"></div>를 의미
+            const file_name = container.dataset.file_name;  //현재 검색이 어느 테이블 검색인지
+            const fn_name = container.dataset.fn;       //어느 함수를 실행할지, 확장을 위해 생성
+
+            const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
+
+            const buildTable = module[fn_name];
+
+            const form = container.querySelector('form');   //<div id="search"></div> 내의 form 태그 가져옴
+            const formData = Object.fromEntries(new FormData(form).entries());      //form 태그의 입력값들을 iterator로 가져옴,그리고 이를 객체로 바꿈
+
+            const tableResult = await buildTable(formData); //함수의 리턴값은 완전한 html의 테이블 구조
+            table.innerHTML = tableResult;
+        }
+        catch(err){
+            console.error(err);
+        }
+    }
+    async function tableClick(e){
+        try{
+
         }
         catch(err){
             console.error(err);
         }
     }
 
-    const list = document.querySelectorAll('.menu');
-    list.forEach(btn => {
-        btn.addEventListener('click',listClick)
-    });
+
+
+
+    search_form.addEventListener('click',searchClick)
+    table_form.addEventListener('click',tableClick)
 </script>
 
 
