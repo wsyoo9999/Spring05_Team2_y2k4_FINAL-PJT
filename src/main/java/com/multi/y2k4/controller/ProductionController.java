@@ -31,7 +31,7 @@ public class ProductionController {
         wo1.setDue_date(LocalDate.of(2025, 11, 15));
         wo1.setTarget_quantity(100);
         wo1.setGood_quantity(70);
-        wo1.setDefect_quantity(5);
+        wo1.setDefect_quantity(10);
         wo1.setOrder_status("진행중");
         list.add(wo1);
 
@@ -143,7 +143,7 @@ public class ProductionController {
         bom2.setBom_id(2);
         bom2.setRaw_materials_code("RAW-002");
         bom2.setItem_id(101);
-        bom2.setRequired_quantity(5);
+        bom2.setRequired_quantity(7);
         list.add(bom2);
 
         BOM bom3 = new BOM();
