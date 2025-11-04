@@ -7,7 +7,7 @@ export async function items_listAll() {
         <table border="1" style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr>
-                    <th>물품 아이디</th>
+                    <th>물품 번호</th>
                     <th>물품명</th>
                     <th>수량</th>
                     <th>개당 가격</th>
@@ -49,7 +49,7 @@ export async function items_list(formData) {
         <table border="1" style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr>
-                    <th>물품 아이디</th>
+                    <th>물품 번호</th>
                     <th>물품명</th>
                     <th>수량</th>
                     <th>개당 가격</th>
@@ -87,7 +87,7 @@ export async function items_list(formData) {
 }
 
 export function items_search_form() {
-    const search_bar = `
+    return `
         <form data-file="item" data-fn="items_list">
             <label>물품명:</label>
             <input type="text" name="item_name" placeholder="예: 드릴" />
@@ -111,8 +111,6 @@ export function items_search_form() {
                    value="검색" />
         </form>
     `;
-
-    return search_bar;
 }
 
 
@@ -137,8 +135,9 @@ export async function inbound_listAll() {
             <thead>
                 <tr>
                     <th>입고 번호</th>
-                    <th>물품 아이디</th>
+                    <th>물품 번호</th>
                     <th>입고일</th>
+                    <th>물품명</th>
                     <th>수량</th>
                     <th>개당 가격</th>
                     <th>총 금액</th>
@@ -161,6 +160,7 @@ export async function inbound_listAll() {
                 <td>${row.inbound_id}</td>
                 <td>${row.item_id}</td>
                 <td>${row.inbound_date}</td>
+                <td>${row.item_name}</td>
                 <td>${row.inbound_qty}</td>
                 <td>${row.unit_price}</td>
                 <td>${row.total_price}</td>
@@ -188,8 +188,9 @@ export async function inbound_list(formData) {
             <thead>
                 <tr>
                     <th>입고 번호</th>
-                    <th>물품 아이디</th>
+                    <th>물품 번호</th>
                     <th>입고일</th>
+                    <th>물품명</th>
                     <th>수량</th>
                     <th>개당 가격</th>
                     <th>총 금액</th>
@@ -206,6 +207,7 @@ export async function inbound_list(formData) {
                 <td>${row.inbound_id}</td>
                 <td>${row.item_id}</td>
                 <td>${row.inbound_date}</td>
+                <td>${row.item_name}</td>
                 <td>${row.inbound_qty}</td>
                 <td>${row.unit_price}</td>
                 <td>${row.total_price}</td>
@@ -218,6 +220,33 @@ export async function inbound_list(formData) {
     table += `</tbody></table>`;
     return table;
 }
+
+export function inbound_search_form() {
+    return `
+        <form data-file="inbound" data-fn="inbound_list">
+            <label>전체:</label>
+            <select id="keywordType" name="keywordType">
+                <option value="inbound_id">입고번호</option>
+                <option value="item_id">물품번호</option>
+                <option value="item_name">물품명</option>
+                <option value="supplier">공급업체</option>
+            </select>
+            <input type="text" name="keyword" placeholder="예: " />
+
+            <label>입고일:</label>
+            <input type="date" name="inbound_date" />
+
+            <label>소비기한:</label>
+            <input type="date" name="expand_date" />
+
+            <input type="button" class="search_btn"
+                   data-file="inbound"
+                   data-fn="inbound_list"
+                   value="검색" />
+        </form>
+    `;
+}
+
 
 // =============================출고=============================
 
