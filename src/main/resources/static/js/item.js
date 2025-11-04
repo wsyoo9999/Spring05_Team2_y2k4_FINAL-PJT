@@ -252,7 +252,7 @@ export function inbound_search_form() {
 
 // 출고 목록 전체 조회
 export async function outbound_listAll() {
-    let table = `
+    let table = ` 
         <table>
             <thead>
                 <tr>
