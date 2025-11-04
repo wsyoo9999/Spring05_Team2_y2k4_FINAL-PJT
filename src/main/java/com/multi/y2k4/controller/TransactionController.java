@@ -5,13 +5,11 @@ import com.multi.y2k4.vo.transaction.Purchase;
 import com.multi.y2k4.vo.transaction.Sale;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -52,6 +50,23 @@ public class TransactionController {
         return saleList;
     }
 
+    @PostMapping("/sale/add")
+    public boolean addSale(@RequestParam Integer emp_id,
+                          @RequestParam Integer client_id,
+                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
+                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
+                          @RequestParam Integer[] item_id,
+                          @RequestParam Integer[] qty,
+                          Model model){
+        System.out.println("emp_id : "+emp_id);
+        System.out.println("client_id : "+client_id);
+        System.out.println("order_date : "+order_date);
+        System.out.println("due_date : "+due_date);
+        System.out.println("item_id : "+ Arrays.toString(item_id));
+        System.out.println("qty : "+ Arrays.toString(qty));
+        return true;
+    }
+
     @GetMapping("/purchase/list")
     public List<Purchase> purchaseList(@RequestParam(required = false) Integer emp_id,
                                        @RequestParam(required = false) Integer client_id,
@@ -83,6 +98,23 @@ public class TransactionController {
         System.out.println(del_date);
         System.out.println(status);
         return purchaseList;
+    }
+
+    @PostMapping("/sale/add")
+    public boolean addPurchase(@RequestParam Integer emp_id,
+                           @RequestParam Integer client_id,
+                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
+                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate del_date,
+                           @RequestParam Integer[] item_id,
+                           @RequestParam Integer[] qty,
+                           Model model){
+        System.out.println("emp_id : "+emp_id);
+        System.out.println("client_id : "+client_id);
+        System.out.println("order_date : "+order_date);
+        System.out.println("due_date : "+del_date);
+        System.out.println("item_id : "+ Arrays.toString(item_id));
+        System.out.println("qty : "+ Arrays.toString(qty));
+        return true;
     }
 
 }
