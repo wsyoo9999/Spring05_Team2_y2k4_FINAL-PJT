@@ -341,6 +341,7 @@
                 await addRecord(table_event);
                 break;
             case 'detail':
+                await viewDetail(table_event);
                 break;
         }
 
@@ -361,6 +362,22 @@
             console.error(err);
         }
 
+    }
+
+    async function viewDetail(e){
+        const file_name = e.dataset.file;  //현재 검색이 어느 테이블 검색인지
+        const fn_name = e.dataset.fn;       //어느 함수를 실행할지, 확장을 위해 생성
+
+
+        try{
+            const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
+
+            const addMenu = module[fn_name];
+
+            addMenu();
+        }catch(err){
+            console.error(err);
+        }
     }
 
 

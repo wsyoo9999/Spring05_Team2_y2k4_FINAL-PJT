@@ -239,7 +239,7 @@ export function addSale(){
 }
 
 export function addPurchase(){
-    const url='./../popup/addSale.html';
+    const url='./../popup/addPurchase.html';
     const features = 'width=570,height=350,resizable=no,scrollbars=yes';
     window.open(url,'add_Sale',features).focus();
 

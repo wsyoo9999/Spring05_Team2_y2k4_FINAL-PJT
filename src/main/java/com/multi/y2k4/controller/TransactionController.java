@@ -100,7 +100,7 @@ public class TransactionController {
         return purchaseList;
     }
 
-    @PostMapping("/sale/add")
+    @PostMapping("/purchase/add")
     public boolean addPurchase(@RequestParam Integer emp_id,
                            @RequestParam Integer client_id,
                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
