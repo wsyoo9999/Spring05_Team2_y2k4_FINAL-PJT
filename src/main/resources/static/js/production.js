@@ -1,8 +1,3 @@
-export function search_form() {
-    // 기본적으로 작업 지시서 검색 폼 반환
-    return work_order_search_form();
-}
-
 // 1. 작업 지시서 전체 목록 조회
 export async function work_order_listAll() {
     let table = `<table class="work-order-table">
@@ -88,12 +83,11 @@ export function work_order_search_form() {
                             <label>완료일:
                                 <input type="date" name="due_date" />
                             </label>
-                            <button type="submit" class="search_btn">검색</button>
+                            <button type="submit">검색</button>
                         </form>`;
 
     return search_bar;
 }
-
 
 
 // 3. 작업 지시서 조건 검색
@@ -167,7 +161,6 @@ export async function work_order_list(formData) {
 
     return table + tbody;
 }
-
 
 
 // 4. 작업 지시서 상세 조회
@@ -259,7 +252,6 @@ export async function work_order_detail(order_id) {
 }
 
 
-
 // 5. BOM(자재 명세서) 전체 조회
 export async function bom_listAll() {
     let table = `<table class="bom-table">
@@ -307,14 +299,13 @@ export async function bom_listAll() {
 }
 
 
-
 // 6. BOM 검색 폼
 export function bom_search_form() {
     const search_bar = `<form data-file="production" data-fn="bom_list">
                             <label>물품번호:
                                 <input type="text" name="item_id" placeholder="물품번호 입력" />
                             </label>
-                            <button type="submit" class="search_btn">검색</button>
+                            <button type="submit">검색</button>
                         </form>`;
 
     return search_bar;
@@ -323,6 +314,7 @@ export function bom_search_form() {
 
 
 // 7. BOM 조건 검색 (물품별)
+
 export async function bom_list(formData) {
     const item_id = formData.item_id || '';
 
@@ -370,6 +362,303 @@ export async function bom_list(formData) {
 
     return table + tbody;
 }
+
+
+// 8. 설비 전체 조회
+export async function equipment_listAll() {
+    let table = `<table class="equipment-table">
+                    <thead>
+                        <tr>
+                            <th>설비코드</th>
+                            <th>설비명</th>
+                            <th>상태</th>
+                            <th>점검일</th>
+                        </tr>
+                    </thead>`;
+
+    let tbody = '';
+
+    try {
+        const data = await $.ajax({
+            url: '/api/production/equipment',
+            method: 'GET',
+            dataType: 'json'
+        });
+
+        tbody += `<tbody>`;
+
+        if (data && data.length > 0) {
+            $.each(data, function(i, row) {
+                const statusClass = getEquipmentStatusClass(row.equipment_status);
+
+                tbody += `<tr>
+                            <td>${row.equipment_id}</td>
+                            <td><strong>${row.equipment_name}</strong></td>
+                            <td><span class="equipment-status ${statusClass}">${row.equipment_status}</span></td>
+                            <td>${formatDate(row.check_date)}</td>
+                          </tr>`;
+            });
+        } else {
+            tbody += `<tr><td colspan="4" class="no-data">설비 정보가 없습니다.</td></tr>`;
+        }
+
+        tbody += `</tbody></table>`;
+
+    } catch (error) {
+        console.error('설비 조회 실패:', error);
+        tbody = `<tbody><tr><td colspan="4" class="error">설비 정보를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+    }
+
+    return table + tbody;
+}
+
+
+// 9. Lot 추적 검색 폼
+export function lot_tracking_search_form() {
+    const search_bar = `<form data-file="production" data-fn="lot_tracking">
+                            <label>Lot 번호:
+                                <input type="text" name="lot_number" placeholder="Lot 번호 입력" required />
+                            </label>
+                            <button type="submit">추적</button>
+                        </form>`;
+
+    return search_bar;
+}
+
+
+
+// 10. Lot 번호 추적 (품질 관리)
+
+export async function lot_tracking(formData) {
+    const lot_number = formData.lot_number || '';
+
+    if (!lot_number) {
+        return `<div class="error-message">Lot 번호를 입력해주세요.</div>`;
+    }
+
+    let trackingHtml = '';
+
+    try {
+        const data = await $.ajax({
+            url: '/api/production/lot_tracking',
+            method: 'GET',
+            dataType: 'json',
+            data: { lot_number: lot_number }
+        });
+
+        trackingHtml = `
+            <div class="lot-tracking-card">
+                <h3>🔍 Lot 추적 정보</h3>
+                
+                <div class="tracking-section">
+                    <h4>기본 정보</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="label">Lot 번호</span>
+                            <span class="value highlight">${data.lot_number}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">물품번호</span>
+                            <span class="value">${data.item_id}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">제조날짜</span>
+                            <span class="value">${formatDate(data.production_date)}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">생산 수량</span>
+                            <span class="value">${numberFormat(data.lot_quantity)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tracking-section">
+                    <h4>작업 지시서 정보</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="label">지시서 번호</span>
+                            <span class="value">
+                                <button class="link-button" data-file="production" data-fn="work_order_detail" data-order-id="${data.order_id}">
+                                    ${data.order_id}
+                                </button>
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">작업 상태</span>
+                            <span class="value">${data.order_status}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tracking-section">
+                    <h4>원자재 BOM 정보</h4>
+                    <div class="materials-list">`;
+
+        if (data.bom && data.bom.length > 0) {
+            $.each(data.bom, function(i, material) {
+                trackingHtml += `
+                    <div class="material-item">
+                        <span class="material-code">📦 ${material.raw_materials_code}</span>
+                        <span class="material-quantity">소요량: ${numberFormat(material.required_quantity)}</span>
+                    </div>`;
+            });
+        } else {
+            trackingHtml += `<p class="no-data">BOM 정보가 없습니다.</p>`;
+        }
+
+        trackingHtml += `
+                    </div>
+                </div>
+                
+                <div class="tracking-section">
+                    <h4>불량 이력</h4>
+                    <div class="defect-list">`;
+
+        if (data.defects && data.defects.length > 0) {
+            $.each(data.defects, function(i, defect) {
+                trackingHtml += `
+                    <div class="defect-item">
+                        <span class="defect-name">⚠️ ${defect.defect_name}</span>
+                        <span class="defect-qty">${numberFormat(defect.defect_quantity)}개</span>
+                    </div>`;
+            });
+        } else {
+            trackingHtml += `<p class="no-defect">✅ 불량 내역이 없습니다.</p>`;
+        }
+
+        trackingHtml += `
+                    </div>
+                </div>
+            </div>`;
+
+    } catch (error) {
+        console.error('Lot 추적 실패:', error);
+        trackingHtml = `<div class="error-message">Lot 번호를 찾을 수 없거나 추적에 실패했습니다.</div>`;
+    }
+
+    return trackingHtml;
+}
+
+
+// 11. 작업지시서별 Lot 목록 조회
+export async function work_order_lots(formData) {
+    const order_id = formData.order_id || '';
+
+    if (!order_id) {
+        return `<div class="error-message">작업지시서 번호가 필요합니다.</div>`;
+    }
+
+    let table = `<table class="lot-table">
+                    <thead>
+                        <tr>
+                            <th>Lot ID</th>
+                            <th>Lot번호</th>
+                            <th>물품번호</th>
+                            <th>제조날짜</th>
+                            <th>Lot수량</th>
+                            <th>추적</th>
+                        </tr>
+                    </thead>`;
+
+    let tbody = '';
+
+    try {
+        const data = await $.ajax({
+            url: `/api/production/work_order/${order_id}/lots`,
+            method: 'GET',
+            dataType: 'json'
+        });
+
+        tbody += `<tbody>`;
+
+        if (data && data.length > 0) {
+            $.each(data, function(i, row) {
+                tbody += `<tr>
+                            <td>${row.lot_id}</td>
+                            <td><strong>${row.lot_number}</strong></td>
+                            <td>${row.item_id}</td>
+                            <td>${formatDate(row.production_date)}</td>
+                            <td>${numberFormat(row.lot_quantity)}</td>
+                            <td>
+                                <button class="btn-track" data-file="production" data-fn="lot_tracking" data-lot-number="${row.lot_number}">추적</button>
+                            </td>
+                          </tr>`;
+            });
+        } else {
+            tbody += `<tr><td colspan="6" class="no-data">등록된 Lot이 없습니다.</td></tr>`;
+        }
+
+        tbody += `</tbody></table>`;
+
+    } catch (error) {
+        console.error('Lot 목록 조회 실패:', error);
+        tbody = `<tbody><tr><td colspan="6" class="error">Lot 목록을 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+    }
+
+    return table + tbody;
+}
+
+
+// 12. 작업지시서별 불량 내역 조회
+export async function work_order_defects(formData) {
+    const order_id = formData.order_id || '';
+
+    if (!order_id) {
+        return `<div class="error-message">작업지시서 번호가 필요합니다.</div>`;
+    }
+
+    let table = `<table class="defect-table">
+                    <thead>
+                        <tr>
+                            <th>불량코드</th>
+                            <th>불량명</th>
+                            <th>불량 수량</th>
+                            <th>등록일</th>
+                        </tr>
+                    </thead>`;
+
+    let tbody = '';
+
+    try {
+        const data = await $.ajax({
+            url: `/api/production/work_order/${order_id}/defects`,
+            method: 'GET',
+            dataType: 'json'
+        });
+
+        tbody += `<tbody>`;
+
+        if (data && data.length > 0) {
+            let totalDefect = 0;
+            $.each(data, function(i, row) {
+                totalDefect += parseInt(row.defect_quantity) || 0;
+                tbody += `<tr>
+                            <td>${row.defect_id}</td>
+                            <td>${row.defect_name}</td>
+                            <td class="defect-qty">${numberFormat(row.defect_quantity)}</td>
+                            <td>${formatDate(row.detected_date)}</td>
+                          </tr>`;
+            });
+
+            tbody += `<tr class="total-row">
+                        <td colspan="2"><strong>합계</strong></td>
+                        <td class="defect-qty"><strong>${numberFormat(totalDefect)}</strong></td>
+                        <td></td>
+                      </tr>`;
+        } else {
+            tbody += `<tr><td colspan="4" class="no-data">불량 내역이 없습니다.</td></tr>`;
+        }
+
+        tbody += `</tbody></table>`;
+
+    } catch (error) {
+        console.error('불량 내역 조회 실패:', error);
+        tbody = `<tbody><tr><td colspan="4" class="error">불량 내역을 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+    }
+
+    return table + tbody;
+}
+
 
 // 유틸리티 함수들
 
