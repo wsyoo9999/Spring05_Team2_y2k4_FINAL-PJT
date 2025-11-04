@@ -1,31 +1,20 @@
 package com.multi.y2k4.vo.finance;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
+// Lombok 사용을 가정하여 @Data를 사용하거나, 직접 Getter/Setter를 추가합니다.
+// (여기서는 Lombok이 없다고 가정하고 필요한 필드만 정의합니다)
 public class Documents {
-    private Long docId;
-    private String title;
-    private String status;
-    private LocalDate submitDate;
+    private int docId;          // 결재 문서 ID (기본 키)
+    private String docTitle;    // 문서 제목
+    private int empId;          // 기안자 ID
+    private LocalDate docDate;  // 기안일
+    private String docContent;  // 문서 내용 (JSON 등 복잡한 데이터 포함 가능)
+    private String status;      // 결재 상태 (예: 'DRAFT', 'PENDING', 'APPROVED', 'REJECTED')
+    private int approverId;     // 최종 승인자 ID
+    private LocalDateTime approvalDate; // 승인일시
 
-    // 1. 기본 생성자 (필수: Spring이 JSON 요청 본문을 객체화할 때 사용)
-    public Documents() {
-    }
-
-    // 2. 전체 인자 생성자 (필수: Controller에서 테스트 데이터를 초기화할 때 사용)
-    public Documents(Long docId, String title, String status, LocalDate submitDate) {
-        this.docId = docId;
-        this.title = title;
-        this.status = status;
-        this.submitDate = submitDate;
-    }
-
-    public Long getDocId() { return docId; }
-    public void setDocId(Long docId) { this.docId = docId; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public LocalDate getSubmitDate() { return submitDate; }
-    public void setSubmitDate(LocalDate submitDate) { this.submitDate = submitDate; }
+    // 이외 필요한 필드 (예: 금액, 관련 전표 ID 등)와
+    // Getter, Setter, 생성자는 Lombok(@Data) 또는 직접 추가합니다.
 }
