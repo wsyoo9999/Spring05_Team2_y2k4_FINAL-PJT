@@ -1,13 +1,17 @@
+// =============================물품=============================
+
+
 // 물품 목록 전체 조회
-export async function item_listAll() {
+export async function items_listAll() {
     let table = `
-        <table>
+        <table border="1" style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr>
                     <th>물품 아이디</th>
                     <th>물품명</th>
                     <th>수량</th>
                     <th>개당 가격</th>
+                    <th>총 금액</th>
                     <th>물품 상태</th>
                     <th>보관 위치</th>
                 </tr>
@@ -16,19 +20,20 @@ export async function item_listAll() {
     `;
 
     const data = await $.ajax({
-        url: '/api/item',
+        url: '/api/stock/item',
         method: 'GET',
-        dataType: 'json',
+        dataType: 'json'
     });
 
-    $.each(data.rows || data, function (i, row) {
+    $.each(data, function (i, row) {
         table += `
             <tr>
                 <td>${row.item_id}</td>
                 <td>${row.item_name}</td>
                 <td>${row.item_qty}</td>
-                <td>${row.unit_price}</td>
-                <td>${row.item_status}</td>
+                <td>${Number(row.unit_price).toLocaleString()} 원</td>
+                <td>${Number(row.total_price).toLocaleString()} 원</td>
+                <td>${convertStatus(row.item_status)}</td>
                 <td>${row.storage_location}</td>
             </tr>
         `;
@@ -39,22 +44,16 @@ export async function item_listAll() {
 }
 
 // 물품 목록 조건 검색 조회
-export async function item_list(formData) {
-    const data = await $.ajax({
-        url: '/api/item',
-        method: 'GET',
-        dataType: 'json',
-        data: formData
-    });
-
+export async function items_list(formData) {
     let table = `
-        <table>
+        <table border="1" style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr>
                     <th>물품 아이디</th>
                     <th>물품명</th>
                     <th>수량</th>
                     <th>개당 가격</th>
+                    <th>총 금액</th>
                     <th>물품 상태</th>
                     <th>보관 위치</th>
                 </tr>
@@ -62,14 +61,22 @@ export async function item_list(formData) {
             <tbody>
     `;
 
-    $.each(data.rows || data, function (i, row) {
+    const data = await $.ajax({
+        url: '/api/stock/item',
+        method: 'GET',
+        dataType: 'json',
+        data: formData
+    });
+
+    $.each(data, function (i, row) {
         table += `
             <tr>
                 <td>${row.item_id}</td>
                 <td>${row.item_name}</td>
                 <td>${row.item_qty}</td>
-                <td>${row.unit_price}</td>
-                <td>${row.item_status}</td>
+                <td>${Number(row.unit_price).toLocaleString()} 원</td>
+                <td>${Number(row.total_price).toLocaleString()} 원</td>
+                <td>${convertStatus(row.item_status)}</td>
                 <td>${row.storage_location}</td>
             </tr>
         `;
@@ -78,6 +85,50 @@ export async function item_list(formData) {
     table += `</tbody></table>`;
     return table;
 }
+
+export function items_search_form() {
+    const search_bar = `
+        <form data-file="item" data-fn="items_list">
+            <label>물품명:</label>
+            <input type="text" name="item_name" placeholder="예: 드릴" />
+
+            <label>상태:</label>
+            <select name="item_status">
+                <option value="">전체</option>
+                <option value="0">정상</option>
+                <option value="1">불량</option>
+                <option value="2">폐기</option>
+                <option value="3">반납</option>
+                <option value="4">보류</option>
+            </select>
+
+            <label>보관위치:</label>
+            <input type="text" name="storage_location" placeholder="예: A-01-03" />
+
+            <input type="button" class="search_btn"
+                   data-file="item"
+                   data-fn="items_list"
+                   value="검색" />
+        </form>
+    `;
+
+    return search_bar;
+}
+
+
+// 물품 상태 코드 > 한글 변환
+function convertStatus(code) {
+    switch (code) {
+        case 0: return "정상";
+        case 1: return "불량";
+        case 2: return "폐기";
+        case 3: return "반납";
+        case 4: return "보류";
+        default: return "-";
+    }
+}
+
+// =============================입고=============================
 
 // 입고 목록 전체 조회
 export async function inbound_listAll() {
@@ -99,7 +150,7 @@ export async function inbound_listAll() {
     `;
 
     const data = await $.ajax({
-        url: '/api/inbound',
+        url: '/api/stock/inbound',
         method: 'GET',
         dataType: 'json',
     });
@@ -126,7 +177,7 @@ export async function inbound_listAll() {
 // 입고 목록 조건 검색
 export async function inbound_list(formData) {
     const data = await $.ajax({
-        url: '/api/inbound',
+        url: '/api/stock/inbound',
         method: 'GET',
         dataType: 'json',
         data: formData
@@ -168,6 +219,8 @@ export async function inbound_list(formData) {
     return table;
 }
 
+// =============================출고=============================
+
 // 출고 목록 전체 조회
 export async function outbound_listAll() {
     let table = `
@@ -186,7 +239,7 @@ export async function outbound_listAll() {
     `;
 
     const data = await $.ajax({
-        url: '/api/outbound',
+        url: '/api/stock/outbound',
         method: 'GET',
         dataType: 'json',
     });
@@ -211,7 +264,7 @@ export async function outbound_listAll() {
 // 출고 목록 조건 검색
 export async function outbound_list(formData) {
     const data = await $.ajax({
-        url: '/api/outbound',
+        url: '/api/stock/outbound',
         method: 'GET',
         dataType: 'json',
         data: formData
