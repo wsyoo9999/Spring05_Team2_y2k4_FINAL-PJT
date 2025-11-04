@@ -224,14 +224,15 @@ export async function inbound_list(formData) {
 export function inbound_search_form() {
     return `
         <form data-file="inbound" data-fn="inbound_list">
-            <label>전체:</label>
+            <label>검색 기준:</label>
             <select id="keywordType" name="keywordType">
                 <option value="inbound_id">입고번호</option>
                 <option value="item_id">물품번호</option>
                 <option value="item_name">물품명</option>
                 <option value="supplier">공급업체</option>
             </select>
-            <input type="text" name="keyword" placeholder="예: " />
+
+            <input id="keyword" type="number" name="keyword" placeholder="예: 3001" />
 
             <label>입고일:</label>
             <input type="date" name="inbound_date" />
@@ -244,15 +245,33 @@ export function inbound_search_form() {
                    data-fn="inbound_list"
                    value="검색" />
         </form>
+
+        <script>
+            const select = document.getElementById('keywordType');
+            const input = document.getElementById('keyword');
+
+            select.addEventListener('change', function() {
+                const selected = this.value;
+
+                if (selected === 'inbound_id' || selected === 'item_id') {
+                    input.type = 'number';
+                    input.placeholder = selected === 'inbound_id' ? '예: 3001' : '예: 1001';
+                } else if (selected === 'item_name' || selected === 'supplier') {
+                    input.type = 'text';
+                    input.placeholder = selected === 'item_name' ? '예: 드릴' : '예: 삼성상사';
+                }
+            });
+        </script>
     `;
 }
+
 
 
 // =============================출고=============================
 
 // 출고 목록 전체 조회
 export async function outbound_listAll() {
-    let table = ` 
+    let table = `
         <table>
             <thead>
                 <tr>
