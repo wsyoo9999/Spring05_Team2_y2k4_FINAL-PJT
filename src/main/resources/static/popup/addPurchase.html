@@ -6,18 +6,18 @@
     <title>판매 목록 추가</title>
 </head>
 <body>
-<form method="POST" action="/api/transaction/sale/add" id="form">
+<form method="POST" action="/api/transaction/purchase/add" id="form">
     <label>담당자
         <input type="text" name="emp_id" required>
     </label>
     <label>거래처
         <input type="text" name="client_id" required>
     </label><br>
-    <label>주문일
+    <label>주문 수주일
         <input type="date" name="order_date" required>
     </label>
-    <label>요청납기일
-        <input type="date" name="due_date" required>
+    <label>납기일
+        <input type="date" name="del_date" required>
     </label><br>
     <div class = "detail">
         <label>제품명
