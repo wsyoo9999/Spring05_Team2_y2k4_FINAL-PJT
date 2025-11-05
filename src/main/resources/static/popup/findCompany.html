@@ -1,0 +1,130 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Title</title>-->
+<!--</head>-->
+<!--<body>-->
+<!--<div class = "container">-->
+
+<!--  <label>-->
+<!--    <input type="text" id = "company_name" name="company_name" class="form-control" placeholder="회사명 입력" required>-->
+<!--    <input type="button" id="search" value="검색" onclick="findCompany()">-->
+<!--  </label>-->
+
+<!--</div>-->
+<!--<div id = "result"></div>-->
+<!--<div id="pagination"></div>-->
+
+<!--</body>-->
+<!--<script>-->
+<!--  let resultStatus={-->
+<!--    page : 1,-->
+<!--    maxPage :1,-->
+<!--    totalCount : 0,-->
+<!--  };-->
+
+<!--function findCompany(page) {-->
+<!--    const companyName = document.getElementById("company_name").value.trim();-->
+<!--  resultStatus.page = page;//현재 출력할 페이지-->
+
+<!--    if(!companyName) { //회사명을 공백으로만 했을 경우-->
+<!--      return;-->
+<!--    }-->
+<!--    const url = 'https://bizno.net/api/fapi?key=Gc5XJ3FYGgdtEc5OKTzrlTBoIwdN&gb=3&type=json&q='+encodeURIComponent(companyName)+'&page='+encodeURIComponent(page);-->
+
+
+<!--   $.ajax({-->
+<!--     url: url,-->
+<!--     method: 'GET',-->
+<!--     dataType: 'json',-->
+<!--     timeout: 15000,-->
+
+<!--    }).done(function(data) {-->
+<!--      if(data.resultCode !==0){-->
+<!--        console.log("에러 발생, 에러코드 : "+data);-->
+<!--        return;-->
+<!--      }-->
+
+
+<!--     resultStatus.maxPage = Number(data.maxpage);-->
+<!--     resultStatus.totalCount = Number(data.totalCount);-->
+<!--      makeTable(data.items);-->
+<!--      pagination();-->
+
+
+<!--   })-->
+
+<!--  }-->
+
+<!--  function makeTable(data) {-->
+<!--  let table = document.getElementById("result");-->
+<!--  table.innerHTML = '';-->
+<!--  if(data.result && data.result.length > 0){-->
+<!--    let thead = `<table>-->
+<!--                            <thead>-->
+<!--                            <tr>-->
+<!--                            <th>회사명</th>-->
+<!--                            <th>사업자 등록번호</th>-->
+<!--                            <th>법인 등록번호</th>-->
+<!--                            <th>사업자 상태</th>-->
+<!--                            <th>과세 유형</th>-->
+<!--                            <th>폐업일</th>-->
+<!--                            <th>선택</th>-->
+<!--                            </tr>-->
+<!--                            </thead>-->
+<!--                        `;-->
+<!--    let tbody = `<tbody>`-->
+<!--    data.forEach(item => {-->
+<!--      tbody +=`<tr>-->
+<!--                        <td>-->
+<!--                            ${item.company||'비어있음'}-->
+<!--                        </td>-->
+<!--                        <td>-->
+<!--                            ${item.bno||'비어있음'}-->
+<!--                        </td>-->
+<!--                        <td>-->
+<!--                           ${item.cno||'비어있음'}-->
+<!--                        </td>-->
+<!--                        <td>-->
+<!--                            ${item.bstt||'비어있음'}-->
+<!--                        </td>-->
+<!--                        <td>-->
+<!--                            ${item.taxtype||'비어있음'}-->
+<!--                        </td>-->
+<!--                        <td>-->
+<!--                            ${item.EndDt||'비어있음'}-->
+<!--                        </td>-->
+<!--                        <td>-->
+<!--                            <input type="button" value="선택">-->
+<!--                        </td>-->
+<!--                        </tr>`;-->
+<!--    })-->
+<!--    tbody += `</tbody></table>`;-->
+<!--    table+=thead+tbody;-->
+<!--  }else{-->
+<!--    table.text("검색 결과가 없습니다");-->
+<!--  }-->
+<!--  }-->
+<!--  function pagination() {-->
+<!--    let pagination = document.getElementById('pagination');-->
+<!--    pagination.innerHTML = '';-->
+<!--    if(resultStatus.maxPage<=1) return;-->
+
+<!--    //페이징 범위 자르기-->
+<!--    const size = 5;-->
+<!--    let startPage = Math.max(1,resultStatus.page - Math.floor(size/2));-->
+<!--    let endPage = Math.min(resultStatus.maxPage, startPage+size-1);-->
+<!--    if (endPage - startPage + 1 < windowSize) {   //마지막 부분 출력 예외 처리-->
+<!--      startPage = Math.max(1, endPage - size + 1);-->
+<!--    }-->
+
+<!--    //이전 페이지 이동 버튼 처리-->
+
+<!--    pagination.innerHTML = `<button class="page-btn" type="button" value = "이전" ${if resultStatus.page}>`-->
+
+
+
+<!--  }-->
+<!--</script>-->
+<!--</html>-->

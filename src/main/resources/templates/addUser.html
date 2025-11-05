@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h2>회원 가입</h2>
+<form method="post">
+    <div>
+        <label>
+            <input type="text" name="id" class="form-control" placeholder="아이디" required>
+        </label>
+
+        <label>
+            <input type="password" name="password" class="form-control" placeholder="비밀번호" required>
+        </label>
+
+        <label>
+            <input type="email" name="email" class="form-control" placeholder="이메일" required>
+        </label>
+        <label>
+            <input type="text" name="name" class="form-control" placeholder="이름" required>
+        </label>
+        <label>
+            <input type="text" name="company_id" class="form-control" placeholder="회사명 입력" required disabled>
+            <button type="button" onclick="find_Company()">회사 찾기</button>
+        </label>
+        <label>
+            <input type="number" name="email" class="form-control"  maxlength="8"  placeholder="생년월일 8자리" required>
+        </label>
+        <label>
+            <input type="number" name="phone" class="form-control" maxlength="11" placeholder="휴대전화 번호" required>
+        </label>
+    </div>
+    <button type="submit">회원 등록</button>
+</form>
+</body>
+<script>
+    function find_Company(){
+        const url='./../popup/findCompany.html';
+        const features = 'width=570,height=750,resizable=no,scrollbars=yes';
+        window.open(url,'find_Company',features).focus();
+    }
+
+
+</script>
+</html>
