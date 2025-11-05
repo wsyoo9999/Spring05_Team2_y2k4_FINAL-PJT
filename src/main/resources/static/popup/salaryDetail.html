@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>급여 상세 정보</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f8f8; }
+        .detail-card {
+            background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px; max-width: 450px; margin: auto;
+        }
+        h2 { border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px; color: #007bff;}
+        .info-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+        .info-label { font-weight: bold; color: #555; }
+        .info-value { text-align: right; }
+        .separator { grid-column: 1 / -1; border-top: 1px solid #eee; margin: 10px 0; }
+        .total-row { font-size: 1.1em; font-weight: bold; color: #28a745; }
+        .deduction { color: red; }
+    </style>
+</head>
+<body>
+
+<div class="detail-card">
+    <h2>💰 급여 상세 내역</h2>
+
+    <div id="salary-detail-content">
+        데이터를 로드하는 중...
+    </div>
+
+</div>
+
+<script>
+    // 숫자 포맷 함수 (hr.js에 있는 함수와 동일)
+    function numberFormat(num) {
+        if (num === null || num === undefined) return '0';
+        return parseInt(num).toLocaleString('ko-KR');
+    }
+
+    // URL 쿼리 파라미터에서 salaryId 가져오기
+    function getSalaryIdFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('salaryId');
+    }
+
+    // API 호출하여 상세 데이터 로드
+    async function loadSalaryDetail() {
+        const salaryId = getSalaryIdFromUrl();
+        const contentDiv = document.getElementById('salary-detail-content');
+
+        if (!salaryId) {
+            contentDiv.innerHTML = '<p style="color: red;">🚨 오류: 급여 ID가 전달되지 않았습니다.</p>';
+            return;
+        }
+
+        try {
+            const data = await $.ajax({
+                url: `/api/hr/salary/${salaryId}`, // 새로운 API 엔드포인트 호출
+                method: 'GET',
+                dataType: 'json'
+            });
+
+            if (data && data.salary_id) {
+                // 상세 정보를 HTML로 구성
+                const html = `
+                    <div class="info-grid">
+                        <div class="info-label">지급일자</div><div class="info-value">${data.payment_date || '-'}</div>
+                        <div class="info-label">사번</div><div class="info-value">${data.emp_id || '-'}</div>
+                        <div class="info-label">이름</div><div class="info-value">${data.emp_name || '-'}</div>
+                        <div class="separator"></div>
+
+                        <div class="info-label">기본급</div><div class="info-value">${numberFormat(data.basic_salary)} 원</div>
+                        <div class="info-label">수당</div><div class="info-value">${numberFormat(data.allowance)} 원</div>
+                        <div class="info-label total-row">총 지급액</div><div class="info-value total-row">${numberFormat(data.total_gross)} 원</div>
+                        <div class="separator"></div>
+
+                        <div class="info-label">총 공제액</div><div class="info-value deduction">${numberFormat(data.deduction_amount)} 원</div>
+                        <div class="separator"></div>
+
+                        <div class="info-label total-row">실수령액 (최종)</div><div class="info-value total-row">${numberFormat(data.total_pay)} 원</div>
+
+                        <div class="separator"></div>
+                        <div class="info-label">은행명</div><div class="info-value">${data.bank_name || '-'}</div>
+                        <div class="info-label">계좌번호</div><div class="info-value">${data.account_number || '-'}</div>
+                    </div>
+                `;
+                contentDiv.innerHTML = html;
+            } else {
+                contentDiv.innerHTML = `<p class="error-message">ID ${salaryId}에 대한 급여 상세 정보를 찾을 수 없습니다.</p>`;
+            }
+
+        } catch (err) {
+            console.error("급여 상세 로딩 실패:", err);
+            contentDiv.innerHTML = '<p style="color: red;">🚨 데이터 로딩 중 오류가 발생했습니다.</p>';
+        }
+    }
+
+    $(document).ready(loadSalaryDetail);
+</script>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>직원 정보 수정</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f8f8; }
+        .detail-card {
+            background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px; max-width: 550px; margin: auto;
+        }
+        h2 { border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px; color: #007bff;}
+        .info-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-bottom: 20px;}
+        .info-label { font-weight: bold; color: #555; }
+        .info-value { border-bottom: 1px dashed #ddd; padding-bottom: 5px; }
+
+        /* 폼 스타일 */
+        #updateForm label { display: block; margin-top: 10px; font-weight: bold; }
+        #updateForm input[type="text"], #updateForm select {
+            width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+        }
+        #updateForm button {
+            background-color: #28a745; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="detail-card">
+    <h2>👤 직원 정보 수정</h2>
+
+    <div id="loading" style="text-align: center;">데이터를 로드하는 중...</div>
+
+    <div id="employee-detail-content" style="display: none;">
+        <div class="info-grid">
+            <div class="info-label">사번</div><div class="info-value" id="empIdValue"></div>
+            <div class="info-label">이름</div><div class="info-value" id="empNameValue"></div>
+            <div class="info-label">입사일</div><div class="info-value" id="hireDateValue"></div>
+        </div>
+
+        <h3>수정 항목</h3>
+        <form id="updateForm">
+            <label for="dept_name">부서명:</label>
+            <input type="text" id="dept_name" name="dept_name" required>
+
+            <label for="position">직급:</label>
+            <input type="text" id="position" name="position" required>
+
+            <label for="status">재직 상태:</label>
+            <select id="status" name="status" required>
+                <option value="재직">재직</option>
+                <option value="휴직">휴직</option>
+                <option value="퇴사">퇴사</option>
+            </select>
+
+            <button type="submit">정보 수정 완료</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_BASE_URL = '/api/hr/employees';
+    let currentEmpId = null;
+
+    // URL 쿼리 파라미터에서 empId 가져오기
+    function getEmpIdFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('empId');
+    }
+
+    // 1. 상세 데이터 로드
+    async function loadEmployeeDetail() {
+        const empId = getEmpIdFromUrl();
+        currentEmpId = empId;
+
+        if (!empId) {
+            document.getElementById('loading').innerHTML = '<p style="color: red;">🚨 오류: 사번(Emp ID)이 전달되지 않았습니다.</p>';
+            return;
+        }
+
+        try {
+            const data = await $.ajax({
+                url: `${API_BASE_URL}/${empId}`,
+                method: 'GET',
+                dataType: 'json'
+            });
+
+            if (data && data.emp_id) {
+                // 기본 정보 채우기
+                document.getElementById('empIdValue').textContent = data.emp_id;
+                document.getElementById('empNameValue').textContent = data.emp_name;
+                document.getElementById('hireDateValue').textContent = data.hire_date;
+
+                // 폼 초기값 설정 (현재 값)
+                // 🚩 부서명 초기값 설정
+                document.getElementById('dept_name').value = data.dept_name;
+
+                document.getElementById('position').value = data.position;
+                document.getElementById('status').value = data.status;
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('employee-detail-content').style.display = 'block';
+
+            } else {
+                document.getElementById('loading').innerHTML = `<p class="error-message">사번 ${empId}에 대한 정보를 찾을 수 없습니다.</p>`;
+            }
+
+        } catch (err) {
+            console.error("직원 상세 로딩 실패:", err);
+            document.getElementById('loading').innerHTML = '<p style="color: red;">🚨 데이터 로딩 중 오류가 발생했습니다.</p>';
+        }
+    }
+
+    // 2. 폼 제출 (수정) 이벤트 처리
+    document.getElementById('updateForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // 🚩 부서명 값 가져오기
+        const dept_name = document.getElementById('dept_name').value;
+        const position = document.getElementById('position').value;
+        const status = document.getElementById('status').value;
+
+        // PUT 요청으로 서버에 수정된 데이터 전송
+        try {
+            const result = await $.ajax({
+                url: `${API_BASE_URL}/${currentEmpId}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    // 🚩 부서명 데이터 추가 전송
+                    dept_name: dept_name,
+                    position: position,
+                    status: status
+                })
+            });
+
+            if (result === true) {
+                alert('✅ 직원 정보가 성공적으로 수정되었습니다.');
+                // 부모 창 새로고침 (수정된 정보를 반영하기 위해)
+                if (window.opener && !window.opener.closed) {
+                    window.opener.location.reload();
+                }
+                window.close();
+            } else {
+                alert('❌ 정보 수정에 실패했습니다.');
+            }
+
+        } catch (error) {
+            console.error('정보 수정 실패:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        }
+    });
+
+
+    $(document).ready(loadEmployeeDetail);
+</script>
+</html>
