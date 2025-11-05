@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>작업지시서 상세</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+<h2>작업지시서 상세 정보</h2>
+
+<div id="detail-container">
+    <p>상세 정보를 불러오는 중입니다...</p>
+</div>
+
+<div id="action-container" style="margin-top: 20px;"></div>
+
+<script>
+    // 날짜 포맷 (YYYY-MM-DD)
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // 숫자 천단위 콤마
+    function numberFormat(num) {
+        if (num === null || num === undefined) return '0';
+        return parseInt(num).toLocaleString('ko-KR');
+    }
+
+    // === 팝업 로드 시 실행되는 메인 로직 ===
+    $(document).ready(async function() {
+        const container = $('#detail-container');
+        const actionContainer = $('#action-container');
+
+        try {
+            // 1. URL에서 order_id 추출
+            const urlParams = new URLSearchParams(window.location.search);
+            const order_id = urlParams.get('order_id');
+
+            if (!order_id) {
+                throw new Error('작업 지시서 ID가 없습니다.');
+            }
+
+            // 2. API 호출
+            const data = await $.ajax({
+                url: `/api/production/work_order/${order_id}`,
+                method: 'GET',
+                dataType: 'json'
+            });
+
+            // 3. HTML 생성 (스타일 없는 순수 HTML)
+            const progress = data.target_quantity > 0
+                ? Math.round((data.good_quantity / data.target_quantity) * 100)
+                : 0;
+
+            // addSale.html의 <label> 형식을 차용
+            let detailHtml = `
+                    <div>
+                        <label>작업지시번호: </label>
+                        <strong>${data.order_id}</strong>
+                    </div>
+                    <div>
+                        <label>상태: </label>
+                        <span>${data.order_status}</span>
+                    </div>
+                    <hr>
+                    <h4>기본 정보</h4>
+                    <div>
+                        <label>물품번호: </label>
+                        <span>${data.item_id}</span>
+                    </div>
+                    <div>
+                        <label>시작일: </label>
+                        <span>${formatDate(data.start_date)}</span>
+                    </div>
+                    <div>
+                        <label>완료일: </label>
+                        <span>${formatDate(data.due_date)}</span>
+                    </div>
+                    <hr>
+                    <h4>생산 수량</h4>
+                    <div>
+                        <label>목표수량: </label>
+                        <span>${numberFormat(data.target_quantity)}</span>
+                    </div>
+                    <div>
+                        <label>양품수량: </label>
+                        <span>${numberFormat(data.good_quantity)}</span>
+                    </div>
+                    <div>
+                        <label>불량수량: </label>
+                        <span>${numberFormat(data.defect_quantity)}</span>
+                    </div>
+                    <div>
+                        <label>진행률: </label>
+                        <span>${progress}%</span>
+                    </div>
+                    <hr>
+                `;
+
+            // 버튼 (스타일 없음)
+            let actionHtml = `
+                    <h4>연관 작업</h4>
+                    <input type="button" class="btn-register-result" data-order-id="${data.order_id}" value="생산 실적 등록">
+                    <input type="button" class="btn-register-defect" data-order-id="${data.order_id}" value="불량 등록">
+                    <input type="button" class="btn-view-lots" data-order-id="${data.order_id}" value="Lot 조회">
+                `;
+
+            // 4. 컨테이너에 HTML 삽입
+            container.html(detailHtml);
+            actionContainer.html(actionHtml);
+
+        } catch (error) {
+            console.error('상세 정보 로드 실패:', error);
+            container.html(`<p style="color:red;">데이터를 불러오는데 실패했습니다: ${error.message}</p>`);
+        }
+    });
+</script>
+
+</body>
+</html>
