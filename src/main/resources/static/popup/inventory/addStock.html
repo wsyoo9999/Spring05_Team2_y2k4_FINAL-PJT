@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>재고 추가</title>
+</head>
+<body>
+    <form method="POST" action="/api/inventory/stock/add" id="form">
+        <label>재고명
+            <input type="text" name="stock_name" required>
+        </label>
+
+        <label style="margin-left:10px">단가
+            <input type="number" name="unit_price" required>
+        </label>
+
+        <label><br>보관위치
+            <input type="text" name="storage_location" required>
+        </label>
+
+        <label style="margin-left:10px">유통기한(선택)
+            <input type="date" name="expiration_date">
+        </label>
+
+        <label><br>구분:
+            <select name="gubun">
+                <option value="0">원자재</option>
+                <option value="1">판매상품</option>
+            </select>
+        </label>
+
+        <div style="margin-top:10px; text-align:right;">
+            <button type="submit">등록</button>
+        </div>
+    </form>
+</body>
+</html>

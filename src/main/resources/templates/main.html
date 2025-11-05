@@ -176,7 +176,7 @@
         <a href="#" class="nav-link active" data-topnav="dashboard">대시보드</a>
         <a href="#" class="nav-link" data-topnav="sales">판매</a>
         <a href="#" class="nav-link" data-topnav="production">생산</a>
-        <a href="#" class="nav-link" data-topnav="inventory">재고</a>
+        <a href="#" class="nav-link" data-topnav="inventory">재고</a> 수정
         <a href="#" class="nav-link" data-topnav="reports">리포트</a>
         <a href="#" class="nav-link" data-topnav="settings">설정</a>
     </nav>
@@ -214,9 +214,9 @@
         <div class="accordion-item">
             <button class="accordion-header" >재고</button>
             <div class="accordion-content">
-                <button class="menu" data-file="item" data-fn="items_listAll" data-table="items">물품 목록</button>
-                <button class="menu" data-file="item" data-fn="inbound_listAll" data-table="inbound">입고</button>
-                <button class="menu" data-file="item" data-fn="outbound_listAll" data-table="outbound">출고</button>
+                <button class="menu" data-file="inventory" data-fn="stock_listAll" data-table="stock">재고 목록</button>
+                <button class="menu" data-file="inventory" data-fn="inbound_listAll" data-table="inbound">입고</button>
+                <button class="menu" data-file="inventory" data-fn="outbound_listAll" data-table="outbound">출고</button>
             </div>
         </div>
         <div class="accordion-item">
@@ -401,7 +401,7 @@
         const map = {
             sales:    { file: 'transaction', fn: 'sale_listAll' },
             production: { file: 'production', fn: 'work_order_listAll' },
-            item:  { file: 'item', fn: 'items_listAll' },
+            item:  { file: 'stock', fn: 'stock_listAll' }, /*수정*/
             reports: null, // 나중에 구현
             settings: null
         };

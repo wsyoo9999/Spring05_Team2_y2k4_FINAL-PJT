@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>입고 등록</title>
+</head>
+<body>
+    <form method="POST" action="/api/inventory/inbound/add" id="form">
+        <label>재고코드
+            <input type="number" id="stock_id" name="stock_id" required>
+        </label>
+
+        <label style="margin-left:10px">입고일
+            <input type="date" name="expiration_date" required>
+        </label>
+        <br>
+
+        <label>입고 수량
+            <input type="number" id="inbound_qty" name="inbound_qty" required>
+        </label>
+
+        <label style="margin-left:10px">입고 단가
+            <input type="number" id="unit_price" name="unit_price" required>
+        </label>
+
+        <br>
+        <label>총 금액
+            <input type="text" id="total_price" name="total_price" readonly>
+        </label>
+        <br>
+
+        <label>공급업체
+            <input type="text" name="supplier" required>
+        </label>
+
+        <label style="margin-left:10px">담당자
+            <input type="text" name="manager" required>
+        </label>
+
+        <label><br>비고<br>
+            <input type="text" name="remark">
+        </label>
+
+        <div style="margin-top:10px; text-align:right;">
+            <button type="submit">등록</button>
+        </div>
+    </form>
+
+    <script>
+        const qtyInput = document.getElementById('inbound_qty');
+        const priceInput = document.getElementById('unit_price');
+        const totalInput = document.getElementById('total_price');
+
+        function updateTotal() {
+            const qty = Number(qtyInput.value);
+            const price = Number(priceInput.value);
+
+            if (qty > 0 && price > 0) {
+                const total = qty * price;
+                // 숫자 포맷 (1,000 단위 콤마)
+                totalInput.value = total.toLocaleString('ko-KR');
+            } else {
+                totalInput.value = '';
+            }
+        }
+
+        // 입력이 변경될 때마다 총액 자동 업데이트
+        qtyInput.addEventListener('input', updateTotal);
+        priceInput.addEventListener('input', updateTotal);
+    </script>
+
+</body>
+</html>

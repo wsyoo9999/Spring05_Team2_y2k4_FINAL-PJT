@@ -1,0 +1,450 @@
+// =============================================물품=============================================
+
+
+// 물품 목록 전체 조회
+export async function stock_listAll() {
+    let table = `
+        <table border="1" style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th>재고 번호</th>
+                    <th>재고명</th>
+                    <th>수량(개)</th>
+                    <th>단가(원)</th>
+                    <th>재고 상태</th>
+                    <th>보관 위치</th>
+                    <th>유통기한</th>
+                    <th>구분</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    const data = await $.ajax({
+        url: '/api/inventory/stock',
+        method: 'GET',
+        dataType: 'json'
+    });
+
+    $.each(data, function (i, row) {
+        table += `
+            <tr>
+                <td>${row.stock_id}</td>
+                <td>${row.stock_name}</td>
+                <td>${Number(row.stock_qty).toLocaleString()}</td>
+                <td>${Number(row.unit_price).toLocaleString()}</td>
+                <td>${convertStatus(row.item_status)}</td>
+                <td>${row.storage_location}</td>
+                <td>${row.expiration_date}</td>
+                <td>${convertGubun(row.gubun)}</td>
+            </tr>
+        `;
+
+    });
+
+
+    table += `</tbody></table>
+              <div style="margin-top:10px; text-align:right;">
+                  <input type="button" data-action="add" data-file="inventory" data-fn="addStock" value="재고 추가"/>
+              </div>`;
+    return table
+}
+
+// 물품 목록 조건 검색 조회
+export async function stock_list(formData) {
+    let table = `
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th>재고 번호</th>
+                    <th>재고명</th>
+                    <th>수량(개)</th>
+                    <th>단가(원)</th>
+                    <th>재고 상태</th>
+                    <th>보관 위치</th>
+                    <th>유통기한</th>
+                    <th>구분</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    const data = await $.ajax({
+        url: '/api/inventory/stock',
+        method: 'GET',
+        dataType: 'json',
+        data: formData
+    });
+
+    $.each(data, function (i, row) {
+        table += `
+            <tr>
+                <td>${row.stock_id}</td>
+                <td>${row.stock_name}</td>
+                <td>$${Number(row.stock_qty).toLocaleString()}</td>
+                <td>${Number(row.unit_price).toLocaleString()}</td>
+                <td>${convertStatus(row.item_status)}</td>
+                <td>${row.storage_location}</td>
+                <td>${row.expiration_date}</td>
+                <td>${convertGubun(row.gubun)}</td>
+            </tr>
+        `;
+    });
+
+    table += `</tbody></table>
+              <div style="margin-top:10px; text-align:right;">
+                  <input type="button" data-action="add" data-file="inventory" data-fn="addStock" value="재고 추가"/>
+              </div>`;
+    return table;
+}
+
+export function stock_search_form() {
+    return `
+        <form data-file="stock" data-fn="items_list">
+            <label>물품명:</label>
+            <input type="text" name="stock_name" placeholder="예: 드릴" />
+
+            <label>상태:</label>
+            <select name="stock_status">
+                <option value="">전체</option>
+                <option value="0">정상</option>
+                <option value="1">불량</option>
+                <option value="2">폐기</option>
+                <option value="3">반납</option>
+                <option value="4">보류</option>
+            </select>
+
+            <label>보관위치:</label>
+            <input type="text" name="storage_location" placeholder="예: A-01-03" />
+
+            <input type="button" class="search_btn"
+                   data-file="item"
+                   data-fn="items_list"
+                   value="검색" />
+        </form>
+    `;
+}
+
+// 물품 상태 코드 > 한글 변환
+function convertStatus(code) {
+    switch (code) {
+        case 0: return "정상";
+        case 1: return "불량";
+        case 2: return "폐기";
+        case 3: return "반납";
+        case 4: return "보류";
+        default: return "-";
+    }
+}
+
+// 물품 상태 코드 > 한글 변환
+function convertGubun(code) {
+    switch (code) {
+        case 0: return "원자재";
+        case 1: return "판매상품";
+        default: return "-";
+    }
+}
+
+export function addStock(){
+    const url='./../popup/inventory/addStock.html';
+    const features = 'width=570,height=350,resizable=no,scrollbars=yes';
+    window.open(url,'add_stock',features).focus();
+}
+
+// =============================================입고=============================================
+
+// 입고 목록 전체 조회
+export async function inbound_listAll() {
+    let table = `
+        <table>
+            <thead>
+                <tr>
+                    <th>순번</th>
+                    <th>재고 코드</th>
+                    <th>입고일</th>
+                    <th>재고명</th>
+                    <th>수량(개)</th>
+                    <th>단가(원)</th>
+                    <th>총 금액(원)</th>
+                    <th>공급업체</th>
+                    <th>담당자</th>
+                    <th>비고</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    const data = await $.ajax({
+        url: '/api/inventory/inbound',
+        method: 'GET',
+        dataType: 'json',
+    });
+
+    $.each(data.rows || data, function (i, row) {
+        table += `
+            <tr>
+                <td>${row.inbound_order}</td>
+                <td>${row.stock_id}</td>
+                <td>${row.inbound_date}</td>
+                <td>${row.stock_name}</td>
+                <td>${Number(row.inbound_qty).toLocaleString()}</td>
+                <td>${Number(row.unit_price).toLocaleString()}</td>
+                <td>${Number(row.total_price).toLocaleString()}</td>
+                <td>${row.supplier}</td>
+                <td>${row.manager}</td>
+                <td>${row.remark}</td>
+            </tr>
+        `;
+    });
+
+    table += `</tbody></table>
+              <div style="margin-top:10px; text-align:right;">
+                  <input type="button" data-action="add" data-file="inventory" data-fn="addInbound" value="입고 등록"/>
+              </div>`;
+    return table;
+}
+
+// 입고 목록 조건 검색
+export async function inbound_list(formData) {
+    const data = await $.ajax({
+        url: '/api/inventory/inbound',
+        method: 'GET',
+        dataType: 'json',
+        data: formData
+    });
+
+    let table = `
+        <table>
+            <thead>
+                <tr>
+                    <th>순번</th>
+                    <th>재고 코드</th>
+                    <th>입고일</th>
+                    <th>재고명</th>
+                    <th>수량(개)</th>
+                    <th>단가(원)</th>
+                    <th>총 금액(원)</th>
+                    <th>공급업체</th>
+                    <th>담당자</th>
+                    <th>비고</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    $.each(data.rows || data, function (i, row) {
+        table += `
+            <tr>
+                <td>${row.inbound_order}</td>
+                <td>${row.stock_id}</td>
+                <td>${row.inbound_date}</td>
+                <td>${row.stock_name}</td>
+                <td>${Number(row.inbound_qty).toLocaleString()}</td>
+                <td>${Number(row.unit_price).toLocaleString()}</td>
+                <td>${Number(row.total_price).toLocaleString()}</td>
+                <td>${row.supplier}</td>
+                <td>${row.manager}</td>
+                <td>${row.remark}</td>
+            </tr>
+        `;
+    });
+
+    table += `</tbody></table>
+              <div style="margin-top:10px; text-align:right;">
+                  <input type="button" data-action="add" data-file="inventory" data-fn="addInbound" value="입고 등록"/>
+              </div>`;
+    return table;
+}
+
+export function inbound_search_form() {
+    return `
+        <form data-file="inbound" data-fn="inbound_list">
+            <select id="keywordType" name="keywordType">
+                <option value="inbound_id">입고 번호</option>
+                <option value="stock_id">재고 코드</option>
+                <option value="item_name">물품명</option>
+                <option value="supplier">공급업체</option>
+            </select>
+
+            <input id="keyword" type="number" name="keyword" placeholder="예: 3001"/>
+
+            <label>입고일:</label>
+            <input type="date" name="inbound_date" />
+
+            <label>소비기한:</label>
+            <input type="date" name="expand_date" />
+
+            <input type="button" class="search_btn"
+                   data-file="inbound"
+                   data-fn="inbound_list"
+                   value="검색" />
+        </form>
+        
+
+        <script>
+            const select = document.getElementById('keywordType');
+            const input = document.getElementById('keyword');
+
+            select.addEventListener('change', function() {
+                const selected = this.value;
+
+                if (selected === 'inbound_id' || selected === 'item_id') {
+                    input.type = 'number';
+                    input.placeholder = selected === 'inbound_id' ? '예: 3001' : '예: 1001';
+                } else if (selected === 'item_name' || selected === 'supplier') {
+                    input.type = 'text';
+                    input.placeholder = selected === 'item_name' ? '예: 드릴' : '예: 삼성상사';
+                }
+            });
+        </script>
+    `;
+}
+
+export function addInbound(){
+    const url='./../popup/inventory/addInbound.html';
+    const features = 'width=570,height=350,resizable=no,scrollbars=yes';
+    window.open(url,'add_inbound',features).focus();
+}
+
+
+// =============================================출고=============================================
+
+// 출고 목록 전체 조회
+export async function outbound_listAll() {
+    let table = `
+        <table>
+            <thead>
+                <tr>
+                    <th>출고 번호</th>
+                    <th>재고 코드</th>
+                    <th>출고일</th>
+                    <th>수량</th>
+                    <th>출고처</th>
+                    <th>담당자</th>
+                    <th>비고</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    const data = await $.ajax({
+        url: '/api/inventory/outbound',
+        method: 'GET',
+        dataType: 'json',
+    });
+
+    $.each(data.rows || data, function (i, row) {
+        table += `
+            <tr>
+                <td>${row.outbound_id}</td>
+                <td>${row.stock_id}</td>
+                <td>${row.outbound_date}</td>
+                <td>${Number(row.outbound_qty).toLocaleString()}</td>
+                <td>${row.outbound_location}</td>
+                <td>${row.manager}</td>
+                <td>${row.remark}</td>
+            </tr>
+        `;
+    });
+
+    table += `</tbody></table>
+              <div style="margin-top:10px; text-align:right;">
+                  <input type="button" data-action="add" data-file="inventory" data-fn="addInbound" value="출고 등록"/>
+              </div>`;
+    return table;
+}
+
+// 출고 목록 조건 검색
+export async function outbound_list(formData) {
+    const data = await $.ajax({
+        url: '/api/inventory/outbound',
+        method: 'GET',
+        dataType: 'json',
+        data: formData
+    });
+
+    let table = `
+        <table>
+            <thead>
+                <tr>
+                    <th>출고 번호</th>
+                    <th>재고 코드</th>
+                    <th>출고일</th>
+                    <th>수량</th>
+                    <th>출고처</th>
+                    <th>담당자</th>
+                    <th>비고</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    $.each(data.rows || data, function (i, row) {
+        table += `
+            <tr>
+                <td>${row.outbound_id}</td>
+                <td>${row.stock_id}</td>
+                <td>${row.outbound_date}</td>
+                <td>${Number(row.outbound_qty).toLocaleString()}</td>
+                <td>${row.outbound_location}</td>
+                <td>${row.manager}</td>
+                <td>${row.remark}</td>
+            </tr>
+        `;
+    });
+
+    table += `</tbody></table>
+              <div style="margin-top:10px; text-align:right;">
+                  <input type="button" data-action="add" data-file="inventory" data-fn="addOutbound" value="출고 등록"/>
+              </div>`;
+    return table;
+}
+
+export function outbound_search_form() {
+    return `
+        <form data-file="outbound" data-fn="outbound_list">
+            <select id="keywordType" name="keywordType">
+                <option value="outbound_id">출고 번호</option>
+                <option value="stock_id">재고 코드</option>
+                <option value="outbound_location">출고처</option>
+            </select>
+
+            <input id="keyword" type="number" name="keyword" placeholder="예: 2001"/>
+
+            <label>출고일:</label>
+            <input type="date" name="outbound_date" />
+
+            <input type="button" class="search_btn"
+                   data-file="outbound"
+                   data-fn="outbound_list"
+                   value="검색" />
+        </form>
+
+        <script>
+            const select = document.getElementById('keywordType');
+            const input = document.getElementById('keyword');
+
+            select.addEventListener('change', function() {
+                const selected = this.value;
+
+                // 숫자 검색 항목
+                if (selected === 'outbound_id' || selected === 'stock_id') {
+                    input.type = 'number';
+                    input.placeholder = selected === 'outbound_id' ? '예: 2001' : '예: 1001';
+                } 
+                // 문자 검색 항목
+                else if (selected === 'outbound_location') {
+                    input.type = 'text';
+                    input.placeholder = '예: 서울창고';
+                }
+            });
+        </script>
+    `;
+}
+
+export function addOutbound(){
+    const url='./../popup/inventory/addOutbound.html';
+    const features = 'width=570,height=350,resizable=no,scrollbars=yes';
+    window.open(url,'add_outbound',features).focus();
+}
