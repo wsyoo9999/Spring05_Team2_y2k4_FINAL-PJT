@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>작업지시서 추가</title>
+</head>
+<body>
+<form method="POST" action="/api/production/work_order/add" id="form">
+    <label>물품번호
+        <input type="text" name="item_id" required>
+    </label><br>
+    <label>시작일
+        <input type="date" name="start_date" required>
+    </label>
+    <label>완료일
+        <input type="date" name="due_date" required>
+    </label><br>
+    <label>목표수량
+        <input type="number" name="target_quantity" min="1" required>
+    </label><br>
+
+    <br>
+    <input type="submit" value="입력 완료">
+</form>
+
+<script>
+    const form = document.getElementById("form");
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const result = await $.ajax({
+            url: form.action,
+            method: 'POST',
+            dataType: 'json',
+            data: $(form).serialize()
+        });
+
+        if (result === true) {
+            alert('입력 성공');
+            // 부모 창에 갱신 신호 (선택)
+            // window.opener.location.reload(); // 부모 창 새로고침 (필요시)
+            window.close(); // 알림 확인 후 닫힘
+        } else {
+            alert('입력 실패');
+        }
+    })
+</script>
+</html>
