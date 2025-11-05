@@ -2,11 +2,34 @@
 const API_BASE_URL = '/api/hr';
 
 // ================================================================
+// 유틸리티 함수
+// ================================================================
+
+// 날짜 포맷 (YYYY-MM-DD)
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// 시간 포맷 (HH:MM)
+function formatTime(dateTimeString) {
+    if (!dateTimeString) return '-';
+    const time = dateTimeString.split('T')[1];
+    if (time) return time.substring(0, 5);
+    return '-';
+}
+
+// 숫자 천단위 콤마
+
+
+// ================================================================
 // 1. 직원 목록 (Employees)
 // ================================================================
 
-
-// 직원 목록 검색 폼
 export function employees_search_form() {
     const search_bar = `<form data-file="hr" data-fn="employees_list">
                             <label>정렬:
@@ -16,28 +39,35 @@ export function employees_search_form() {
                                     <option value="emp_name,asc">이름↑</option>
                                 </select>
                             </label>
-                            <label>검색:
-                                <input type="text" name="search_keyword" placeholder="이름/부서/직급 검색" />
+                            
+                            <label>이름:
+                                <input type="text" name="search_name" placeholder="이름 검색" />
                             </label>
+                            <label>부서:
+                                <input type="text" name="search_dept" placeholder="부서 검색" />
+                            </label>
+                            <label>직급:
+                                <input type="text" name="search_position" placeholder="직급 검색" />
+                            </label>
+                            
                             <button type="submit" data-action="search" class="search_btn">검색</button>
                         </form>`;
     return search_bar;
 }
 
-// 직원 목록 전체 조회
 export async function employees_listAll() {
     return await employees_fetch_data({});
 }
 
-// 직원 목록 조건 검색
 export async function employees_list(formData) {
     return await employees_fetch_data(formData);
 }
 
-// 직원 데이터 AJAX 호출 및 HTML 생성 공통 함수
 async function employees_fetch_data(formData) {
     const sort = formData.sort || 'emp_id,asc';
-    const search_keyword = formData.search_keyword || '';
+    const search_name = formData.search_name || '';
+    const search_dept = formData.search_dept || '';
+    const search_position = formData.search_position || '';
 
     let table = `<table>
                     <thead>
@@ -55,12 +85,14 @@ async function employees_fetch_data(formData) {
 
     try {
         const data = await $.ajax({
-            url: `${API_BASE_URL}/employees`, // HRController 호출
+            url: `${API_BASE_URL}/employees`,
             method: 'GET',
             dataType: 'json',
             data: {
                 sort: sort,
-                search_keyword: search_keyword
+                search_name: search_name,
+                search_dept: search_dept,
+                search_position: search_position
             }
         });
 
@@ -68,10 +100,19 @@ async function employees_fetch_data(formData) {
             $.each(data, function (i, row) {
                 tbody += `<tr>
                             <td>${row.emp_id || ''}</td>
-                            <td>${row.emp_name || ''}</td>
+                            <td>
+                                <strong 
+                                    data-action="detail" 
+                                    data-file="hr" 
+                                    data-fn="employee_detail_popup"
+                                    data-emp-id="${row.emp_id}" 
+                                    style="cursor: pointer; color: #007bff; text-decoration: underline;">
+                                    ${row.emp_name || ''}
+                                </strong>
+                            </td>
                             <td>${row.dept_name || ''}</td>
                             <td>${row.position || ''}</td>
-                            <td>${row.hire_date || ''}</td>
+                            <td>${formatDate(row.hire_date) || ''}</td>
                             <td>${row.status || ''}</td>
                             <td>${row.phone_number || ''}</td>
                           </tr>`;
@@ -82,41 +123,39 @@ async function employees_fetch_data(formData) {
         tbody += `</tbody></table>`;
         return table + tbody;
     } catch (err) {
-        // [테스트용]: 실제 API 연결이 끊긴 경우 더미 데이터로 대체
-        console.error("employees_list 로딩 실패 (더미 데이터 사용):", err);
-        const filteredData = dummy_employees.filter(emp =>
-            (emp.emp_name.toLowerCase().includes(search_keyword.toLowerCase()) ||
-                emp.dept_name.toLowerCase().includes(search_keyword.toLowerCase()) ||
-                emp.position.toLowerCase().includes(search_keyword.toLowerCase()))
-        );
-
-        $.each(filteredData, function (i, row) {
-            tbody += `<tr>
-                        <td>${row.emp_id || ''}</td>
-                        <td>${row.emp_name || ''}</td>
-                        <td>${row.dept_name || ''}</td>
-                        <td>${row.position || ''}</td>
-                        <td>${row.hire_date || ''}</td>
-                        <td>${row.status || ''}</td>
-                        <td>${row.phone_number || ''}</td>
-                      </tr>`;
-        });
-        tbody += `</tbody></table>`;
-        return table + tbody;
+        console.error("employees_list 로딩 실패:", err);
+        return table + `<tbody><tr><td colspan="7" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
     }
+}
+
+// 직원 상세 조회 및 수정 팝업 함수
+export function employee_detail_popup(e) {
+    // 팝업 URL에 전달할 사번(empId) 가져오기
+    const empId = e.dataset.empId;
+    if (!empId) {
+        console.error("Employee ID가 없습니다.");
+        return;
+    }
+
+    const url = `./popup/employeeDetail.html?empId=${empId}`; // ID를 쿼리 파라미터로 전달
+    const features = 'width=600,height=450,resizable=yes,scrollbars=yes';
+    window.open(url, `employee_detail_${empId}`, features);
 }
 
 
 // ================================================================
-// 2. 근태 현황 (Attendance)
+// 근태 현황 (Attendance) -
 // ================================================================
 
-// 근태 현황 검색 폼
 export function attendance_search_form() {
-    const today = new Date().toISOString().substring(0, 7); // YYYY-MM
+    const today = new Date().toISOString().substring(0, 10);
+
     return `<form data-file="hr" data-fn="attendance_list">
-                <label>월 선택:
-                    <input type="month" name="search_month" value="${today}" />
+                <label>시작일:
+                    <input type="date" name="start_date" value="" />
+                </label>
+                <label>종료일:
+                    <input type="date" name="end_date" value="${today}" />
                 </label>
                 <label>검색:
                     <input type="text" name="search_keyword" placeholder="이름/상태 검색" />
@@ -125,74 +164,94 @@ export function attendance_search_form() {
             </form>`;
 }
 
-// 근태 현황 목록 전체 조회 (현재 월 데이터)
 export async function attendance_listAll() {
-    const today = new Date().toISOString().substring(0, 7);
-    const formData = { search_month: today };
+    const today = new Date().toISOString().substring(0, 10);
+    const formData = { end_date: today };
     return await attendance_fetch_data(formData);
 }
 
-// 근태 현황 조건 검색
 export async function attendance_list(formData) {
     return await attendance_fetch_data(formData);
 }
 
-// 근태 데이터 AJAX 호출 및 HTML 생성 공통 함수
 async function attendance_fetch_data(formData) {
     let table = `<table>
                     <thead>
                         <tr>
-                            <th>날짜</th>
+                            <th>근무일자</th>
                             <th>사번</th>
                             <th>이름</th>
                             <th>출근 시간</th>
                             <th>퇴근 시간</th>
                             <th>근무 상태</th>
                         </tr>
-                    </thead>`;
+                    </thead>`; // 🚩 초과 근무 컬럼 삭제 (colspan 7 -> 6)
     let tbody = '<tbody>';
+
+    const start_date = formData.start_date || '';
+    const end_date = formData.end_date || '';
 
     try {
         const data = await $.ajax({
-            url: `${API_BASE_URL}/attendance`, // HRController 호출
+            url: `${API_BASE_URL}/attendance`,
             method: 'GET',
             dataType: 'json',
             data: {
-                month_start_date: formData.search_month ? formData.search_month + '-01' : null,
+                start_date: start_date,
+                end_date: end_date,
                 search_keyword: formData.search_keyword
             }
         });
 
         if (data && data.length > 0) {
             $.each(data, function (i, row) {
-                const check_in_time = row.check_in ? row.check_in.substring(0, 5) : '-';
-                const check_out_time = row.check_out ? row.check_out.substring(0, 5) : '-';
+                const check_in_time = formatTime(row.check_in);
+                const check_out_time = formatTime(row.check_out);
 
                 let status_class = '';
-                if (row.status === '지각' || row.status === '결근') {
+                if (row.attendance_status === '지각' || row.attendance_status === '결근') {
                     status_class = 'status-alert';
                 }
 
-                tbody += `<tr>
-                            <td>${row.att_date || '-'}</td>
+                // 🚨 data-action="detail"로 통일
+                tbody += `<tr 
+                            data-action="detail" 
+                            data-file="hr" 
+                            data-fn="attendance_detail_popup"
+                            data-attendance-id="${row.attendance_id}"
+                            style="cursor: pointer;">
+                            <td>${formatDate(row.work_date) || '-'}</td>
                             <td>${row.emp_id || '-'}</td>
                             <td>${row.emp_name || '-'}</td>
                             <td>${check_in_time}</td>
                             <td>${check_out_time}</td>
-                            <td class="${status_class}"><strong>${row.status || '-'}</strong></td>
-                          </tr>`;
+                            <td class="${status_class}"><strong>${row.attendance_status || '-'}</strong></td>
+                          </tr>`; // 🚩 초과 근무 필드 제거
             });
         } else {
-            tbody += '<tr><td colspan="6" style="text-align:center;">데이터가 없습니다.</td></tr>';
+            tbody += '<tr><td colspan="6" style="text-align:center;">데이터가 없습니다.</td></tr>'; // 🚩 colspan 7 -> 6
         }
         tbody += `</tbody></table>`;
         return table + tbody;
 
     } catch (err) {
         console.error("attendance_list 로딩 실패:", err);
-        // 오류 발생 시 오류 메시지 반환
-        return table + `<tbody><tr><td colspan="6" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
+        return table + `<tbody><tr><td colspan="6" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`; // 🚩 colspan 7 -> 6
     }
+}
+
+// 6. 근태 기록 수정 팝업 함수
+export function attendance_detail_popup(e) {
+    const attendanceId = e.dataset.attendanceId;
+    if (!attendanceId) {
+        console.error("Attendance ID가 없습니다.");
+        return;
+    }
+
+    // URL은 그대로 attendanceEdit.html을 사용 (수정 기능이 목적이므로)
+    const url = `./popup/attendanceEdit.html?attendanceId=${attendanceId}`;
+    const features = 'width=500,height=400,resizable=yes,scrollbars=yes';
+    window.open(url, `attendance_detail_${attendanceId}`, features);
 }
 
 
@@ -200,27 +259,121 @@ async function attendance_fetch_data(formData) {
 // 3. 급여 대장 (Salary)
 // ================================================================
 
-// 급여 대장 검색 폼
 export function salary_search_form() {
     const currentYear = new Date().getFullYear();
+    const months = [
+        { value: '', label: '전체 월' },
+        { value: 1, label: '1월' },
+        { value: 2, label: '2월' },
+        { value: 3, label: '3월' },
+        { value: 4, label: '4월' },
+        { value: 5, label: '5월' },
+        { value: 6, label: '6월' },
+        { value: 7, label: '7월' },
+        { value: 8, label: '8월' },
+        { value: 9, label: '9월' },
+        { value: 10, label: '10월' },
+        { value: 11, label: '11월' },
+        { value: 12, label: '12월' }
+    ];
+
+    const monthOptions = months.map(m => `<option value="${m.value}">${m.label}</option>`).join('');
+
     return `<form data-file="hr" data-fn="salary_list">
-                <label>년도 선택:
+                <label>년도 검색:
                     <input type="number" name="search_year" value="${currentYear}" placeholder="년도 입력 (예: 2025)" />
+                </label>
+                <label>월 선택:
+                    <select name="search_month">
+                        ${monthOptions}
+                    </select>
                 </label>
                 <button type="submit" data-action="search" class="search_btn">검색</button>
             </form>`;
 }
 
-// 급여 대장 목록 전체 조회 (더미 메시지)
-export function salary_listAll() {
-    // 실제 API 호출을 위한 뼈대
-    // return salary_fetch_data({});
-    return Promise.resolve("<h3>급여 대장 목록</h3><p>API 및 상세 구현 필요 (현재는 더미 메시지)</p>");
+export async function salary_listAll() {
+    const currentYear = new Date().getFullYear();
+    const formData = { search_year: currentYear, search_month: '' };
+    return await salary_fetch_data(formData);
 }
-// 급여 대장 조건 검색 (더미 메시지)
-export function salary_list(formData) {
-    // 실제 API 호출을 위한 뼈대
-    // return salary_fetch_data(formData);
-    const year = formData.search_year || 'N/A';
-    return Promise.resolve(`<h3>급여 대장 검색 결과 (년도: ${year})</h3><p>API 및 상세 구현 필요 (현재는 더미 메시지)</p>`);
+
+export async function salary_list(formData) {
+    return await salary_fetch_data(formData);
+}
+
+async function salary_fetch_data(formData) {
+    const search_year = formData.search_year || null;
+    const search_month = formData.search_month || null;
+
+    let table = `<table>
+                    <thead>
+                        <tr>
+                            <th>지급일자</th>
+                            <th>사번</th>
+                            <th>이름</th>
+                            <th>기본급</th>
+                            <th>수당</th>
+                            <th>총 지급액</th>
+                            <th>총 공제액</th>
+                            <th>실수령액</th>
+                            <th>은행명</th>
+                        </tr>
+                    </thead>`;
+    let tbody = '<tbody>';
+
+    try {
+        const data = await $.ajax({
+            url: `${API_BASE_URL}/salary`,
+            method: 'GET',
+            dataType: 'json',
+            data: { search_year: search_year, search_month: search_month }
+        });
+
+        if (data && data.length > 0) {
+            $.each(data, function (i, row) {
+
+                tbody += `<tr>
+                            <td>${formatDate(row.payment_date) || '-'}</td>
+                            <td>${row.emp_id || '-'}</td>
+                            <td>${row.emp_name || '-'}</td>
+                            <td class="num">${numberFormat(row.basic_salary)}</td>
+                            <td class="num">${numberFormat(row.allowance)}</td>
+                            <td class="num"><strong>${numberFormat(row.total_gross)}</strong></td>
+                            <td class="num" style="color: red;">${numberFormat(row.deduction_amount)}</td>
+                            <td class="num">
+                                <strong 
+                                    data-action="detail" 
+                                    data-file="hr" 
+                                    data-fn="salary_detail_popup"
+                                    data-salary-id="${row.salary_id}" 
+                                    style="cursor: pointer; color: blue; text-decoration: underline;">
+                                    ${numberFormat(row.total_pay)}
+                                </strong>
+                            </td>
+                            <td>${row.bank_name || '-'}</td>
+                          </tr>`;
+            });
+        } else {
+            tbody += '<tr><td colspan="9" style="text-align:center;">데이터가 없습니다.</td></tr>';
+        }
+        tbody += `</tbody></table>`;
+        return table + tbody;
+
+    } catch (err) {
+        console.error("salary_list 로딩 실패:", err);
+        return table + `<tbody><tr><td colspan="9" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
+    }
+}
+
+export function salary_detail_popup(e) {
+    const salaryId = e.dataset.salaryId;
+    if (!salaryId) {
+        console.error("Salary ID가 없습니다.");
+        return;
+    }
+
+    const url = `./popup/salaryDetail.html?salaryId=${salaryId}`;
+    const features = 'width=500,height=500,resizable=yes,scrollbars=yes';
+    window.open(url, `salary_detail_${salaryId}`, features);
 }
