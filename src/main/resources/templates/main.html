@@ -488,19 +488,41 @@
 </script>
 
 <script type="module">
-    // [!! 수정 !!] 원래의 유연한 구조로 복구
     const list = document.querySelectorAll('.menu');
     const searchContainer = document.querySelector('.search-form');
     const table = document.getElementById('table'); // table 컨테이너
 
     searchContainer.addEventListener('click', searchClick);
-    table.addEventListener('click', tableClick); // 'table' 컨테이너가 'add' 버튼 클릭도 감지
+    table.addEventListener('click', tableClick); // table 컨테이너가 add 버튼 클릭도 감지
+
+    // 왼쪽 메뉴(file) 클릭 시 활성화할 상단 탭(topnav) 지도
+    const fileToTopnavMap = {
+        'finance': 'finance',
+        'transaction': 'sales',
+        'production': 'production',
+        'inventory': 'inventory',
+        'hr': 'hr'
+        // 'dashboard'는 왼쪽 메뉴에 없으므로 여기에 포함되지 않음
+    };
 
     async function listClick(e){
         const menu = e.currentTarget;
         const file_name = menu.dataset.file;
         const fn_name = menu.dataset.fn;
         const table_name = menu.dataset.table;
+
+        // 상단 탭 활성화 로직 추가
+        const topnavKey = fileToTopnavMap[file_name]; // 1. 지도에서 짝을 찾음
+        if (topnavKey) {
+            // 2. 모든 상단 탭의 active를 우선 제거
+            document.querySelectorAll('.nav-links .nav-link').forEach(a => a.classList.remove('active'));
+
+            // 3. 일치하는 상단 탭을 찾아서 active 추가
+            const topNavLink = document.querySelector(`.nav-link[data-topnav="${topnavKey}"]`);
+            if (topNavLink) {
+                topNavLink.classList.add('active');
+            }
+        }
 
         searchContainer.innerHTML = '';
         table.innerHTML = ''; // 테이블과 버튼 영역을 모두 비움
@@ -595,6 +617,7 @@
     }
 
     // 상단 메뉴 ↔ 왼쪽 아코디언 연동
+    // [!! 수정 !!] 상단 메뉴 ↔ 왼쪽 아코디언 연동 로직 수정
     (function() {
         const map = {
             dashboard: { file: 'inventory', fn: 'stock_listAll' },
@@ -611,6 +634,7 @@
             const link = e.target.closest('.nav-link');
             if (!link) return;
 
+            // 1. 상단 메뉴 Active 처리
             document.querySelectorAll('.nav-links .nav-link').forEach(a => a.classList.remove('active'));
             link.classList.add('active');
 
@@ -618,10 +642,33 @@
             const target = map[key];
             if (!target) return;
 
+            // 2. 클릭할 메뉴 아이템 탐색
             const btn = document.querySelector(`.menu[data-file="${target.file}"][data-fn="${target.fn}"]`);
-            if (btn) btn.click();
+
+            if (btn) {
+                // 3. 해당 메뉴 아이템을 감싸는 아코디언 헤더와 콘텐츠 영역 탐색
+                const headerToOpen = btn.closest('.accordion-item').querySelector('.accordion-header');
+                const contentToOpen = btn.closest('.accordion-content');
+
+                if (headerToOpen && contentToOpen) {
+                    // 4. 해당 아코디언이 이미 열려있지 않다면 수동으로
+                    if (contentToOpen.style.display !== 'block') {
+                        // (1) 다른 모든 아코디언을 닫습니다.
+                        document.querySelectorAll('.accordion-content').forEach(item => {
+                            item.style.display = 'none';
+                        });
+                        document.querySelectorAll('.accordion-header').forEach(item => {
+                            item.classList.remove('active');
+                        });
+                        // (2) 현재 아코디언을 엽니다.
+                        contentToOpen.style.display = 'block';
+                        headerToOpen.classList.add('active');
+                    }
+                }
+
+                // 5. 마지막으로, JS로 내용을 로드합니다.
+                btn.click();
+            }
         });
     })();
 </script>
-</body>
-</html>
