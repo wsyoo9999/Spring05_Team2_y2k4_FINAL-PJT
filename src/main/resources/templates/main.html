@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <title>세로형 아코디언 + 10x10 표</title>
+    <title>Y2K4 ERP 대시보드</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         /* 기본 리셋 */
         * {
@@ -13,208 +15,382 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            padding: 20px;
-        }
-
-        /* 좌우 레이아웃 */
-        .erp {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-            /* 화면이 좁아지면 아래로 떨어지도록 */
-            flex-wrap: wrap;
-        }
-
-        /* 왼쪽: 아코디언 */
-        .accordion-container {
-            width: 300px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        .accordion-item { border-bottom: 1px solid #ddd; }
-        .accordion-header {
-            width: 100%;
-            padding: 15px;
-            text-align: left;
-            background-color: #f1f1f1;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .accordion-header:hover { background-color: #e1e1e1; }
-        .accordion-content {
-            padding: 15px;
-            background-color: #fafafa;
-            display: none;
-            font-size: 14px;
-            color: #333;
-        }
-
-        /* 오른쪽: 표 영역이 남은 공간을 차지 */
-        .results {
-            flex: 1 1 400px; /* 최소 400px, 남은 공간은 모두 차지 */
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            padding: 16px;
-            overflow: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        td, th {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 12px;
-        }
-
-        <!-- 메뉴바 -->
         :root {
-            --nav-h: 56px;
-            --nav-bg: #0f172a;     /* 슬레이트-900 느낌 */
-            --nav-fg: #e5e7eb;     /* gray-200 */
-            --nav-fg-dim: #cbd5e1; /* gray-300 */
-            --nav-accent: #60a5fa; /* blue-400 */
+            --primary-color: #4A90E2; /* ERP의 주요 액션 색상 */
+            --secondary-color: #50B86C; /* 보조 색상 (예: 성공) */
+            --bg-light: #F8F9FA; /* 밝은 배경 */
+            --bg-dark: #343A40; /* 어두운 배경 (네비게이션 등) */
+            --text-dark: #333333; /* 본문 텍스트 */
+            --text-light: #FFFFFF; /* 밝은 텍스트 */
+            --border-color: #E0E0E0; /* 테두리 색상 */
+            --card-bg: #FFFFFF;
+            --nav-h: 64px;
+            --sidebar-w: 280px; /* 사이드바 너비 변수 추가 */
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
         }
 
         /* 상단 바 */
         .nav-bar {
+            height: var(--nav-h);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             position: sticky;
             top: 0;
             z-index: 1000;
-            height: var(--nav-h);
-            background: var(--nav-bg);
-            color: var(--nav-fg);
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.25);
         }
         .nav-brand {
             display: flex;
             align-items: center;
             gap: 10px;
             font-weight: 700;
-            letter-spacing: .2px;
+            font-size: 22px;
+            color: var(--primary-color);
         }
         .nav-brand .nav-logo {
-            width: 28px; height: 28px; border-radius: 6px;
-            background: linear-gradient(135deg,#3b82f6,#22d3ee);
-            display: inline-block;
+            width: 32px; height: 32px; border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text-light);
         }
-
         .nav-spacer { flex: 1; }
-
-        /* 링크 영역 */
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 15px;
         }
         .nav-link {
             display: inline-flex;
             align-items: center;
-            height: 36px;
-            padding: 0 12px;
-            border-radius: 8px;
-            color: var(--nav-fg-dim);
+            height: 40px;
+            padding: 0 15px;
+            border-radius: 6px;
+            color: rgba(255,255,255,0.7);
             text-decoration: none;
-            font-size: 14px;
-            transition: background .2s, color .2s;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background 0.2s, color 0.2s;
         }
-        .nav-link:hover { color: var(--nav-fg); background: rgba(255,255,255,.08); }
-        .nav-link.active { color: var(--nav-accent); background: rgba(96,165,250,.12); }
-
-        /* 우측 아이콘들 */
+        .nav-link:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
+        .nav-link.active { color: var(--text-light); background: var(--primary-color); }
         .nav-right {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-left: 8px;
+            gap: 10px;
+            margin-left: 20px;
         }
         .nav-icon-btn {
-            width: 36px; height: 36px;
-            border: 0; border-radius: 8px;
+            width: 40px; height: 40px;
+            border: none;
+            border-radius: 50%;
             background: transparent;
-            color: var(--nav-fg-dim);
+            color: rgba(255,255,255,0.7);
             cursor: pointer;
-            transition: background .2s, color .2s;
+            transition: background 0.2s, color 0.2s;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .nav-icon-btn:hover { color: var(--nav-fg); background: rgba(255,255,255,.08); }
+        .nav-icon-btn:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
 
+        /* 메인 콘텐츠 영역 */
+        .main-container {
+            display: flex;
+        }
 
+        /* 왼쪽: 아코디언 */
+        .accordion-container {
+            width: var(--sidebar-w);
+            background-color: var(--card-bg);
+            flex-shrink: 0;
+            height: calc(100vh - var(--nav-h));
+            position: sticky;
+            top: var(--nav-h);
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+        }
+        .accordion-item {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .accordion-item:last-child {
+            border-bottom: none;
+        }
+        .accordion-header {
+            width: 100%;
+            padding: 15px 20px;
+            text-align: left;
+            background-color: var(--card-bg);
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .accordion-header:hover { background-color: var(--bg-light); }
+        .accordion-header i {
+            transition: transform 0.3s;
+        }
+        .accordion-header.active i {
+            transform: rotate(90deg);
+        }
+        .accordion-content {
+            padding: 10px 20px;
+            background-color: #fcfcfc;
+            display: none;
+            overflow: hidden;
+        }
+        .accordion-content button.menu {
+            display: block;
+            width: 100%;
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            background: none;
+            border: none;
+            text-align: left;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .accordion-content button.menu:hover {
+            background-color: rgba(74, 144, 226, 0.1);
+            color: var(--primary-color);
+        }
+        .accordion-content button.menu.selected {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            font-weight: 500;
+        }
 
-        /* 본문 상단 여백 (고정바 높이만큼) */
-        body { padding-top: 0; }
+        /* 오른쪽: 결과 영역 */
+        .results {
+            flex: 1;
+            padding: 20px;
+            min-height: calc(100vh - var(--nav-h));
+            background-color: var(--bg-light);
+        }
+
+        .content-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 표 스타일 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: var(--bg-light);
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        td.actions {
+            text-align: center;
+            width: 120px;
+        }
+        td.actions button {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            margin: 0 5px;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+        td.actions button:hover {
+            color: #3A7BD5;
+        }
+        th:last-child {
+            text-align: center;
+        }
+
+        /* 검색 폼 스타일 */
+        .search-form {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        .search-form .form-group {
+            flex: 1 1 200px;
+            min-width: 150px;
+        }
+        .search-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+            font-size: 13px;
+        }
+        .search-form input[type="text"],
+        .search-form select,
+        .search-form input[type="date"] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 14px;
+            color: var(--text-dark);
+            transition: border-color 0.2s;
+            box-sizing: border-box; /* [수정] date 인풋 깨짐 방지 */
+        }
+        .search-form input[type="text"]:focus,
+        .search-form select:focus,
+        .search-form input[type="date"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        .search-form button[type="submit"] {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            align-self: flex-end;
+        }
+        .search-form button[type="submit"]:hover {
+            background-color: #3A7BD5;
+        }
+
+        /* [신규] .js 파일들이 생성할 버튼을 위한 스타일 */
+        .table-actions-header {
+            display: flex;
+            justify-content: flex-end; /* 버튼을 우측으로 정렬 */
+            margin-bottom: 15px; /* 테이블과의 간격 */
+        }
+        .action-button {
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: inline-flex; /* 아이콘과 텍스트 정렬 */
+            align-items: center;
+            gap: 8px; /* 아이콘과 텍스트 사이 간격 */
+        }
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: #3A7BD5; }
     </style>
 </head>
 <body>
 <header class="nav-bar">
     <div class="nav-brand">
-        <span class="nav-logo" aria-hidden="true"></span>
-        <span>My ERP</span>
+        <span class="nav-logo" aria-hidden="true"><i class="fas fa-cube"></i></span>
+        <span>Y2K4 ERP</span>
     </div>
 
     <div class="nav-spacer"></div>
 
     <nav class="nav-links" id="navLinks">
-        <a href="#" class="nav-link active" data-topnav="dashboard">대시보드</a>
-        <a href="#" class="nav-link" data-topnav="sales">판매</a>
-        <a href="#" class="nav-link" data-topnav="production">생산</a>
-        <a href="#" class="nav-link" data-topnav="inventory">재고</a>
-        <a href="#" class="nav-link" data-topnav="reports">리포트</a>
-        <a href="#" class="nav-link" data-topnav="settings">설정</a>
+        <a href="#" class="nav-link active" data-topnav="dashboard"><i class="fas fa-tachometer-alt"></i> 대시보드</a>
+        <a href="#" class="nav-link" data-topnav="finance"><i class="fas fa-calculator"></i> 재무/회계</a>
+        <a href="#" class="nav-link" data-topnav="sales"><i class="fas fa-chart-line"></i> 판매/구매</a>
+        <a href="#" class="nav-link" data-topnav="production"><i class="fas fa-industry"></i> 생산/제조</a>
+        <a href="#" class="nav-link" data-topnav="inventory"><i class="fas fa-boxes"></i> 재고</a>
+        <a href="#" class="nav-link" data-topnav="hr"><i class="fas fa-users"></i> 인사</a>
+        <a href="#" class="nav-link" data-topnav="reports"><i class="fas fa-file-alt"></i> 리포트</a>
+        <a href="#" class="nav-link" data-topnav="settings"><i class="fas fa-cog"></i> 설정</a>
     </nav>
 
     <div class="nav-right">
-        <button class="nav-icon-btn" title="알림" aria-label="알림">🔔</button>
-        <button class="nav-icon-btn" title="프로필" aria-label="프로필">👤</button>
+        <button class="nav-icon-btn" title="알림" aria-label="알림"><i class="fas fa-bell"></i></button>
+        <button class="nav-icon-btn" title="프로필" aria-label="프로필"><i class="fas fa-user-circle"></i></button>
     </div>
 </header>
 
-<div class="erp">
-    <!-- 왼쪽: 아코디언 -->
+<div class="main-container">
     <div class="accordion-container">
         <div class="accordion-item">
-            <button class="accordion-header">재무/회계</button>
+            <button class="accordion-header">
+                재무/회계 <i class="fas fa-chevron-right"></i>
+            </button>
             <div class="accordion-content">
                 <button class="menu" data-file="finance" data-fn="documents_listAll" data-table="documents">결재 문서 관리</button>
                 <button class="menu" data-file="finance" data-fn="budget_listAll" data-table="budget">예산 관리</button>
                 <button class="menu" data-file="finance" data-fn="slips_listAll" data-table="slips">회계 전표 관리</button>
             </div>
-<!--            button class 기존에 매출, 지출을 없애고 결재 문서 관리, 예산 관리, 회계 전표 관리로 변경 1105 육현수 -->
         </div>
         <div class="accordion-item">
-            <button class="accordion-header">판매/구매</button>
+            <button class="accordion-header">
+                판매/구매 <i class="fas fa-chevron-right"></i>
+            </button>
             <div class="accordion-content">
                 <button class="menu" data-file="transaction" data-fn="sale_listAll" data-table="sale">판매</button>
                 <button class="menu" data-file="transaction" data-fn="purchase_listAll" data-table="purchase">구매</button>
             </div>
         </div>
         <div class="accordion-item">
-            <button class="accordion-header">생산/제조</button>
+            <button class="accordion-header">
+                생산/제조 <i class="fas fa-chevron-right"></i>
+            </button>
             <div class="accordion-content">
                 <button class="menu" data-file="production" data-fn="work_order_listAll" data-table="work_order">작업 지시서</button>
                 <button class="menu" data-file="production" data-fn="bom_listAll"   data-table="bom">자재 명세서</button>
             </div>
         </div>
         <div class="accordion-item">
-            <button class="accordion-header" >재고</button>
+            <button class="accordion-header">
+                재고 <i class="fas fa-chevron-right"></i>
+            </button>
             <div class="accordion-content">
                 <button class="menu" data-file="inventory" data-fn="stock_listAll" data-table="stock">재고 목록</button>
                 <button class="menu" data-file="inventory" data-fn="inbound_listAll" data-table="inbound">입고</button>
@@ -222,21 +398,35 @@
             </div>
         </div>
         <div class="accordion-item">
-            <button class="accordion-header">인사</button>
+            <button class="accordion-header">
+                인사 <i class="fas fa-chevron-right"></i>
+            </button>
             <div class="accordion-content">
                 <button class="menu" data-file="hr" data-fn="employees_listAll" data-table="employees">직원 목록</button>
-
                 <button class="menu" data-file="hr" data-fn="attendance_listAll" data-table="attendance">근태 현황</button>
-
                 <button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button>
             </div>
         </div>
     </div>
 
     <div class="results">
-        <div class="section-title">test</div>
-        <div id="search"></div>             <!-- 검색 UI 출력 위치-->
-        <div id="table"></div>           <!-- DB 결과 출력 위치-->
+        <div class="search-form">
+        </div>
+
+        <div class="content-card">
+            <div class="section-title">
+                <span>재고 목록</span>
+            </div>
+
+            <div id="table">
+                <table>
+                    <thead><tr><th>품목 코드</th><th>...</th><th>관리</th></tr></thead>
+                    <tbody><tr><td>ITEM-001</td><td>...</td><td class="actions"><button><i class="fas fa-info-circle"></i></button></td></tr></tbody>
+                </table>
+            </div>
+
+
+        </div>
     </div>
 </div>
 
@@ -248,24 +438,61 @@
             const content = this.nextElementSibling;
             if (content.style.display === 'block') {
                 content.style.display = 'none';
+                this.classList.remove('active');
             } else {
                 document.querySelectorAll('.accordion-content').forEach(item => {
                     item.style.display = 'none';
                 });
+                document.querySelectorAll('.accordion-header').forEach(item => {
+                    item.classList.remove('active');
+                });
                 content.style.display = 'block';
+                this.classList.add('active');
             }
         });
     });
 
+    // 좌측 메뉴 클릭 시 'selected' 클래스 토글
+    document.querySelectorAll('.accordion-content .menu').forEach(menuBtn => {
+        menuBtn.addEventListener('click', function() {
+            document.querySelectorAll('.accordion-content .menu').forEach(btn => btn.classList.remove('selected'));
+            this.classList.add('selected');
+            const sectionTitle = document.querySelector('.section-title span');
+            if (sectionTitle) {
+                sectionTitle.textContent = this.textContent;
+            }
+        });
+    });
+
+    // 초기 로딩 시
+    document.addEventListener('DOMContentLoaded', () => {
+        const initialMenu = document.querySelector('.menu[data-file="inventory"][data-fn="stock_listAll"]');
+        if (initialMenu) {
+            initialMenu.classList.add('selected');
+            const sectionTitle = document.querySelector('.section-title span');
+            if (sectionTitle) {
+                sectionTitle.textContent = initialMenu.textContent;
+            }
+            const content = initialMenu.closest('.accordion-content');
+            if (content) {
+                content.style.display = 'block';
+                const header = content.closest('.accordion-item').querySelector('.accordion-header');
+                if (header) {
+                    header.classList.add('active');
+                }
+            }
+        }
+    });
 </script>
+
 <script type="module">
-
+    // [!! 수정 !!] 원래의 유연한 구조로 복구
     const list = document.querySelectorAll('.menu');
-    const search = document.getElementById('search');
-    const table = document.getElementById('table');
+    const searchContainer = document.querySelector('.search-form');
+    const table = document.getElementById('table'); // table 컨테이너
 
-    search.addEventListener('click',searchClick)
-    table.addEventListener('click',tableClick)
+    searchContainer.addEventListener('click', searchClick);
+    table.addEventListener('click', tableClick); // 'table' 컨테이너가 'add' 버튼 클릭도 감지
 
     async function listClick(e){
         const menu = e.currentTarget;
@@ -273,22 +500,20 @@
         const fn_name = menu.dataset.fn;
         const table_name = menu.dataset.table;
 
-        search.innerHTML = '';
-        table.innerHTML = '';
+        searchContainer.innerHTML = '';
+        table.innerHTML = ''; // 테이블과 버튼 영역을 모두 비움
 
         try{
-            const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
-
+            const module = await import(`./js/${file_name}.js`);
             const search_bar = table_name+'_search_form';
-            const buildTable = module[fn_name];//버튼의 id와 같은 이름의 함수 설정
+            const buildTable = module[fn_name];
             const buildSearch = module[search_bar];
 
-            const tableResult = await buildTable(); //함수의 리턴값은 완전한 html의 테이블 구조
+            const tableResult = await buildTable(); // 테이블 + 버튼 HTML
             const searchUI = await buildSearch();
 
-
-            table.innerHTML = tableResult;
-            search.innerHTML = searchUI;
+            table.innerHTML = tableResult; // 테이블과 버튼을 함께 삽입
+            searchContainer.innerHTML = searchUI;
         }
         catch(err){
             console.error(err);
@@ -298,113 +523,85 @@
         btn.addEventListener('click',listClick)
     });
 
-    //===================================================================
-    //=======================위는 아코디언 메뉴 이벤트============================
-
-
     async function searchClick(e){
-        const search_btn = e.target.closest('[data-action]');
+        const search_btn = e.target.closest('[data-action="search"]');
         if (!search_btn) return;
-        if (search_btn.dataset.action!=='search') return;    //search_btn값이 없다면(= 검색버튼이 아닌 다른 부분의 클릭) 무시
-
-
-        e.preventDefault(); //새로고침 방지
-
-        console.log(search_btn);
+        e.preventDefault();
 
         try{
-
-            const file_name = search_btn.dataset.file;  //현재 검색이 어느 테이블 검색인지
-            const fn_name = search_btn.dataset.fn;       //어느 함수를 실행할지, 확장을 위해 생성
-
-            const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
-
+            const file_name = search_btn.dataset.file;
+            const fn_name = search_btn.dataset.fn;
+            const module = await import(`./js/${file_name}.js`);
             const buildTable = module[fn_name];
-
-            const form = search_btn.closest('form');   //<div id="search"></div> 내의 form 태그 가져옴
-            const formData = Object.fromEntries(new FormData(form).entries());      //form 태그의 입력값들을 iterator로 가져옴,그리고 이를 객체로 바꿈
-            console.log(formData);
-            const tableResult = await buildTable(formData); //함수의 리턴값은 완전한 html의 테이블 구조
-            table.innerHTML = tableResult;
+            const form = search_btn.closest('.search-form');
+            const formData = Object.fromEntries(new FormData(form).entries());
+            table.innerHTML = await buildTable(formData); // 테이블 + 버튼을 함께 업데이트
         }
         catch(err){
             console.error(err);
         }
     }
+
     async function tableClick(e){
         const table_event = e.target.closest('[data-action]');
         if (!table_event) return;
 
         console.log(table_event);
+
+        // 'add' 케이스가 'table' 컨테이너에서 다시 처리됨
         switch(table_event.dataset.action){
             case 'edit':
+                // (구현 필요)
                 break;
             case 'add':
-                await addRecord(table_event);
+                await addRecord(table_event); // .js가 만든 '추가' 버튼 처리
                 break;
             case 'detail':
                 await viewDetail(table_event);
                 break;
         }
-
-
     }
-    async function addRecord(e){
-        const file_name = e.dataset.file;  //현재 검색이 어느 테이블 검색인지
-        const fn_name = e.dataset.fn;       //어느 함수를 실행할지, 확장을 위해 생성
 
+    async function addRecord(button){
+        const file_name = button.dataset.file;
+        const fn_name = button.dataset.fn;
+
+        if (!file_name || !fn_name) {
+            console.error('Add button is missing data-file or data-fn');
+            return;
+        }
 
         try{
-            const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
-
+            const module = await import(`./js/${file_name}.js`);
             const addMenu = module[fn_name];
-
             addMenu();
         }catch(err){
             console.error(err);
         }
-
     }
 
     async function viewDetail(e){
-        const file_name = e.dataset.file;  //현재 검색이 어느 테이블 검색인지
-        const fn_name = e.dataset.fn;       //어느 함수를 실행할지, 확장을 위해 생성
-
-
+        const file_name = e.dataset.file;
+        const fn_name = e.dataset.fn;
         try{
-            const module = await import(`./js/${file_name}.js`);  //해당 파일의 모든 함수들 가져오기
-
+            const module = await import(`./js/${file_name}.js`);
             const addMenu = module[fn_name];
-
             addMenu(e);
         }catch(err){
             console.error(err);
         }
     }
 
-
-    // 햄버거 토글
-    (function() {
-        const navLinks  = document.getElementById('navLinks');
-
-        // 링크 클릭 시 활성화 표시 + 모바일에서 닫기
-        navLinks?.addEventListener('click', (e) => {
-            const link = e.target.closest('.nav-link');     //클릭한 메뉴바에서 가장 가까운 nav-link 테그 지정
-            if (!link) return;
-            // active 관리
-            navLinks.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));  //일단 모든 메뉴 active 삭제
-            link.classList.add('active');       //클릭한 메뉴만 활성화
-        });
-    })();
-
-    // (선택) 상단 메뉴 ↔ 왼쪽 아코디언 연동 예시
-    // data-topnav 값과 좌측 버튼의 data-file, data-fn 등을 매핑해서 자동 클릭
+    // 상단 메뉴 ↔ 왼쪽 아코디언 연동
     (function() {
         const map = {
+            dashboard: { file: 'inventory', fn: 'stock_listAll' },
+            finance:  { file: 'finance', fn: 'documents_listAll' },
             sales:    { file: 'transaction', fn: 'sale_listAll' },
             production: { file: 'production', fn: 'work_order_listAll' },
-            item:  { file: 'stock', fn: 'stock_listAll' }, /*수정*/
-            reports: null, // 나중에 구현
+            inventory:  { file: 'inventory', fn: 'stock_listAll' },
+            hr:       { file: 'hr', fn: 'employees_listAll' },
+            reports: null,
             settings: null
         };
 
@@ -412,16 +609,17 @@
             const link = e.target.closest('.nav-link');
             if (!link) return;
 
+            document.querySelectorAll('.nav-links .nav-link').forEach(a => a.classList.remove('active'));
+            link.classList.add('active');
+
             const key = link.dataset.topnav;
             const target = map[key];
             if (!target) return;
 
-            // 좌측 아코디언에서 해당 버튼을 찾아 클릭
             const btn = document.querySelector(`.menu[data-file="${target.file}"][data-fn="${target.fn}"]`);
             if (btn) btn.click();
         });
     })();
 </script>
-
 </body>
 </html>
