@@ -6,7 +6,6 @@ import lombok.Data;
 @Data
 public class Stock {
     private int stock_id;                // 재고번호 (PK)
-    private int item_id;                // 물품 코드(FK)
     private String stock_name;           // 재고명
     private int stock_qty;               // 수량
     private int unit_price;             // 판매 단가

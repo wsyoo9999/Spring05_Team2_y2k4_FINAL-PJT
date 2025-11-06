@@ -29,7 +29,9 @@ export async function stock_listAll() {
     $.each(data, function (i, row) {
         table += `
             <tr>
-                <td>${row.stock_id}</td>
+                <td id="stock_id" data-value="${row.stock_id}" style="cursor: pointer;">
+                    ${row.stock_id}
+                </td>
                 <td>${row.stock_name}</td>
                 <td>${Number(row.stock_qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
@@ -39,7 +41,6 @@ export async function stock_listAll() {
                 <td>${convertGubun(row.gubun)}</td>
             </tr>
         `;
-
     });
 
 
@@ -79,7 +80,9 @@ export async function stock_list(formData) {
     $.each(data, function (i, row) {
         table += `
             <tr>
-                <td>${row.stock_id}</td>
+                <td id="stock_id" data-value="${row.stock_id}" style="cursor: pointer;">
+                    ${row.stock_id}
+                </td>
                 <td>${row.stock_name}</td>
                 <td>$${Number(row.stock_qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
@@ -146,12 +149,27 @@ function convertGubun(code) {
     }
 }
 
+// 재고 등록 팝업 호출
 export function addStock(){
     const url='./../popup/inventory/addStock.html';
     const features = 'width=570,height=350,resizable=no,scrollbars=yes';
     window.open(url,'add_stock',features).focus();
 }
 
+
+// 재고 조회 클릭 감지 후 viewStock 호출
+$(document).on('click', '#stock_id', function() {
+    const value = $(this).data('value');
+    viewStock(value);
+});
+
+// 재고 조회 팝업 호출
+export function viewStock(value){
+    console.log('클릭된 값:', value)
+    const url = `./../popup/inventory/viewStock.html?id=${value}`;
+    const features = 'width=570,height=350,resizable=no,scrollbars=yes';
+    window.open(url,'view_stock',features).focus();
+}
 // =============================================입고=============================================
 
 // 입고 목록 전체 조회
@@ -184,7 +202,9 @@ export async function inbound_listAll() {
     $.each(data.rows || data, function (i, row) {
         table += `
             <tr>
-                <td>${row.inbound_order}</td>
+                <td id="inbound_order" data-value="${row.inbound_order}" style="cursor: pointer;">
+                    ${row.inbound_order}
+                </td>
                 <td>${row.stock_id}</td>
                 <td>${row.inbound_date}</td>
                 <td>${row.stock_name}</td>
@@ -236,7 +256,9 @@ export async function inbound_list(formData) {
     $.each(data.rows || data, function (i, row) {
         table += `
             <tr>
-                <td>${row.inbound_order}</td>
+                <td id="inbound_order" data-value="${row.inbound_order}" style="cursor: pointer;">
+                    ${row.inbound_order}
+                </td>
                 <td>${row.stock_id}</td>
                 <td>${row.inbound_date}</td>
                 <td>${row.stock_name}</td>
@@ -280,7 +302,7 @@ export function inbound_search_form() {
                    data-fn="inbound_list"
                    value="검색" />
         </form>
-        
+
 
         <script>
             const select = document.getElementById('keywordType');
@@ -301,12 +323,27 @@ export function inbound_search_form() {
     `;
 }
 
+
+// 입고 등록 팝업 호출
 export function addInbound(){
     const url='./../popup/inventory/addInbound.html';
     const features = 'width=570,height=350,resizable=no,scrollbars=yes';
     window.open(url,'add_inbound',features).focus();
 }
 
+// 입고 조회 클릭 감지 후 viewInbound 호출
+$(document).on('click', '#inbound_order', function() {
+    const value = $(this).data('value');
+    viewInbound(value);
+});
+
+// 입고 조회 팝업 호출
+export function viewInbound(value){
+    console.log('클릭된 값:', value)
+    const url = `./../popup/inventory/viewInbound.html?id=${value}`;
+    const features = 'width=570,height=350,resizable=no,scrollbars=yes';
+    window.open(url,'view_inbound',features).focus();
+}
 
 // =============================================출고=============================================
 
@@ -337,7 +374,9 @@ export async function outbound_listAll() {
     $.each(data.rows || data, function (i, row) {
         table += `
             <tr>
-                <td>${row.outbound_id}</td>
+                <td id="outbound_id" data-value="${row.outbound_id}" style="cursor: pointer;">
+                    ${row.outbound_id}
+                </td>
                 <td>${row.stock_id}</td>
                 <td>${row.outbound_date}</td>
                 <td>${Number(row.outbound_qty).toLocaleString()}</td>
@@ -383,7 +422,9 @@ export async function outbound_list(formData) {
     $.each(data.rows || data, function (i, row) {
         table += `
             <tr>
-                <td>${row.outbound_id}</td>
+                <td id="outbound_id" data-value="${row.outbound_id}" style="cursor: pointer;">
+                    ${row.outbound_id}
+                </td>
                 <td>${row.stock_id}</td>
                 <td>${row.outbound_date}</td>
                 <td>${Number(row.outbound_qty).toLocaleString()}</td>
@@ -443,8 +484,23 @@ export function outbound_search_form() {
     `;
 }
 
+// 출고 등록 팝업 호출
 export function addOutbound(){
     const url='./../popup/inventory/addOutbound.html';
     const features = 'width=570,height=350,resizable=no,scrollbars=yes';
     window.open(url,'add_outbound',features).focus();
+}
+
+// 출고 조회 클릭 감지 후 viewOutbound 호출
+$(document).on('click', '#outbound_id', function() {
+    const value = $(this).data('value');
+    viewOutbound(value);
+});
+
+// 재고 조회 팝업 호출
+export function viewOutbound(value){
+    console.log('클릭된 값:', value)
+    const url = `./../popup/inventory/viewOutbound.html?outbound_id=${value}`;
+    const features = 'width=570,height=350,resizable=no,scrollbars=yes';
+    window.open(url,'view_outbound',features).focus();
 }
