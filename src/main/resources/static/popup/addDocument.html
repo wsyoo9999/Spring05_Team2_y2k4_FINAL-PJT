@@ -3,76 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <title>결재 문서 등록</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; }
-        .form-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h2 { margin-top: 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="number"], textarea {
+        :root {
+            --primary-color: #4A90E2;
+            --bg-light: #F8F9FA;
+            --text-dark: #333333;
+            --border-color: #E0E0E0;
+            --card-bg: #FFFFFF;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding: 20px;
+            margin: 0;
+        }
+        .form-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 20px 30px;
+        }
+        h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea {
             width: 100%;
             padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 15px;
+            color: var(--text-dark);
+            transition: border-color 0.2s;
+            box-sizing: border-box; /* 패딩 포함 크기 계산 */
         }
-        textarea { resize: vertical; height: 100px; }
-        .button-group { text-align: right; margin-top: 20px; }
-        button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button[type="submit"] { background-color: #007bff; color: white; }
-        button[type="submit"]:hover { background-color: #0056b3; }
-        #close-button { background-color: #6c757d; color: white; margin-left: 10px; }
-        #close-button:hover { background-color: #5a6268; }
+        .form-group textarea {
+            resize: vertical;
+            height: 100px;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        .submit-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .submit-button:hover {
+            background-color: #3A7BD5;
+        }
     </style>
 </head>
 <body>
 
-<div class="form-container">
-    <h2>결재 문서 등록</h2>
+<div class="form-card">
+    <h2><i class="fas fa-plus-circle"></i> 결재 문서 등록</h2>
 
     <form id="document-register-form">
+        <div class="form-group">
+            <label for="title">제목</label>
+            <input type="text" id="title" name="title" required>
+        </div>
 
-        <label for="title">제목</label>
-        <input type="text" id="title" name="title" required>
+        <div class="form-group">
+            <label for="requesterId">기안자 ID</label>
+            <input type="number" id="requesterId" name="requesterId" value="100" required>
+        </div>
 
-        <label for="requesterId">기안자 ID</label>
-        <input type="number" id="requesterId" name="requesterId" value="100" required>
-
-        <label for="content">내용</label>
-        <textarea id="content" name="content" required></textarea>
+        <div class="form-group">
+            <label for="content">내용</label>
+            <textarea id="content" name="content" required></textarea>
+        </div>
 
         <div class="button-group">
-            <button type="submit">등록</button>
-            <button type="button" id="close-button" onclick="window.close()">닫기</button>
+            <button type="submit" class="submit-button">
+                <i class="fas fa-check"></i> 등록
+            </button>
         </div>
     </form>
 </div>
 
 <script>
-    // 폼 제출 이벤트 핸들러
+    // addWorkOrder.html과 동일한 AJAX 제출 방식으로 변경
     $('#document-register-form').on('submit', async function(e) {
         e.preventDefault();
 
-        // 폼 데이터를 객체로 변환
+        // 폼 데이터를 JSON 객체로 직렬화
+        // FinanceController가 @RequestBody를 사용하므로 JSON으로 전송
         const formData = {
             title: $('#title').val(),
-            requesterId: $('#requesterId').val(),
-            content: $('#content').val()
+            requesterId: parseInt($('#requesterId').val()), // 숫자로 변환
+            content: $('#content').val(),
+            slipsList: [] // 예시: 전표 목록 (지금은 비워둠)
         };
 
-        // 부모 창의 finance.js에 정의된 API 호출 함수를 사용
-        // (단, 부모 창의 함수를 자식 창에서 호출하기 위해서는 별도의 팝업 통신 로직 필요.
-        // 여기서는 부모 창에 정의된 finance.js를 직접 사용한다고 가정)
+        try {
+            const result = await $.ajax({
+                url: '/api/finance/documents', // FinanceController의 @PostMapping("/documents")
+                method: 'POST',
+                contentType: 'application/json', // JSON으로 전송
+                data: JSON.stringify(formData), // 데이터를 JSON 문자열로 변환
+                dataType: 'json'
+            });
 
-        const result = await window.opener.finance.handleDocumentRegistration(formData);
-
-        if (result) {
-            // 등록 성공 시 팝업 닫고 부모 창 목록 새로고침
-            if (window.opener && window.opener.listClick) {
-                // listClick 함수가 목록을 새로고침 한다고 가정
-                window.opener.listClick({ dataset: { file: 'finance', fn: 'documents_listAll' }});
+            if (result && result.docId) {
+                alert('✅ 결재 문서가 성공적으로 등록되었습니다. (ID: ' + result.docId + ')');
+                // 부모 창 새로고침
+                if (window.opener && !window.opener.closed) {
+                    const financeMenu = window.opener.document.querySelector('.menu[data-file="finance"][data-fn="documents_listAll"]');
+                    if(financeMenu) {
+                        financeMenu.click(); // 해당 메뉴를 다시 클릭하여 목록 갱신
+                    } else {
+                        window.opener.location.reload();
+                    }
+                }
+                window.close();
+            } else {
+                alert('❌ 문서 등록에 실패했습니다.');
             }
-            window.close();
+
+        } catch (error) {
+            console.error('등록 실패:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다.');
         }
     });
 </script>

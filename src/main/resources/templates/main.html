@@ -275,6 +275,7 @@
             font-size: 13px;
         }
         .search-form input[type="text"],
+        .search-form input[type="number"],
         .search-form select,
         .search-form input[type="date"] {
             width: 100%;
@@ -284,10 +285,11 @@
             font-size: 14px;
             color: var(--text-dark);
             transition: border-color 0.2s;
-            box-sizing: border-box; /* [수정] date 인풋 깨짐 방지 */
+            box-sizing: border-box; /* date 인풋 깨짐 방지 */
         }
         .search-form input[type="text"]:focus,
         .search-form select:focus,
+        .search-form input[type="number"]:focus,
         .search-form input[type="date"]:focus {
             border-color: var(--primary-color);
             outline: none;

@@ -4,25 +4,28 @@
 
 const API_BASE_URL = '/api/finance';
 
-// --- 1. 결재 문서 목록 (Documents List) ---
+// 1. 결재 문서 목록
 
 // 결재 문서 검색 폼
 export function documents_search_form() {
-    const today = new Date().toISOString().substring(0, 10);
-    const search_bar = `<form data-file="finance" data-fn="documents_list">
-                            <label>상태:
-                                <select name="status">
-                                    <option value="">전체</option>
-                                    <option value="PENDING">대기</option>
-                                    <option value="APPROVED">승인</option>
-                                    <option value="REJECTED">반려</option>
-                                </select>
-                            </label>
-                            <label>기안자 ID:
-                                <input type="number" name="requesterId" placeholder="기안자 ID" />
-                            </label>
-                            <button type="submit" data-action="search" class="search_btn">검색</button>
-                        </form>`;
+    const search_bar = `
+        <div class="form-group">
+            <label for="doc_status">상태</label>
+            <select id="doc_status" name="status">
+                <option value="">전체</option>
+                <option value="PENDING">대기</option>
+                <option value="APPROVED">승인</option>
+                <option value="REJECTED">반려</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="requesterId">기안자 ID</label>
+            <input type="number" id="requesterId" name="requesterId" placeholder="기안자 ID" />
+        </div>
+        <button type="submit" data-action="search" data-file="finance" data-fn="documents_list" class="search_btn">
+             <i class="fas fa-search"></i> 검색
+        </button>
+    `;
     return search_bar;
 }
 
@@ -41,10 +44,15 @@ async function documents_fetch_data(formData) {
     const requesterId = formData.requesterId || '';
     const status = formData.status || '';
 
-    let table = `<div style="text-align:right; margin-bottom:10px;">
-                    <button data-action="add" data-file="finance" data-fn="registerDocument">문서 등록</button>
-                 </div>
-                 <table>
+    const actionRow = `
+        <div class="table-actions-header">
+            <button class="action-button btn-primary" data-action="add" data-file="finance" data-fn="registerDocument">
+                <i class="fas fa-plus-circle"></i> 결재 문서 등록
+            </button>
+        </div>
+    `;
+
+    let table = `<table>
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -53,7 +61,7 @@ async function documents_fetch_data(formData) {
                             <th>기안일</th>
                             <th>상태</th>
                             <th>결재자ID</th>
-                            <th>기능</th>
+                            <th style="text-align: center;">기능</th>
                         </tr>
                     </thead>`;
     let tbody = '<tbody>';
@@ -75,13 +83,19 @@ async function documents_fetch_data(formData) {
                             <td>${row.docId}</td>
                             <td>${row.title || ''}</td>
                             <td>${row.requesterId || ''}</td>
-                            <td>${row.requestDate || ''}</td>
+                            <td>${formatDate(row.requestDate) || ''}</td>
                             <td><strong>${row.status || ''}</strong></td>
                             <td>${row.approverId || '-'}</td>
-                            <td>
-                                <button data-action="detail" data-file="finance" data-fn="getDocument" data-id="${row.docId}">상세</button>
-                                <button data-action="edit" data-file="finance" data-fn="updateDocument" data-id="${row.docId}">수정</button>
-                                <button data-action="delete" data-file="finance" data-fn="deleteDocument" data-id="${row.docId}">삭제</button>
+                            <td class="actions">
+                                <button data-action="detail" data-file="finance" data-fn="getDocument" data-id="${row.docId}" title="상세">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
+                                <button data-action="edit" data-file="finance" data-fn="updateDocument" data-id="${row.docId}" title="수정">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button data-action="delete" data-file="finance" data-fn="deleteDocument" data-id="${row.docId}" title="삭제">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </td>
                           </tr>`;
             });
@@ -89,7 +103,9 @@ async function documents_fetch_data(formData) {
             tbody += '<tr><td colspan="7" style="text-align:center;">결재 문서가 없습니다.</td></tr>';
         }
         tbody += `</tbody></table>`;
-        return table + tbody;
+
+        return actionRow + table + tbody;
+
     } catch (err) {
         console.error("documents_list 로딩 실패:", err);
         return table + `<tbody><tr><td colspan="7" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
@@ -97,23 +113,24 @@ async function documents_fetch_data(formData) {
 }
 
 
-// --- 2. 예산 계정 조회 (Budget) ---
+// 2. 예산 계정 조회
 
-// 예산 계정 검색 폼 (코드별 조회)
+// 예산 계정 검색 폼
 export function budget_search_form() {
-    const search_bar = `<form data-file="finance" data-fn="budget_list">
-                            <label>계정 코드:
-                                <input type="text" name="acctCode" placeholder="예산 계정 코드 (예: 401)" />
-                            </label>
-                            <button type="submit" data-action="search" class="search_btn">검색</button>
-                        </form>`;
+    const search_bar = `
+        <div class="form-group">
+            <label for="acctCode">계정 코드</label>
+            <input type="text" id="acctCode" name="acctCode" placeholder="예산 계정 코드 (예: 401)" />
+        </div>
+        <button type="submit" data-action="search" data-file="finance" data-fn="budget_list" class="search_btn">
+            <i class="fas fa-search"></i> 검색
+        </button>
+    `;
     return search_bar;
 }
 
 // 예산 계정 전체/조건 조회 (API 7번 기반)
 export async function budget_listAll() {
-    // 실제로는 전체 리스트를 조회하는 API가 필요하지만,
-    // 현재는 상세 조회 API (7번)만 있으므로 더미 메시지 반환.
     return Promise.resolve("<h3>예산 관리</h3><p>전체 계정 목록 조회 기능은 API 구현이 필요합니다. 상세 검색을 이용해 주세요.</p>");
 }
 
@@ -146,8 +163,8 @@ export async function budget_list(formData) {
             tbody += `<tr>
                         <td>${row.acctCode}</td>
                         <td>${row.acctName || ''}</td>
-                        <td>${row.annualBudget ? row.annualBudget.toLocaleString() : '0'}</td>
-                        <td><strong>${row.remains ? row.remains.toLocaleString() : '0'}</strong></td>
+                        <td>${row.annualBudget ? row.annualBudget.toLocaleString() : '0'} 원</td>
+                        <td><strong>${row.remains ? row.remains.toLocaleString() : '0'} 원</strong></td>
                       </tr>`;
         } else {
             tbody += `<tr><td colspan="4" style="text-align:center;">계정 코드가 ${acctCode}인 데이터가 없습니다.</td></tr>`;
@@ -162,16 +179,19 @@ export async function budget_list(formData) {
 }
 
 
-// --- 3. 회계 전표 상세 조회 (Slips) ---
+// 3. 회계 전표 상세 조회
 
-// 회계 전표 검색 폼 (ID별 조회)
+// 회계 전표 검색 폼
 export function slips_search_form() {
-    const search_bar = `<form data-file="finance" data-fn="slips_list">
-                            <label>전표 ID:
-                                <input type="number" name="slipId" placeholder="전표 ID 입력" />
-                            </label>
-                            <button type="submit" data-action="search" class="search_btn">검색</button>
-                        </form>`;
+    const search_bar = `
+        <div class="form-group">
+            <label for="slipId">전표 ID</label>
+            <input type="number" id="slipId" name="slipId" placeholder="전표 ID 입력" />
+        </div>
+        <button type="submit" data-action="search" data-file="finance" data-fn="slips_list" class="search_btn">
+            <i class="fas fa-search"></i> 검색
+        </button>
+    `;
     return search_bar;
 }
 
@@ -195,7 +215,7 @@ export async function slips_list(formData) {
                             <th>차변 금액</th>
                             <th>대변 금액</th>
                             <th>전송 상태</th>
-                            <th>기능</th>
+                            <th style="text-align: center;">기능</th>
                         </tr>
                     </thead>`;
     let tbody = '<tbody>';
@@ -213,11 +233,13 @@ export async function slips_list(formData) {
                         <td>${row.slipId}</td>
                         <td>${row.docId || '-'}</td>
                         <td>${row.acctCode || '-'}/${row.acctName || '-'}</td>
-                        <td>${row.debitAmount ? row.debitAmount.toLocaleString() : '0'}</td>
-                        <td>${row.creditAmount ? row.creditAmount.toLocaleString() : '0'}</td>
+                        <td>${row.debitAmount ? row.debitAmount.toLocaleString() : '0'} 원</td>
+                        <td>${row.creditAmount ? row.creditAmount.toLocaleString() : '0'} 원</td>
                         <td><strong>${row.transferStatus || '-'}</strong></td>
-                        <td>
-                            <button data-action="edit" data-file="finance" data-fn="updateTransferStatus" data-id="${row.slipId}">상태 업데이트</button>
+                        <td class="actions">
+                            <button data-action="edit" data-file="finance" data-fn="updateTransferStatus" data-id="${row.slipId}" title="상태 업데이트">
+                                <i class="fas fa-edit"></i>
+                            </button>
                         </td>
                       </tr>`;
         } else {
@@ -235,9 +257,12 @@ export async function slips_list(formData) {
 
 // --- 4. 기타 CRUD 및 액션 함수 (tableClick에 연결) ---
 
-// API 1. 결재 문서 등록 (더미)
+// [수정] API 1. 결재 문서 등록 (팝업)
 export function registerDocument() {
-    alert("결재 문서 등록 폼 팝업을 띄우는 기능 구현 예정");
+    const url = './../popup/addDocument.html';
+    // [수정] 팝업 크기 변경
+    const features = 'width=600,height=550,resizable=no,scrollbars=yes';
+    window.open(url, 'add_Document', features).focus();
 }
 
 // API 2. 결재 문서 수정 (더미)
@@ -276,4 +301,14 @@ export function getDocument(e) {
 export function updateTransferStatus(e) {
     const slipId = e.dataset.id;
     alert(`전표 ID ${slipId}의 ERP 전송 상태를 업데이트하는 팝업/기능 구현 예정`);
+}
+
+// 유틸리티
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
