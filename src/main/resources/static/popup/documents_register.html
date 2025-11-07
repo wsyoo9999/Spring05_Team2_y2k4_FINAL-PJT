@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>결재 문서 등록</title>
+    <style>
+        /* (documents_detail.html과 동일한 스타일 사용) */
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f8f8f8; }
+        .detail-card {
+            background: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 30px; max-width: 650px; margin: auto;
+        }
+        h2 { border-bottom: 3px solid #007bff; padding-bottom: 10px; margin-bottom: 25px; color: #007bff; }
+        #registerForm label { display: block; margin-top: 15px; font-weight: bold; color: #333; }
+        #registerForm input[type="text"], #registerForm textarea, #registerForm input[type="number"] {
+            width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; resize: vertical;
+        }
+        #registerForm button {
+            background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 25px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="detail-card">
+    <h2>➕ 신규 결재 문서 등록</h2>
+
+    <form id="registerForm">
+        <label for="reg_title">제목:</label>
+        <input type="text" id="reg_title" name="title" required>
+
+        <label for="reg_requesterId">기안자 ID:</label>
+        <input type="number" id="reg_requesterId" name="requesterId" required value="100"> <label for="reg_content">문서 내용:</label>
+        <textarea id="reg_content" name="content" rows="5" required></textarea>
+
+        <input type="hidden" id="reg_slipsList" name="slipsList" value='[{"acctCode":"501", "debitAmount": 100000}, {"acctCode":"101", "creditAmount": 100000}]'>
+
+        <button type="submit">결재 문서 등록</button>
+    </form>
+</div>
+
+<script>
+    const API_BASE_URL = '/api/finance/documents';
+
+    // 폼 제출 (등록) 이벤트 처리 (API 1번)
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // 폼 데이터 수집
+        const docData = {
+            title: document.getElementById('reg_title').value,
+            requesterId: parseInt(document.getElementById('reg_requesterId').value),
+            content: document.getElementById('reg_content').value,
+            // 더미 전표 목록 (실제는 동적 생성 필요)
+            slipsList: JSON.parse(document.getElementById('reg_slipsList').value)
+        };
+
+        try {
+            const result = await $.ajax({
+                url: API_BASE_URL,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(docData)
+            });
+
+            if (result && result.docId) {
+                alert(`✅ 결재 문서가 성공적으로 등록되었습니다. (ID: ${result.docId})`);
+                // 부모 창 새로고침 및 팝업 닫기
+                if (window.opener && !window.opener.closed) {
+                    window.opener.location.reload();
+                }
+                window.close();
+            } else {
+                alert('❌ 문서 등록에 실패했습니다.');
+            }
+
+        } catch (error) {
+            console.error('문서 등록 실패:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다. (콘솔 확인)');
+        }
+    });
+</script>
+</html>
