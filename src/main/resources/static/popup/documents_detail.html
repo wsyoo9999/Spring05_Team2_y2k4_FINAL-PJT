@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>결재 문서 상세/수정</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f8f8f8; }
+        .detail-card {
+            background: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 30px; max-width: 650px; margin: auto;
+        }
+        h2 { border-bottom: 3px solid #007bff; padding-bottom: 10px; margin-bottom: 25px; color: #007bff; }
+        h3 { margin-top: 30px; color: #333; }
+        .info-grid { display: grid; grid-template-columns: 1fr 3fr; gap: 15px; margin-bottom: 20px;}
+        .info-label { font-weight: bold; color: #555; }
+        .info-value { border-bottom: 1px dashed #ddd; padding-bottom: 5px; }
+        .status-badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; }
+        .status-APPROVED { background-color: #d4edda; color: #155724; }
+        .status-PENDING { background-color: #fff3cd; color: #856404; }
+        .status-REJECTED { background-color: #f8d7da; color: #721c24; }
+
+        /* 폼 스타일 */
+        #updateForm label { display: block; margin-top: 15px; font-weight: bold; color: #333; }
+        #updateForm input[type="text"], #updateForm textarea, #updateForm select {
+            width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; resize: vertical;
+        }
+        .form-actions button {
+            background-color: #28a745; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 25px; margin-right: 10px;
+        }
+        .form-actions .delete-btn { background-color: #dc3545; }
+        .form-actions .reject-btn { background-color: #ffc107; color: black;}
+        .form-actions .approve-btn { background-color: #17a2b8; }
+    </style>
+</head>
+<body>
+
+<div class="detail-card">
+    <h2>📄 결재 문서 상세</h2>
+
+    <div id="loading" style="text-align: center;">데이터를 로드하는 중...</div>
+
+    <div id="document-detail-content" style="display: none;">
+        <div class="info-grid">
+            <div class="info-label">문서 ID</div><div class="info-value" id="docIdValue"></div>
+            <div class="info-label">제목</div><div class="info-value" id="titleValue"></div>
+            <div class="info-label">기안자 ID</div><div class="info-value" id="requesterIdValue"></div>
+            <div class="info-label">기안일</div><div class="info-value" id="requestDateValue"></div>
+            <div class="info-label">결재 상태</div><div class="info-value"><span id="statusValue" class="status-badge"></span></div>
+            <div class="info-label">결재자 ID</div><div class="info-value" id="approverIdValue"></div>
+            <div class="info-label">결재일</div><div class="info-value" id="approvalDateValue"></div>
+        </div>
+
+        <h3>문서 내용</h3>
+        <textarea id="contentValue" rows="5" readonly style="width:100%; padding:10px; border:1px solid #ddd;"></textarea>
+
+        <div id="edit-section" style="display: none;">
+            <h3>수정 항목</h3>
+            <form id="updateForm">
+                <input type="hidden" id="currentDocId">
+                <label for="new_title">제목:</label>
+                <input type="text" id="new_title" name="title" required>
+
+                <label for="new_content">내용:</label>
+                <textarea id="new_content" name="content" rows="5" required></textarea>
+
+                <div class="form-actions">
+                    <button type="submit">문서 수정 완료</button>
+                    <button type="button" onclick="window.location.reload();">취소</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-actions" id="action-buttons">
+            <button type="button" data-action="edit-mode" id="edit-mode-btn">수정 모드</button>
+            <button type="button" data-action="delete-doc" id="delete-doc-btn" class="delete-btn">삭제</button>
+            <button type="button" data-action="approve" id="approve-btn" class="approve-btn" style="display:none;">승인</button>
+            <button type="button" data-action="reject" id="reject-btn" class="reject-btn" style="display:none;">반려</button>
+            <button type="button" data-action="aggregate-slips" id="aggregate-slips-btn" style="display:none;">전표 생성</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE_URL = '/api/finance/documents';
+    let currentDocId = null;
+    const CURRENT_APPROVER_ID = 999; // 테스트를 위한 결재자 ID
+
+    function getDocIdFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('docId');
+    }
+
+    // 1. 상세 데이터 로드 (API 4번)
+    async function loadDocumentDetail() {
+        const docId = getDocIdFromUrl();
+        currentDocId = docId;
+        document.getElementById('currentDocId').value = docId;
+
+        if (!docId) {
+            document.getElementById('loading').innerHTML = '<p style="color: red;">🚨 오류: 문서 ID가 전달되지 않았습니다.</p>';
+            return;
+        }
+
+        try {
+            const data = await $.ajax({
+                url: `${API_BASE_URL}/${docId}`,
+                method: 'GET',
+                dataType: 'json'
+            });
+
+            if (data && data.docId) {
+                // 기본 정보 채우기
+                document.getElementById('docIdValue').textContent = data.docId;
+                document.getElementById('titleValue').textContent = data.title;
+                document.getElementById('requesterIdValue').textContent = data.requesterId;
+                document.getElementById('requestDateValue').textContent = data.requestDate;
+                document.getElementById('approverIdValue').textContent = data.approverId || '-';
+                document.getElementById('approvalDateValue').textContent = data.approvalDate || '-';
+
+                document.getElementById('statusValue').textContent = data.status;
+                document.getElementById('statusValue').className = `status-badge status-${data.status}`;
+                document.getElementById('contentValue').value = data.content;
+
+                // 폼 초기값 설정 (수정 폼)
+                document.getElementById('new_title').value = data.title;
+                document.getElementById('new_content').value = data.content;
+
+                // 상태에 따른 버튼 가시성 설정
+                if (data.status === 'PENDING') {
+                    document.getElementById('approve-btn').style.display = 'inline-block';
+                    document.getElementById('reject-btn').style.display = 'inline-block';
+                } else if (data.status === 'APPROVED') {
+                    document.getElementById('aggregate-slips-btn').style.display = 'inline-block'; // 전표 생성 버튼
+                }
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('document-detail-content').style.display = 'block';
+
+            } else {
+                document.getElementById('loading').innerHTML = `<p class="error-message">문서 ID ${docId}에 대한 정보를 찾을 수 없습니다.</p>`;
+            }
+
+        } catch (err) {
+            console.error("문서 상세 로딩 실패:", err);
+            document.getElementById('loading').innerHTML = '<p style="color: red;">🚨 데이터 로딩 중 오류가 발생했습니다.</p>';
+        }
+    }
+
+    // 2. 폼 제출 (수정) 이벤트 처리 (API 2번)
+    document.getElementById('updateForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const docId = document.getElementById('currentDocId').value;
+
+        try {
+            const result = await $.ajax({
+                url: `${API_BASE_URL}/${docId}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    title: document.getElementById('new_title').value,
+                    content: document.getElementById('new_content').value
+                })
+            });
+
+            if (result && result.docId) {
+                alert('✅ 결재 문서가 성공적으로 수정되었습니다.');
+                // 부모 창 새로고침 및 팝업 닫기
+                if (window.opener && !window.opener.closed) {
+                    window.opener.location.reload();
+                }
+                window.close();
+            } else {
+                alert('❌ 정보 수정에 실패했습니다.');
+            }
+
+        } catch (error) {
+            console.error('정보 수정 실패:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        }
+    });
+
+    // 3. 액션 버튼 이벤트 리스너 (수정 모드, 삭제, 승인, 반려, 전표 생성)
+    document.getElementById('action-buttons').addEventListener('click', async function(e) {
+        const action = e.target.dataset.action;
+        const docId = currentDocId;
+        if (!action || !docId) return;
+
+        try {
+            if (action === 'edit-mode') {
+                document.getElementById('edit-section').style.display = 'block';
+                e.target.style.display = 'none';
+            }
+            else if (action === 'delete-doc') { // API 3번
+                if (confirm(`정말로 문서 ID ${docId}를 삭제하시겠습니까?`)) {
+                    await $.ajax({ url: `${API_BASE_URL}/${docId}`, method: 'DELETE' });
+                    alert(`✅ 문서 ID ${docId} 삭제 완료.`);
+                    if (window.opener) window.opener.location.reload();
+                    window.close();
+                }
+            }
+            else if (action === 'approve' || action === 'reject') { // API 6번
+                const newStatus = action === 'approve' ? 'APPROVED' : 'REJECTED';
+                if (confirm(`문서 ID ${docId}를 ${newStatus === 'APPROVED' ? '승인' : '반려'}하시겠습니까?`)) {
+                    await $.ajax({
+                        url: `${API_BASE_URL}/${docId}/approval`,
+                        method: 'PUT',
+                        data: { newStatus: newStatus, approverId: CURRENT_APPROVER_ID }
+                    });
+                    alert(`✅ 결재 상태가 ${newStatus}로 변경되었습니다.`);
+                    if (window.opener) window.opener.location.reload();
+                    window.close();
+                }
+            }
+            else if (action === 'aggregate-slips') { // API 10번
+                if (confirm(`승인된 문서 ID ${docId}를 기반으로 회계 전표를 생성하시겠습니까?`)) {
+                    const slips = await $.ajax({ url: `${API_BASE_URL}/${docId}/aggregate`, method: 'POST' });
+                    alert(`✅ 전표 생성 완료. 총 ${slips.length}개의 전표가 생성되었습니다.`);
+                    if (window.opener) window.opener.location.reload();
+                    window.close();
+                }
+            }
+
+        } catch (error) {
+            console.error(`${action} 실패:`, error);
+            alert(`❌ ${e.target.textContent} 처리 중 오류가 발생했습니다.`);
+        }
+    });
+
+    $(document).ready(loadDocumentDetail);
+</script>
+</html>
