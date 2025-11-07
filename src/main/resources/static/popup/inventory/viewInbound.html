@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>입고 정보 조회</title>
+
+    <!-- 디자인 리소스 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root{
+            --primary-color:#4A90E2;
+            --bg-light:#F8F9FA;
+            --text-dark:#333333;
+            --border-color:#E0E0E0;
+            --card-bg:#FFFFFF;
+        }
+        body{
+            font-family:'Noto Sans KR', sans-serif;
+            background:var(--bg-light);
+            color:var(--text-dark);
+            padding:20px;
+            margin:0;
+        }
+        .form-card{
+            background:var(--card-bg);
+            border-radius:8px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.05);
+            padding:20px 30px;
+            max-width:720px;
+            margin:0 auto;
+        }
+        h2{
+            font-size:22px;
+            font-weight:700;
+            color:var(--text-dark);
+            border-bottom:2px solid var(--primary-color);
+            padding-bottom:10px;
+            margin:0 0 20px 0;
+        }
+        #inboundForm > div{ margin-bottom:15px; }
+        label{
+            display:block;
+            margin-bottom:6px;
+            font-weight:500;
+            color:#555;
+            font-size:14px;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="date"]{
+            width:100%;
+            padding:10px;
+            border:1px solid var(--border-color);
+            border-radius:5px;
+            font-size:15px;
+            color:var(--text-dark);
+            transition:border-color .2s;
+            box-sizing:border-box;
+        }
+        input:focus{ border-color:var(--primary-color); outline:none; }
+        .grid-2{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:15px;
+        }
+        #remark{ height:100px; padding:8px; }
+        .submit-row{ margin-top:10px; text-align:right; }
+        .submit-button{
+            background:var(--primary-color);
+            color:#fff;
+            border:none;
+            padding:12px 20px;
+            border-radius:5px;
+            cursor:pointer;
+            font-size:16px;
+            font-weight:500;
+            transition:background-color .2s;
+        }
+        .submit-button:hover{ background:#3A7BD5; }
+    </style>
+</head>
+<body>
+
+<div class="form-card">
+    <h2><i class="fas fa-box-open"></i> 입고 보기/수정</h2>
+
+    <form id="inboundForm" autocomplete="off">
+        <div class="grid-2">
+            <div>
+                <label for="inbound_order">입고번호</label>
+                <input id="inbound_order" name="inbound_order" type="number" />
+            </div>
+            <div>
+                <label for="stock_id">재고코드</label>
+                <input id="stock_id" name="stock_id" type="number" />
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <label for="inbound_date">입고일</label>
+                <input id="inbound_date" name="inbound_date" type="date" />
+            </div>
+            <div>
+                <label for="stock_name">재고명</label>
+                <input id="stock_name" name="stock_name" type="text" />
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <label for="inbound_qty">입고수량</label>
+                <input id="inbound_qty" name="inbound_qty" type="number" />
+            </div>
+            <div>
+                <label for="unit_price">단가</label>
+                <input id="unit_price" name="unit_price" type="number" />
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <label for="supplier">공급업체</label>
+                <input id="supplier" name="supplier" type="text" />
+            </div>
+            <div>
+                <label for="manager">담당자</label>
+                <input id="manager" name="manager" type="text" />
+            </div>
+        </div>
+
+        <div>
+            <label for="remark">비고</label>
+            <input id="remark" name="remark" type="text" style="width:100%; box-sizing:border-box;">
+        </div>
+
+        <div class="submit-row">
+            <button type="submit" id="edit" class="submit-button">
+                <i class="fas fa-check"></i> 수정
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    (function () {
+        const API_BASE = '/api/inventory/inbound';
+
+        // 1) URL에서 inbound_order 읽기 (예: ?inbound_order=10001)
+        const params = new URLSearchParams(location.search);
+        const inboundOrder = params.get('inbound_order');
+
+        // 2) 응답 정규화 (rows / data / content / 배열 / 단건 모두 흡수)
+        function normalize(data) {
+            if (!data) return null;
+            if (!Array.isArray(data) && typeof data === 'object') {
+                if (Array.isArray(data.rows))    data = data.rows;
+                else if (Array.isArray(data.data))    data = data.data;
+                else if (Array.isArray(data.content)) data = data.content;
+                else return data; // 단건 객체
+            }
+            if (Array.isArray(data)) return data[0] || null;
+            return null;
+        }
+
+        function setById(id, v) {
+            const el = document.getElementById(id);
+            if (el) el.value = (v ?? '');
+        }
+
+        // 날짜가 'YYYY-MM-DD'가 아니어도 안전하게 변환
+        function toYmd(value){
+            if (!value) return '';
+            if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+            const d = new Date(value);
+            if (isNaN(d)) return '';
+            const y = d.getFullYear();
+            const m = String(d.getMonth()+1).padStart(2,'0');
+            const day = String(d.getDate()).padStart(2,'0');
+            return `${y}-${m}-${day}`;
+        }
+
+        // 3) 로드 & 폼 채우기 (조회만)
+        async function loadInbound(orderNo) {
+            const urls = [
+                `${API_BASE}/${encodeURIComponent(orderNo)}`,
+                `${API_BASE}?inbound_order=${encodeURIComponent(orderNo)}`
+            ];
+
+            for (const url of urls) {
+                try {
+                    const data = await $.ajax({ url, method:'GET', dataType:'json' });
+                    const r = normalize(data);
+                    if (r) { fillForm(r); return; }
+                } catch (e) {
+                    // 다음 URL 시도
+                }
+            }
+            alert('데이터를 불러오지 못했습니다.');
+        }
+
+        function fillForm(r) {
+            setById('inbound_order', r.inbound_order);
+            setById('stock_id',      r.stock_id);
+            setById('inbound_date',  toYmd(r.inbound_date)); // 안전 변환
+            setById('stock_name',    r.stock_name);
+            setById('inbound_qty',   r.inbound_qty);
+            setById('unit_price',    r.unit_price);
+            setById('supplier',      r.supplier);
+            setById('manager',       r.manager);
+            setById('remark',        r.remark);
+
+            // PK는 보통 수정 금지
+            const pk = document.getElementById('inbound_order');
+            if (pk) pk.readOnly = true;
+        }
+
+        // 초기 로드 (조회만 수행)
+        loadInbound(inboundOrder);
+
+        // ⚠️ 저장(POST/PUT) 로직은 아직 붙이지 않음. 재고 팝업 패턴과 동일하게 조회까지만.
+    })();
+</script>
+</body>
+</html>

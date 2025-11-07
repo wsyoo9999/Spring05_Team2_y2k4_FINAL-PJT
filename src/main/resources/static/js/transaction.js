@@ -1,5 +1,6 @@
 export async function sale_listAll(){
 
+
     let table = `<table>
                             <thead>
                             <tr>
@@ -49,11 +50,17 @@ export async function sale_listAll(){
                         </td> 
                         </tr>`;
         })
-        tbody += `</tbody></table><input type="button" data-action="add" data-file="transaction" data-fn="addSale" value="추가">`;
+        tbody += `</tbody></table>`;
 
-
+         const actionRow = `
+            <div class="table-actions-header">
+                <button class="action-button btn-primary" data-action="add" data-file="inventory" data-fn="addSale">
+                    <i class="fas fa-plus-circle"></i> 신규 추가
+                </button>
+            </div>
+        `;
     console.log(table)
-    return table+tbody;
+    return actionRow + table + tbody;
 }
 
 
@@ -123,8 +130,15 @@ export async function sale_list(formData){
     tbody += `</tbody></table><input type="button" data-action="add" data-file="transaction" data-fn="addSale" value="추가">`;
 
 
+    const actionRow = `
+            <div class="table-actions-header">
+                <button class="action-button btn-primary" data-action="add" data-file="inventory" data-fn="addSale">
+                    <i class="fas fa-plus-circle"></i> 신규 추가
+                </button>
+            </div>
+        `;
     console.log(table)
-    return table+tbody;
+    return actionRow + table + tbody;
 }
 
 export async function purchase_listAll(){
@@ -181,9 +195,15 @@ export async function purchase_listAll(){
     tbody += `</tbody></table><input type="button" data-action="add" data-file="transaction" data-fn="addPurchase" value="추가">`;
 
 
+    const actionRow = `
+            <div class="table-actions-header">
+                <button class="action-button btn-primary" data-action="add" data-file="inventory" data-fn="addPurchase">
+                    <i class="fas fa-plus-circle"></i> 신규 추가
+                </button>
+            </div>
+        `;
     console.log(table)
-    return table+tbody;
-
+    return actionRow + table + tbody;
 }
 
 export async function purchase_list(formData){
@@ -251,9 +271,15 @@ export async function purchase_list(formData){
     tbody += `</tbody></table><input type="button" data-action="add" data-file="transaction" data-fn="addPurchase" value="추가">`;
 
 
+    const actionRow = `
+            <div class="table-actions-header">
+                <button class="action-button btn-primary" data-action="add" data-file="inventory" data-fn="addPurchase">
+                    <i class="fas fa-plus-circle"></i> 신규 추가
+                </button>
+            </div>
+        `;
     console.log(table)
-    return table+tbody;
-
+    return actionRow + table + tbody;
 }
 
 export function  sale_search_form(){

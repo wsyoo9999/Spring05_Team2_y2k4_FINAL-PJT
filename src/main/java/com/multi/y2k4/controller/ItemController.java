@@ -131,7 +131,7 @@ public class ItemController {
         outbound2.setOutbound_qty(5);
         outbound2.setOutbound_location("부산물류센터");
         outbound2.setManager("홍동길");
-        outbound2.setRemark("");
+        outbound2.setRemark("1");
         outboundList.add(outbound2);
 
         Outbound outbound3 = new Outbound();
@@ -141,7 +141,7 @@ public class ItemController {
         outbound3.setOutbound_qty(1);
         outbound3.setOutbound_location("대전지점");
         outbound3.setManager("길동홍");
-        outbound3.setRemark("");
+        outbound3.setRemark("1");
         outboundList.add(outbound3);
 
         return outboundList;

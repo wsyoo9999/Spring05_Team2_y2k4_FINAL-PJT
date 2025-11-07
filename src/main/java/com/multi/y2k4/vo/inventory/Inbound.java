@@ -20,10 +20,6 @@ public class Inbound {
     private String manager;         // 담당자
     private String remark;          // 비고
 
-    public void setRemark(String remark) {
-        this.remark = Objects.requireNonNullElse(remark, "");
-    }
-
     public int getTotal_price() {
         return inbound_qty * unit_price;
     }
