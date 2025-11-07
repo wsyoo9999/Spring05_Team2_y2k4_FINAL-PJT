@@ -3,66 +3,157 @@
 <head>
     <meta charset="UTF-8" />
     <title>재고 보기/수정 (viewStock)</title>
+    <!-- 디자인 리소스 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color:#4A90E2;
+            --bg-light:#F8F9FA;
+            --text-dark:#333333;
+            --border-color:#E0E0E0;
+            --card-bg:#FFFFFF;
+        }
+        body {
+            font-family:'Noto Sans KR', sans-serif;
+            background-color:var(--bg-light);
+            color:var(--text-dark);
+            padding:20px;
+            margin:0;
+        }
+        .form-card {
+            background:var(--card-bg);
+            border-radius:8px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.05);
+            padding:20px 30px;
+            max-width:720px;
+            margin:0 auto;
+        }
+        h2 {
+            font-size:22px;
+            font-weight:700;
+            color:var(--text-dark);
+            border-bottom:2px solid var(--primary-color);
+            padding-bottom:10px;
+            margin:0 0 20px 0;
+        }
+        .form-group { margin-bottom:15px; }
+        .form-group label {
+            display:block;
+            margin-bottom:6px;
+            font-weight:500;
+            color:#555;
+            font-size:14px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group select {
+            width:100%;
+            padding:10px;
+            border:1px solid var(--border-color);
+            border-radius:5px;
+            font-size:15px;
+            color:var(--text-dark);
+            transition:border-color .2s;
+            box-sizing:border-box;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color:var(--primary-color);
+            outline:none;
+        }
+        .form-grid {
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:15px;
+        }
+        .submit-row {
+            margin-top:10px;
+            text-align:right;
+        }
+        .submit-button {
+            background-color:var(--primary-color);
+            color:#fff;
+            border:none;
+            padding:12px 20px;
+            border-radius:5px;
+            cursor:pointer;
+            font-size:16px;
+            font-weight:500;
+            transition:background-color .2s;
+        }
+        .submit-button:hover { background-color:#3A7BD5; }
+        .readonly { background:#fafafa; }
+    </style>
 </head>
 <body>
-<h1>재고 보기/수정</h1>
 
-<form id="stockForm">
-    <div>
-        <label for="stock_id">재고번호</label>
-        <input id="stock_id" name="stock_id" type="number" />
-    </div>
+<div class="form-card">
+    <h2><i class="fas fa-pen-to-square"></i> 재고 보기/수정</h2>
 
-    <div>
-        <label for="stock_name">재고명</label>
-        <input id="stock_name" name="stock_name" type="text" />
-    </div>
+    <form id="stockForm" autocomplete="off">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="stock_id">재고번호</label>
+                <input id="stock_id" name="stock_id" type="number" />
+            </div>
+            <div class="form-group">
+                <label for="stock_name">재고명</label>
+                <input id="stock_name" name="stock_name" type="text" />
+            </div>
+        </div>
 
-    <div>
-        <label for="stock_qty">수량</label>
-        <input id="stock_qty" name="stock_qty" type="number" />
-    </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="stock_qty">수량</label>
+                <input id="stock_qty" name="stock_qty" type="number" />
+            </div>
+            <div class="form-group">
+                <label for="unit_price">판매 단가</label>
+                <input id="unit_price" name="unit_price" type="number" />
+            </div>
+        </div>
 
-    <div>
-        <label for="unit_price">판매 단가</label>
-        <input id="unit_price" name="unit_price" type="number" />
-    </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>물품상태</label>
+                <select name="stock_status">
+                    <option value="0">정상</option>
+                    <option value="1">불량</option>
+                    <option value="2">폐기</option>
+                    <option value="3">반납</option>
+                    <option value="4">보류</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="storage_location">보관 위치</label>
+                <input id="storage_location" name="storage_location" type="text" />
+            </div>
+        </div>
 
-    <div>
-        <label>물품상태:
-            <select name="stock_status">
-                <option value="0">정상</option>
-                <option value="1">불량</option>
-                <option value="2">폐기</option>
-                <option value="3">반납</option>
-                <option value="4">보류</option>
-            </select>
-        </label>
-    </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="expiration_date">유통기한</label>
+                <input id="expiration_date" name="expiration_date" type="date" />
+            </div>
+            <div class="form-group">
+                <label>구분</label>
+                <select name="gubun">
+                    <option value="0">원자재</option>
+                    <option value="1">판매상품</option>
+                </select>
+            </div>
+        </div>
 
-    <div>
-        <label for="storage_location">보관 위치</label>
-        <input id="storage_location" name="storage_location" type="text" />
-    </div>
-
-    <div>
-        <label for="expiration_date">유통기한</label>
-        <input id="expiration_date" name="expiration_date" type="date" />
-    </div>
-
-    <div>
-        <label>구분:
-            <select name="gubun">
-                <option value="0">원자재</option>
-                <option value="1">판매상품</option>
-            </select>
-        </label>
-    </div>
-
-    <div style="margin-top:10px; text-align:right;">
-        <button type="submit" id="edit">수정</button>
-    </div>
-</form>
+        <div class="submit-row">
+            <button type="submit" id="edit" class="submit-button">
+                <i class="fas fa-check"></i> 수정
+            </button>
+        </div>
+    </form>
+</div>
 
 <!-- jQuery (inventory.js와 동일하게 $.ajax 사용) -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -70,27 +161,41 @@
     (function () {
         const API_BASE = '/api/inventory/stock';
 
-        // ── 1) URL에서 stock_id 읽기 ──────────────────────────────────────────────
+        // 1) URL에서 stock_id 읽기 (예: ?stock_id=1001)
         const params  = new URLSearchParams(location.search);
         const stockId = params.get('stock_id');
 
-        // ── 2) 유틸 ───────────────────────────────────────────────────────────────
+        // 2) 응답 정규화 (rows / data / content / 배열 / 단건 모두 흡수)
         function normalize(data) {
+            if (!data) return null;
+            if (!Array.isArray(data) && typeof data === 'object') {
+                if (Array.isArray(data.rows))    data = data.rows;
+                else if (Array.isArray(data.data))    data = data.data;
+                else if (Array.isArray(data.content)) data = data.content;
+                else return data; // 단건 객체
+            }
             if (Array.isArray(data)) return data[0] || null;
-            if (data && Array.isArray(data.rows)) return data.rows[0] || null;
-            return data || null;
+            return null;
         }
+
         function setById(id, v) {
             const el = document.getElementById(id);
             if (el) el.value = (v ?? '');
         }
-        function setSelectByName(name, v) {
-            const el = document.querySelector(`select[name="${name}"]`);
-            if (el) el.value = String(v ?? '');
-        }
-        const toInt = v => (v === '' || v == null) ? null : parseInt(v, 10);
 
-        // ── 3) 로드 & 폼 채우기 ───────────────────────────────────────────────────
+        // 날짜가 'YYYY-MM-DD'가 아니어도 안전하게 변환
+        function toYmd(value){
+            if (!value) return '';
+            if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+            const d = new Date(value);
+            if (isNaN(d)) return '';
+            const y = d.getFullYear();
+            const m = String(d.getMonth()+1).padStart(2,'0');
+            const day = String(d.getDate()).padStart(2,'0');
+            return `${y}-${m}-${day}`;
+        }
+
+        // 3) 로드 & 폼 채우기 (조회만)
         async function loadStock(id) {
             const urls = [
                 `${API_BASE}/${encodeURIComponent(id)}`,
@@ -99,36 +204,36 @@
 
             for (const url of urls) {
                 try {
-                    const data = await $.ajax({ url, method: 'GET', dataType: 'json' });
+                    const data = await $.ajax({ url, method:'GET', dataType:'json' });
                     const s = normalize(data);
                     if (s) { fillForm(s); return; }
-                } catch (e) { /* 다음 URL 시도 */ }
+                } catch (e) {
+                    // 다음 URL 시도
+                }
             }
             alert('데이터를 불러오지 못했습니다.');
         }
 
         function fillForm(s) {
-            // input[id=...]에 채우기
             setById('stock_id',         s.stock_id);
             setById('stock_name',       s.stock_name);
             setById('stock_qty',        s.stock_qty);
             setById('unit_price',       s.unit_price);
             setById('storage_location', s.storage_location);
+            setById('expiration_date',  toYmd(s.expiration_date)); // 안전 변환
+            // 서버 키 호환: stock_status 없으면 item_status 사용
+            const statusEl = document.querySelector('select[name="stock_status"]');
+            if (statusEl) statusEl.value = String(s.stock_status ?? s.item_status ?? '');
 
-            // 날짜(문자열). input[type=date]는 "YYYY-MM-DD" 형식이 들어오면 그대로 표시됨
-            setById('expiration_date',  s.expiration_date);
-
-            // select[name=...] 채우기 (서버 호환: stock_status 없으면 item_status 사용)
-            setSelectByName('stock_status', (s.stock_status ?? s.item_status));
-            setSelectByName('gubun', s.gubun);
+            const gubunEl = document.querySelector('select[name="gubun"]');
+            if (gubunEl) gubunEl.value = String(s.gubun ?? '');
 
             // PK는 보통 수정 금지
             const pk = document.getElementById('stock_id');
             if (pk) pk.readOnly = true;
         }
 
-
-        // ── 4) 초기 로드 ──────────────────────────────────────────────────────────
+        // 초기 로드 (조회만 수행)
         loadStock(stockId);
     })();
 </script>

@@ -56,6 +56,15 @@ export function employees_search_form() {
 }
 
 export async function employees_listAll() {
+    const actionRow = `
+            <div class="table-actions-header">
+                <button class="action-button btn-primary" data-action="add" data-file="inventory" data-fn="addSale">
+                    <i class="fas fa-plus-circle"></i> 신규 추가
+                </button>
+            </div>
+        `;
+    console.log(table)
+    return actionRow + table + tbody;
     return await employees_fetch_data({});
 }
 

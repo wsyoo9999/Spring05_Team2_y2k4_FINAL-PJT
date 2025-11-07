@@ -3,35 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <title>재고 추가</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --primary-color:#4A90E2; --bg-light:#F8F9FA; --text-dark:#333; --border-color:#E0E0E0; --card-bg:#FFF; }
+        body { font-family:'Noto Sans KR',sans-serif; background:var(--bg-light); color:var(--text-dark); padding:20px; margin:0; }
+        .form-card { background:var(--card-bg); border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.05); padding:20px 30px; }
+        h2 { font-size:22px; font-weight:700; color:var(--text-dark); border-bottom:2px solid var(--primary-color); padding-bottom:10px; margin-bottom:20px; }
+        .form-group { margin-bottom:15px; }
+        .form-group label { display:block; margin-bottom:5px; font-weight:500; color:#555; font-size:14px; }
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group input[type="number"],
+        .form-group select {
+            width:100%; padding:10px; border:1px solid var(--border-color); border-radius:5px;
+            font-size:15px; color:var(--text-dark); transition:border-color .2s; box-sizing:border-box;
+        }
+        .form-group input:focus, .form-group select:focus { border-color:var(--primary-color); outline:none; }
+        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+        .submit-button {
+            background:var(--primary-color); color:#fff; border:none; padding:12px 20px; border-radius:5px;
+            cursor:pointer; font-size:16px; font-weight:500; transition:background-color .2s; width:100%; margin-top:10px;
+        }
+        .submit-button:hover { background:#3A7BD5; }
+    </style>
 </head>
 <body>
-    <form method="POST" action="/api/inventory/stock/add" id="form">
-        <label>재고명
-            <input type="text" name="stock_name" required>
-        </label>
 
-        <label style="margin-left:10px">단가
-            <input type="number" name="unit_price" required>
-        </label>
+<div class="form-card">
+    <h2><i class="fas fa-plus-circle"></i> 재고 추가</h2>
 
-        <label><br>보관위치
-            <input type="text" name="storage_location" required>
-        </label>
-
-        <label style="margin-left:10px">유통기한(선택)
-            <input type="date" name="expiration_date">
-        </label>
-
-        <label><br>구분:
-            <select name="gubun">
-                <option value="0">원자재</option>
-                <option value="1">판매상품</option>
-            </select>
-        </label>
-
-        <div style="margin-top:10px; text-align:right;">
-            <button type="submit">등록</button>
+    <form method="POST" action="/api/inventory/stock/add" id="form" autocomplete="off">
+        <div class="form-group">
+            <label for="stock_name">재고명</label>
+            <input type="text" id="stock_name" name="stock_name" required>
         </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="stock_qty">수량</label>
+                <input type="number" id="stock_qty" name="stock_qty" required min="0" value="0">
+            </div>
+            <div class="form-group">
+                <label for="unit_price">단가</label>
+                <input type="number" id="unit_price" name="unit_price" required min="0" value="0">
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="storage_location">보관위치</label>
+                <input type="text" id="storage_location" name="storage_location" required placeholder="예: A-01-03">
+            </div>
+            <div class="form-group">
+                <label for="expiration_date">유통기한(선택)</label>
+                <input type="date" id="expiration_date" name="expiration_date">
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="gubun">구분</label>
+                <select id="gubun" name="gubun">
+                    <option value="0">원자재</option>
+                    <option value="1">판매상품</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="stock_status">재고 상태</label>
+                <select id="stock_status" name="stock_status">
+                    <option value="0">정상</option>
+                    <option value="1">불량</option>
+                    <option value="2">폐기</option>
+                    <option value="3">반납</option>
+                    <option value="4">보류</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-button">
+            <i class="fas fa-check"></i> 입력 완료
+        </button>
     </form>
-</body>
-</html>
+</div>
+
+<script>
+    const form = document.getElementById("form");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // 기본 form 데이터 직렬화
+        const base = $(form).serialize();
+
+        // 서버 호환을 위해 stock_status 값을 item_status로도 함께 전송
+        const stockStatus = $('#stock_status').val() ?? '';
+        const payload = base + '&item_status=' + encodeURIComponent(stockStatus);
+
+        try {
+            const result = await $.ajax({
+                url: form.action,
+                method: 'POST',
+                dataType: 'json',
+                data: payload
+            });
+
+            const ok = (result === true) || (result && (result.success === true || result.result === true));
+            if (ok) {
+                alert('✅ 재고가 성공적으로 등록되었습니다.');
+                if (window.opener && !window.opener.closed) {
+                    const menu = window.opener.document.querySelector('.menu[data-file="inventory"][data-fn="sto]()
