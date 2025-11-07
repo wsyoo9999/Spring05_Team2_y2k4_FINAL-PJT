@@ -21,4 +21,9 @@ public class MainController {
     public String addUser() {
         return "addUser";
     }
+
+    @GetMapping("/alerts")
+    public String alerts(){
+        return "alerts";
+    }
 }

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <title>알림 목록</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+  <style>
+    /* 기본 리셋 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #4A90E2;
+      --secondary-color: #50B86C;
+      --bg-light: #F8F9FA;
+      --bg-dark: #343A40;
+      --text-dark: #333333;
+      --text-light: #FFFFFF;
+      --border-color: #E0E0E0;
+      --card-bg: #FFFFFF;
+      --nav-h: 64px;
+      --sidebar-w: 280px;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* 상단 바 */
+    .nav-bar {
+      height: var(--nav-h);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--primary-color);
+    }
+    .nav-brand .nav-logo {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--text-light);
+    }
+    .nav-spacer { flex: 1; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      height: 40px;
+      padding: 0 15px;
+      border-radius: 6px;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-link:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
+    .nav-link.active { color: var(--text-light); background: var(--primary-color); }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 20px;
+    }
+    .nav-icon-btn {
+      width: 40px; height: 40px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-icon-btn:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
+
+    /* 메인 콘텐츠 영역 */
+    .main-container {
+      display: flex;
+    }
+
+    /* 왼쪽: 아코디언 */
+    .accordion-container {
+      width: var(--sidebar-w);
+      background-color: var(--card-bg);
+      flex-shrink: 0;
+      height: calc(100vh - var(--nav-h));
+      position: sticky;
+      top: var(--nav-h);
+      overflow-y: auto;
+      border-right: 1px solid var(--border-color);
+    }
+    .accordion-item {
+      border-bottom: 1px solid var(--border-color);
+    }
+    .accordion-item:last-child {
+      border-bottom: none;
+    }
+    .accordion-header {
+      width: 100%;
+      padding: 15px 20px;
+      text-align: left;
+      background-color: var(--card-bg);
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-dark);
+      transition: background-color 0.3s, color 0.3s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .accordion-header:hover { background-color: var(--bg-light); }
+    .accordion-header i {
+      transition: transform 0.3s;
+    }
+    .accordion-header.active i {
+      transform: rotate(90deg);
+    }
+    .accordion-content {
+      padding: 10px 20px;
+      background-color: #fcfcfc;
+      display: none;
+      overflow: hidden;
+    }
+    .accordion-content button.menu {
+      display: block;
+      width: 100%;
+      padding: 10px 15px;
+      margin-bottom: 5px;
+      background: none;
+      border: none;
+      text-align: left;
+      font-size: 14px;
+      color: #555;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .accordion-content button.menu:hover {
+      background-color: rgba(74, 144, 226, 0.1);
+      color: var(--primary-color);
+    }
+    .accordion-content button.menu.selected {
+      background-color: var(--primary-color);
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    /* 오른쪽: 결과 영역 */
+    .results {
+      flex: 1;
+      padding: 20px;
+      min-height: calc(100vh - var(--nav-h));
+      background-color: var(--bg-light);
+    }
+
+    /* 알림 콘텐츠 스타일 */
+    .content-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #alerts-list {
+      background: var(--card-bg); /* 배경색 중복 방지를 위해 제거할 수도 있으나, 현재는 유지 */
+      padding: 10px 0;
+    }
+
+    /* 💡 최종 alerts.html 스타일을 기반으로 수정 및 통합 */
+    .alert-item-link {
+      text-decoration: none; /* a 태그 밑줄 제거 */
+      color: inherit;
+      display: block; /* a 태그가 블록 레벨이 되도록 */
+    }
+    .alert-item {
+      padding: 15px 0;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background-color 0.15s;
+    }
+    .alert-item:hover {
+      background-color: #f1f1f1; /* 호버 색상 변경 */
+    }
+    .alert-item-link:last-child .alert-item {
+      border-bottom: none;
+    }
+
+    .alert-message {
+      font-size: 15px;
+      color: var(--text-dark);
+    }
+    .alert-icon {
+      color: #FF9800;
+      margin-right: 15px;
+      font-size: 1.1em;
+    }
+    .alert-item-link:hover .alert-message {
+      color: var(--primary-color); /* 호버 시 텍스트 색상 변경 */
+    }
+  </style>
+</head>
+<body>
+
+<header class="nav-bar">
+  <div class="nav-brand">
+    <span class="nav-logo" aria-hidden="true"><i class="fas fa-cube"></i></span>
+    <span>Y2K4 ERP</span>
+  </div>
+
+  <div class="nav-spacer"></div>
+
+  <nav class="nav-links" id="navLinks">
+    <a href="/" class="nav-link"><i class="fas fa-tachometer-alt"></i> 대시보드</a>
+    <a href="#" class="nav-link"><i class="fas fa-calculator"></i> 재무/회계</a>
+    <a href="#" class="nav-link"><i class="fas fa-chart-line"></i> 판매/구매</a>
+    <a href="#" class="nav-link"><i class="fas fa-industry"></i> 생산/제조</a>
+    <a href="#" class="nav-link"><i class="fas fa-boxes"></i> 재고</a>
+    <a href="#" class="nav-link"><i class="fas fa-users"></i> 인사</a>
+    <a href="#" class="nav-link"><i class="fas fa-file-alt"></i> 리포트</a>
+    <a href="#" class="nav-link"><i class="fas fa-cog"></i> 설정</a>
+  </nav>
+
+  <div class="nav-right">
+    <button class="nav-icon-btn" title="알림" aria-label="알림" onclick="window.location.href='/alerts'" style="color: var(--primary-color);">🔔</button>
+    <button class="nav-icon-btn" title="프로필" aria-label="프로필"><i class="fas fa-user-circle"></i></button>
+  </div>
+</header>
+
+<div class="main-container">
+
+  <div class="accordion-container">
+    <div class="accordion-item">
+      <button class="accordion-header">
+        재무/회계 <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="accordion-content">
+        <button class="menu" data-file="finance" data-fn="documents_listAll" data-table="documents">결재 문서 관리</button>
+        <button class="menu" data-file="finance" data-fn="budget_listAll" data-table="budget">예산 관리</button>
+        <button class="menu" data-file="finance" data-fn="slips_listAll" data-table="slips">회계 전표 관리</button>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header">
+        판매/구매 <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="accordion-content">
+        <button class="menu" data-file="transaction" data-fn="sale_listAll" data-table="sale">판매</button>
+        <button class="menu" data-file="transaction" data-fn="purchase_listAll" data-table="purchase">구매</button>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header">
+        생산/제조 <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="accordion-content">
+        <button class="menu" data-file="production" data-fn="work_order_listAll" data-table="work_order">작업 지시서</button>
+        <button class="menu" data-file="production" data-fn="bom_listAll"   data-table="bom">자재 명세서</button>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header">
+        재고 <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="accordion-content">
+        <button class="menu" data-file="inventory" data-fn="stock_listAll" data-table="stock">재고 목록</button>
+        <button class="menu" data-file="inventory" data-fn="inbound_listAll" data-table="inbound">입고</button>
+        <button class="menu" data-file="inventory" data-fn="outbound_listAll" data-table="outbound">출고</button>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header">
+        인사 <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="accordion-content">
+        <button class="menu" data-file="hr" data-fn="employees_listAll" data-table="employees">직원 목록</button>
+        <button class="menu" data-file="hr" data-fn="attendance_listAll" data-table="attendance">근태 현황</button>
+        <button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="results">
+    <div class="content-card">
+      <div class="section-title">
+        <span>알림 목록</span>
+      </div>
+
+      <div id="alerts-list">
+        <a href="" class="alert-item-link">
+          <div class="alert-item">
+            <div style="display: flex; align-items: center;">
+               <span class="alert-message">홍길동 사원이 요청을 보냈습니다.</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="" class="alert-item-link">
+          <div class="alert-item">
+            <div style="display: flex; align-items: center;">
+              <span class="alert-message">결재서류 확인이 필요합니다.</span>
+            </div>
+          </div>
+        </a>
+
+
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // 아코디언 동작
+  const accordionHeaders = document.querySelectorAll('.accordion-header');
+  accordionHeaders.forEach(header => {
+    header.addEventListener('click', function () {
+      const content = this.nextElementSibling;
+      if (content.style.display === 'block') {
+        content.style.display = 'none';
+        this.classList.remove('active');
+      } else {
+        document.querySelectorAll('.accordion-content').forEach(item => {
+          item.style.display = 'none';
+        });
+        document.querySelectorAll('.accordion-header').forEach(item => {
+          item.classList.remove('active');
+        });
+        content.style.display = 'block';
+        this.classList.add('active');
+      }
+    });
+  });
+
+  // 좌측 메뉴 클릭 시 'selected' 클래스 토글 (alerts.html에서는 기능은 없지만 스타일 유지를 위해 남겨둠)
+  document.querySelectorAll('.accordion-content .menu').forEach(menuBtn => {
+    menuBtn.addEventListener('click', function() {
+      document.querySelectorAll('.accordion-content .menu').forEach(btn => btn.classList.remove('selected'));
+      this.classList.add('selected');
+    });
+  });
+</script>
+</body>
+</html>
