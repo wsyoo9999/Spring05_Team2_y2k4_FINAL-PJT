@@ -1,6 +1,7 @@
 package com.multi.y2k4.controller;
 
 import com.multi.y2k4.vo.production.*;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -154,5 +155,24 @@ public class ProductionController {
         list.add(bom3);
 
         return list;
+    }
+
+    @PostMapping("/work_order/add")
+    public boolean addWorkOrder(
+            @RequestParam Integer item_id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start_date,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
+            @RequestParam Integer target_quantity
+    ) {
+        // 팝업 폼에서 전송된 데이터 확인
+        System.out.println("--- 작업지시서 신규 등록 ---");
+        System.out.println("item_id : " + item_id);
+        System.out.println("start_date : " + start_date);
+        System.out.println("due_date : " + due_date);
+        System.out.println("target_quantity : " + target_quantity);
+
+        // (추후 DB 저장 로직 구현)
+
+        return true; // addSale과 동일하게 true 반환
     }
 }

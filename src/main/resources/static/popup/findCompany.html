@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <title>Title</title>
+
+    <style>
+        .page-btn{margin:0 4px; padding:6px 10px; border:1px solid #d1d5db; background:#fff; border-radius:8px; cursor:pointer;}
+        .page-btn:disabled{opacity:.6; cursor:not-allowed;}
+        /* 현재 페이지 강조 */
+        .page-btn.active{
+            background:#2b6cff;
+            border-color:#2b6cff;
+            color:#fff;
+            font-weight:600;
+            cursor:default;
+        }
+    </style>
+</head>
+<body>
+<div class = "container">
+
+  <label>
+    <input type="text" id = "company_name" name="company_name" class="form-control" placeholder="회사명 입력" required>
+    <input type="button" id="search" value="검색" onclick="findCompany(1)">
+  </label>
+
+</div>
+<div id = "result"></div>
+<div id="pagination"></div>
+<div id="page_data"></div>
+
+</body>
+<script>
+  let resultStatus={
+    page : 1,
+    maxPage :1,
+    totalCount : 0,
+  };
+
+function findCompany(page) {
+    const companyName = document.getElementById("company_name").value.trim();
+  resultStatus.page = page;//현재 출력할 페이지
+
+    if(!companyName) { //회사명을 공백으로만 했을 경우
+      return;
+    }
+    const url = 'https://bizno.net/api/fapi?key=Gc5XJ3FYGgdtEc5OKTzrlTBoIwdN&gb=3&type=json&q='+encodeURIComponent(companyName)+'&page='+encodeURIComponent(page);
+
+
+   $.ajax({
+     url: url,
+     method: 'GET',
+     dataType: 'json',
+     timeout: 15000,
+
+    }).done(function(data) {
+      if(data.resultCode !==0){
+        console.log("에러 발생, 에러코드 : "+data);
+        return;
+      }
+
+
+     resultStatus.maxPage = Number(data.maxpage);
+     resultStatus.totalCount = Number(data.totalCount);
+      makeTable(data.items);
+      pagination();
+      pagedata();
+
+
+   })
+
+  }
+
+  function makeTable(data) {
+  let table = document.getElementById("result");
+  table.innerHTML = '';
+  if(Array.isArray(data) && data.length > 0){
+    let thead = `<table>
+                            <thead>
+                            <tr>
+                            <th>회사명</th>
+                            <th>사업자 등록번호</th>
+                            <th>법인 등록번호</th>
+                            <th>사업자 상태</th>
+                            <th>과세 유형</th>
+                            <th>폐업일</th>
+                            <th>선택</th>
+                            </tr>
+                            </thead>
+                        `;
+    let tbody = `<tbody>`
+    data.forEach(item => {
+      tbody +=`<tr>
+                        <td>
+                            ${item.company||'비어있음'}
+                        </td>
+                        <td>
+                            ${item.bno||'비어있음'}
+                        </td>
+                        <td>
+                           ${item.cno||'비어있음'}
+                        </td>
+                        <td>
+                            ${item.bstt||'비어있음'}
+                        </td>
+                        <td>
+                            ${item.taxtype||'비어있음'}
+                        </td>
+                        <td>
+                            ${item.EndDt||'비어있음'}
+                        </td>
+                        <td>
+                            <input type="button" class="select" data-company="${item.company}" data-bno = "${item.bno}" value="선택">
+                        </td>
+                        </tr>`;
+    })
+    tbody += `</tbody></table>`;
+    table.innerHTML+=thead+tbody;
+
+    table.querySelectorAll('.select').forEach((item) => {
+        item.addEventListener('click', (e) => {
+            const result_data = {
+                company: item.dataset.company,
+                bno: item.dataset.bno,
+            };
+            window.opener.setCompany(result_data);
+            window.close();
+        })
+    })
+
+  }else{
+    console.log(data)
+  }
+  }
+  function pagination() {
+    let pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+    if(resultStatus.maxPage<=1) return;
+
+    //페이징 범위 자르기
+    const size = 5;
+    let startPage = Math.max(1,resultStatus.page - Math.floor(size/2));
+    let endPage = Math.min(resultStatus.maxPage, startPage+size-1);
+    if (endPage - startPage + 1 < size) {   //마지막 부분 출력 예외 처리
+      startPage = Math.max(1, endPage - size + 1);
+    }
+
+    //이전 페이지 이동 버튼 처리
+      if(resultStatus.page!==1){
+          pagination.innerHTML += `<button class="page-btn" type="button" value = "이전"  onclick="findCompany(resultStatus.page-1)">이전</button>`;
+      }else{
+          pagination.innerHTML += `<button class="page-btn" type="button" value = "이전" disabled>이전</button>`;
+      }
+      for(let i = startPage; i <= endPage; i++){
+          if(resultStatus.page === i){
+              pagination.innerHTML += `<button class="page-btn active" aria-current="page" type="button" value = "${i}"  onclick="findCompany(${i})">${i}</button>`;
+          }else {
+              pagination.innerHTML += `<button class="page-btn" type="button" value = "${i}" onclick="findCompany(${i})">${i}</button>`;
+          }
+      }
+      if(resultStatus.maxPage>=resultStatus.page){
+          pagination.innerHTML += `<button class="page-btn" type="button" value = "다음"  onclick="findCompany(resultStatus.page+1)">다음</button>`;
+      }else{
+          pagination.innerHTML += `<button class="page-btn" type="button" value = "다음" disabled>다음</button>`;
+      }
+  }
+  function pagedata(){
+      let pd = document.getElementById("page_data");
+      pd.innerHTML = `<p>총 ${resultStatus.totalCount}</p>${resultStatus.page}/${resultStatus.maxPage}<p></p>`;
+
+
+  }
+
+</script>
+</html>

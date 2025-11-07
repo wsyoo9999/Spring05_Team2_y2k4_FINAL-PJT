@@ -43,8 +43,11 @@ export async function work_order_listAll() {
                             <td class="defect-qty">${numberFormat(row.defect_quantity)}</td>
                             <td><span class="status-badge ${statusClass}">${row.order_status}</span></td>
                             <td>
-                                <button class="btn-detail" data-order-id="${row.order_id}">상세</button>
-                                <button class="btn-result" data-order-id="${row.order_id}">실적등록</button>
+                                <button class="btn-detail" 
+                                        data-action="detail" 
+                                        data-file="production" 
+                                        data-fn="work_order_detail_popup" 
+                                        data-order-id="${row.order_id}">상세</button>
                             </td>
                           </tr>`;
             });
@@ -52,7 +55,12 @@ export async function work_order_listAll() {
             tbody += `<tr><td colspan="9" class="no-data">조회된 작업 지시서가 없습니다.</td></tr>`;
         }
 
-        tbody += `</tbody></table>`;
+        tbody += `</tbody></table>
+                  <input type="button" 
+                         data-action="add" 
+                         data-file="production" 
+                         data-fn="addWorkOrder" 
+                         value="추가">`;
 
     } catch (error) {
         console.error('작업 지시서 목록 조회 실패:', error);
@@ -143,8 +151,11 @@ export async function work_order_list(formData) {
                             <td class="defect-qty">${numberFormat(row.defect_quantity)}</td>
                             <td><span class="status-badge ${statusClass}">${row.order_status}</span></td>
                             <td>
-                                <button class="btn-detail" data-order-id="${row.order_id}">상세</button>
-                                <button class="btn-result" data-order-id="${row.order_id}">실적등록</button>
+                                <button class="btn-detail"
+                                        data-action="detail"
+                                        data-file="production"
+                                        data-fn="work_order_detail_popup"
+                                        data-order-id="${row.order_id}">상세</button>
                             </td>
                           </tr>`;
             });
@@ -152,7 +163,12 @@ export async function work_order_list(formData) {
             tbody += `<tr><td colspan="9" class="no-data">검색 결과가 없습니다.</td></tr>`;
         }
 
-        tbody += `</tbody></table>`;
+        tbody += `</tbody></table>
+                  <input type="button" 
+                         data-action="add" 
+                         data-file="production" 
+                         data-fn="addWorkOrder" 
+                         value="추가">`;
 
     } catch (error) {
         console.error('작업 지시서 검색 실패:', error);
@@ -696,4 +712,28 @@ function getEquipmentStatusClass(status) {
         case '고장': return 'status-broken';
         default: return 'status-default';
     }
+}
+
+export async function work_order_detail_popup(e) {
+
+    const order_id = e.dataset.orderId;
+
+    if (!order_id) {
+        alert('상세 정보를 불러올 수 없습니다. (order_id 누락)');
+        return;
+    }
+
+    // 2. 팝업 URL과 속성을 정의
+    const url = `./../popup/detailWorkOrder.html?order_id=${order_id}`;
+    const features = 'width=600,height=500,resizable=yes,scrollbars=yes'; // 팝업 크기 조정
+
+    // 3. 새 팝업 창
+    window.open(url, 'detailWorkOrder', features).focus();
+}
+
+// 작업지시서 추가
+export function addWorkOrder(){
+    const url='./../popup/addWorkOrder.html';
+    const features = 'width=570,height=350,resizable=no,scrollbars=yes';
+    window.open(url,'add_WorkOrder', features).focus();
 }

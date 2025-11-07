@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>근태 기록 수정</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f8f8; }
+        .detail-card {
+            background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px; max-width: 450px; margin: auto;
+        }
+        h2 { border-bottom: 2px solid #ffc107; padding-bottom: 10px; margin-bottom: 20px; color: #ffc107;}
+        .info-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-bottom: 20px; }
+        .info-label { font-weight: bold; color: #555; }
+        .info-value { border-bottom: 1px dashed #ddd; padding-bottom: 5px; }
+
+        /* 폼 스타일 */
+        #updateForm label { display: block; margin-top: 10px; font-weight: bold; }
+        #updateForm select {
+            width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+        }
+        #updateForm button {
+            background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="detail-card">
+    <h2>🗓️ 근태 기록 수정</h2>
+
+    <div id="loading" style="text-align: center;">데이터를 로드하는 중...</div>
+
+    <div id="attendance-detail-content" style="display: none;">
+        <div class="info-grid">
+            <div class="info-label">사번</div><div class="info-value" id="empIdValue"></div>
+            <div class="info-label">이름</div><div class="info-value" id="empNameValue"></div>
+            <div class="info-label">근무 일자</div><div class="info-value" id="workDateValue"></div>
+            <div class="info-label">출근/퇴근</div><div class="info-value" id="timeValue"></div>
+        </div>
+
+        <h3>근무 상태 변경</h3>
+        <form id="updateForm">
+            <label for="status">근무 상태:</label>
+            <select id="status" name="attendance_status" required>
+                <option value="정상">정상</option>
+                <option value="지각">지각</option>
+                <option value="조퇴">조퇴</option>
+                <option value="결근">결근</option>
+            </select>
+
+            <button type="submit">상태 수정 완료</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_BASE_URL = '/api/hr/attendance';
+    let currentAttendanceId = null;
+
+    // URL 쿼리 파라미터에서 ID 가져오기
+    function getAttendanceIdFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('attendanceId');
+    }
+
+    // 시간 포맷 (HH:MM)
+    function formatTime(dateTimeString) {
+        if (!dateTimeString) return '-';
+        const time = dateTimeString.split('T')[1];
+        if (time) return time.substring(0, 5);
+        return '-';
+    }
+
+    // 1. 상세 데이터 로드
+    async function loadAttendanceDetail() {
+        const attendanceId = getAttendanceIdFromUrl();
+        currentAttendanceId = attendanceId;
+
+        if (!attendanceId) {
+            document.getElementById('loading').innerHTML = '<p style="color: red;">🚨 오류: 근태 ID가 전달되지 않았습니다.</p>';
+            return;
+        }
+
+        try {
+            const data = await $.ajax({
+                url: `${API_BASE_URL}/${attendanceId}`,
+                method: 'GET',
+                dataType: 'json'
+            });
+
+            if (data && data.attendance_id) {
+                const checkIn = formatTime(data.check_in);
+                const checkOut = formatTime(data.check_out);
+
+                // 기본 정보 채우기
+                document.getElementById('empIdValue').textContent = data.emp_id;
+                document.getElementById('empNameValue').textContent = data.emp_name;
+                document.getElementById('workDateValue').textContent = data.work_date;
+                document.getElementById('timeValue').textContent = `${checkIn} ~ ${checkOut}`;
+
+                // 폼 초기값 설정 (현재 상태)
+                document.getElementById('status').value = data.attendance_status;
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('attendance-detail-content').style.display = 'block';
+
+            } else {
+                document.getElementById('loading').innerHTML = `<p class="error-message">ID ${attendanceId}에 대한 기록을 찾을 수 없습니다.</p>`;
+            }
+
+        } catch (err) {
+            console.error("근태 상세 로딩 실패:", err);
+            document.getElementById('loading').innerHTML = '<p style="color: red;">🚨 데이터 로딩 중 오류가 발생했습니다.</p>';
+        }
+    }
+
+    // 2. 폼 제출 (수정) 이벤트 처리
+    document.getElementById('updateForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const status = document.getElementById('status').value;
+
+        // PUT 요청으로 서버에 수정된 데이터 전송
+        try {
+            const result = await $.ajax({
+                url: `${API_BASE_URL}/${currentAttendanceId}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    // 상태만 전송 (제안 2)
+                    attendance_status: status
+                })
+            });
+
+            if (result === true) {
+                alert('✅ 근태 상태가 성공적으로 수정되었습니다.');
+                // 부모 창 새로고침 (수정된 정보를 반영하기 위해)
+                if (window.opener && !window.opener.closed) {
+                    window.opener.location.reload();
+                }
+                window.close();
+            } else {
+                alert('❌ 상태 수정에 실패했습니다.');
+            }
+
+        } catch (error) {
+            console.error('상태 수정 실패:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        }
+    });
+
+
+    $(document).ready(loadAttendanceDetail);
+</script>
+</html>
