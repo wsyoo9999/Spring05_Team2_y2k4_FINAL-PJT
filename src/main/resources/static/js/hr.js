@@ -8,6 +8,7 @@ const API_BASE_URL = '/api/hr';
 // 날짜 포맷 (YYYY-MM-DD)
 function formatDate(dateString) {
     if (!dateString) return '-';
+    // String(dateString)이 없으므로, 이미 객체일 경우를 대비해 new Date 처리
     const date = new Date(dateString);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -18,12 +19,19 @@ function formatDate(dateString) {
 // 시간 포맷 (HH:MM)
 function formatTime(dateTimeString) {
     if (!dateTimeString) return '-';
-    const time = dateTimeString.split('T')[1];
+    // LocalDateTime 문자열은 'YYYY-MM-DDTHH:MM:SS' 형식이므로 T를 기준으로 분리
+    const parts = dateTimeString.split('T');
+    const time = parts.length > 1 ? parts[1] : null;
+
     if (time) return time.substring(0, 5);
     return '-';
 }
 
-// 숫자 천단위 콤마
+// 숫자 천단위 콤마 함수 추가
+function numberFormat(num) {
+    if (num === null || num === undefined) return '0';
+    return parseInt(num).toLocaleString('ko-KR');
+}
 
 
 // ================================================================
@@ -144,7 +152,7 @@ export function employee_detail_popup(e) {
 
 
 // ================================================================
-// 근태 현황 (Attendance) -
+// 근태 현황 (Attendance)
 // ================================================================
 
 export function attendance_search_form() {
@@ -175,6 +183,7 @@ export async function attendance_list(formData) {
 }
 
 async function attendance_fetch_data(formData) {
+    // 🚩 초과 근무 컬럼 삭제 (colspan 7 -> 6)
     let table = `<table>
                     <thead>
                         <tr>
@@ -185,7 +194,7 @@ async function attendance_fetch_data(formData) {
                             <th>퇴근 시간</th>
                             <th>근무 상태</th>
                         </tr>
-                    </thead>`; // 🚩 초과 근무 컬럼 삭제 (colspan 7 -> 6)
+                    </thead>`;
     let tbody = '<tbody>';
 
     const start_date = formData.start_date || '';
@@ -240,7 +249,7 @@ async function attendance_fetch_data(formData) {
     }
 }
 
-// 6. 근태 기록 수정 팝업 함수
+// 근태 기록 수정 팝업 함수
 export function attendance_detail_popup(e) {
     const attendanceId = e.dataset.attendanceId;
     if (!attendanceId) {
@@ -361,8 +370,9 @@ async function salary_fetch_data(formData) {
         return table + tbody;
 
     } catch (err) {
-        console.error("salary_list 로딩 실패:", err);
-        return table + `<tbody><tr><td colspan="9" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
+        // 🚨 에러 발생 시 로그 출력 후 빈 테이블 반환
+        console.error("salary_list 로딩 실패 (numberFormat 함수 정의 누락):", err);
+        return table + `<tbody><tr><td colspan="9" style="text-align:center; color:red;">데이터 로딩 실패 (스크립트 오류)</td></tr></tbody></table>`;
     }
 }
 
