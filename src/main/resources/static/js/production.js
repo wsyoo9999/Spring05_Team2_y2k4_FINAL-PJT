@@ -1,6 +1,6 @@
 // 1. 작업 지시서 전체 목록 조회
 export async function work_order_listAll() {
-    let table = `<table class="work-order-table">
+    let table = `<table>
                     <thead>
                         <tr>
                             <th>작업지시번호</th>
@@ -28,10 +28,7 @@ export async function work_order_listAll() {
 
         if (data && data.length > 0) {
             $.each(data, function(i, row) {
-                const statusClass = getStatusClass(row.order_status);
-                const progress = row.target_quantity > 0
-                    ? Math.round((row.good_quantity / row.target_quantity) * 100)
-                    : 0;
+                // const statusClass = getStatusClass(row.order_status); // (추후 CSS 구현 시)
 
                 tbody += `<tr data-order-id="${row.order_id}">
                             <td><strong>${row.order_id}</strong></td>
@@ -41,30 +38,39 @@ export async function work_order_listAll() {
                             <td>${numberFormat(row.target_quantity)}</td>
                             <td class="good-qty">${numberFormat(row.good_quantity)}</td>
                             <td class="defect-qty">${numberFormat(row.defect_quantity)}</td>
-                            <td><span class="status-badge ${statusClass}">${row.order_status}</span></td>
-                            <td>
+                            <td>${row.order_status}</td>
+                            <td class="actions">
                                 <button class="btn-detail" 
                                         data-action="detail" 
                                         data-file="production" 
                                         data-fn="work_order_detail_popup" 
-                                        data-order-id="${row.order_id}">상세</button>
+                                        data-order-id="${row.order_id}"
+                                        title="상세 보기">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
                             </td>
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="9" class="no-data">조회된 작업 지시서가 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="9" style="text-align:center;">조회된 작업 지시서가 없습니다.</td></tr>`;
         }
 
-        tbody += `</tbody></table>
-                  <input type="button" 
-                         data-action="add" 
-                         data-file="production" 
-                         data-fn="addWorkOrder" 
-                         value="추가">`;
+        tbody += `</tbody></table>`;
+
+        // 새 디자인의 '추가' 버튼을 테이블 하단에 추가
+        // main.html에 정의된 .table-actions-footer와 .action-button 스타일을 사용
+        const actionRow = `
+            <div class="table-actions-header">
+                <button class="action-button btn-primary" data-action="add" data-file="production" data-fn="addWorkOrder">
+                    <i class="fas fa-plus-circle"></i> 작업 지시서 추가
+                </button>
+            </div>
+        `;
+        return actionRow + table + tbody;
 
     } catch (error) {
         console.error('작업 지시서 목록 조회 실패:', error);
-        tbody = `<tbody><tr><td colspan="9" class="error">데이터를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="9" style="text-align:center; color:red;">데이터를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -73,27 +79,33 @@ export async function work_order_listAll() {
 
 // 2. 작업 지시서 검색 폼
 export function work_order_search_form() {
-    const search_bar = `<form data-file="production" data-fn="work_order_list">
-                            <label>상태:
-                                <select name="order_status">
-                                    <option value="">전체</option>
-                                    <option value="대기">대기</option>
-                                    <option value="진행중">진행중</option>
-                                    <option value="완료">완료</option>
-                                </select>
-                            </label>
-                            <label>물품번호:
-                                <input type="text" name="item_id" placeholder="물품번호 입력" />
-                            </label>
-                            <label>시작일:
-                                <input type="date" name="start_date" />
-                            </label>
-                            <label>완료일:
-                                <input type="date" name="due_date" />
-                            </label>
-                            <button type="submit">검색</button>
-                        </form>`;
-
+    // main.html의 .search-form 디자인에 맞게 수정
+    const search_bar = `
+        <div class="form-group">
+            <label for="order_status">상태</label>
+            <select id="order_status" name="order_status">
+                <option value="">전체</option>
+                <option value="대기">대기</option>
+                <option value="진행중">진행중</option>
+                <option value="완료">완료</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="item_id">물품번호</label>
+            <input type="text" id="item_id" name="item_id" placeholder="물품번호 입력" />
+        </div>
+        <div class="form-group">
+            <label for="start_date">시작일</label>
+            <input type="date" id="start_date" name="start_date" />
+        </div>
+        <div class="form-group">
+            <label for="due_date">완료일</label>
+            <input type="date" id="due_date" name="due_date" />
+        </div>
+        <button type="submit" data-action="search" data-file="production" data-fn="work_order_list">
+            <i class="fas fa-search"></i> 검색
+        </button>
+    `;
     return search_bar;
 }
 
@@ -105,7 +117,7 @@ export async function work_order_list(formData) {
     const start_date = formData.start_date || '';
     const due_date = formData.due_date || '';
 
-    let table = `<table class="work-order-table">
+    let table = `<table>
                     <thead>
                         <tr>
                             <th>작업지시번호</th>
@@ -139,7 +151,7 @@ export async function work_order_list(formData) {
 
         if (data && data.length > 0) {
             $.each(data, function(i, row) {
-                const statusClass = getStatusClass(row.order_status);
+                // const statusClass = getStatusClass(row.order_status);
 
                 tbody += `<tr data-order-id="${row.order_id}">
                             <td><strong>${row.order_id}</strong></td>
@@ -149,30 +161,38 @@ export async function work_order_list(formData) {
                             <td>${numberFormat(row.target_quantity)}</td>
                             <td class="good-qty">${numberFormat(row.good_quantity)}</td>
                             <td class="defect-qty">${numberFormat(row.defect_quantity)}</td>
-                            <td><span class="status-badge ${statusClass}">${row.order_status}</span></td>
-                            <td>
+                            <td>${row.order_status}</td>
+                            <td class="actions">
                                 <button class="btn-detail"
                                         data-action="detail"
                                         data-file="production"
                                         data-fn="work_order_detail_popup"
-                                        data-order-id="${row.order_id}">상세</button>
+                                        data-order-id="${row.order_id}"
+                                        title="상세 보기">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
                             </td>
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="9" class="no-data">검색 결과가 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="9" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
         }
 
-        tbody += `</tbody></table>
-                  <input type="button" 
-                         data-action="add" 
-                         data-file="production" 
-                         data-fn="addWorkOrder" 
-                         value="추가">`;
+        tbody += `</tbody></table>`;
+
+        // listAll과 동일하게 '추가' 버튼 추가
+        const actionRow = `
+            <div class="table-actions-header">
+                <button class="action-button btn-primary" data-action="add" data-file="production" data-fn="addWorkOrder">
+                    <i class="fas fa-plus-circle"></i> 작업 지시서 추가
+                </button>
+            </div>
+        `;
+        return actionRow + table + tbody;
 
     } catch (error) {
         console.error('작업 지시서 검색 실패:', error);
-        tbody = `<tbody><tr><td colspan="9" class="error">검색에 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="9" style="text-align:center; color:red;">검색에 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -270,7 +290,7 @@ export async function work_order_detail(order_id) {
 
 // 5. BOM(자재 명세서) 전체 조회
 export async function bom_listAll() {
-    let table = `<table class="bom-table">
+    let table = `<table>
                     <thead>
                         <tr>
                             <th>BOM ID</th>
@@ -301,14 +321,15 @@ export async function bom_listAll() {
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="4" class="no-data">BOM 정보가 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="4" style="text-align:center;">BOM 정보가 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
+//나중에 추가
 
     } catch (error) {
         console.error('BOM 조회 실패:', error);
-        tbody = `<tbody><tr><td colspan="4" class="error">BOM 정보를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="4" style="text-align:center; color:red;">BOM 정보를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -317,24 +338,26 @@ export async function bom_listAll() {
 
 // 6. BOM 검색 폼
 export function bom_search_form() {
-    const search_bar = `<form data-file="production" data-fn="bom_list">
-                            <label>물품번호:
-                                <input type="text" name="item_id" placeholder="물품번호 입력" />
-                            </label>
-                            <button type="submit">검색</button>
-                        </form>`;
-
+    // main.html의 .search-form 디자인에 맞게 수정
+    const search_bar = `
+        <div class="form-group">
+            <label for="bom_item_id">물품번호</label>
+            <input type="text" id="bom_item_id" name="item_id" placeholder="물품번호 입력" />
+        </div>
+        <button type="submit" data-action="search" data-file="production" data-fn="bom_list">
+            <i class="fas fa-search"></i> 검색
+        </button>
+    `;
     return search_bar;
 }
 
 
 
 // 7. BOM 조건 검색 (물품별)
-
 export async function bom_list(formData) {
     const item_id = formData.item_id || '';
 
-    let table = `<table class="bom-table">
+    let table = `<table>
                     <thead>
                         <tr>
                             <th>BOM ID</th>
@@ -366,68 +389,19 @@ export async function bom_list(formData) {
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="4" class="no-data">검색 결과가 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="4" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
+        // 나중에 추가
 
     } catch (error) {
         console.error('BOM 검색 실패:', error);
-        tbody = `<tbody><tr><td colspan="4" class="error">검색에 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="4" style="text-align:center; color:red;">검색에 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
 }
-
-
-// 8. 설비 전체 조회
-export async function equipment_listAll() {
-    let table = `<table class="equipment-table">
-                    <thead>
-                        <tr>
-                            <th>설비코드</th>
-                            <th>설비명</th>
-                            <th>상태</th>
-                            <th>점검일</th>
-                        </tr>
-                    </thead>`;
-
-    let tbody = '';
-
-    try {
-        const data = await $.ajax({
-            url: '/api/production/equipment',
-            method: 'GET',
-            dataType: 'json'
-        });
-
-        tbody += `<tbody>`;
-
-        if (data && data.length > 0) {
-            $.each(data, function(i, row) {
-                const statusClass = getEquipmentStatusClass(row.equipment_status);
-
-                tbody += `<tr>
-                            <td>${row.equipment_id}</td>
-                            <td><strong>${row.equipment_name}</strong></td>
-                            <td><span class="equipment-status ${statusClass}">${row.equipment_status}</span></td>
-                            <td>${formatDate(row.check_date)}</td>
-                          </tr>`;
-            });
-        } else {
-            tbody += `<tr><td colspan="4" class="no-data">설비 정보가 없습니다.</td></tr>`;
-        }
-
-        tbody += `</tbody></table>`;
-
-    } catch (error) {
-        console.error('설비 조회 실패:', error);
-        tbody = `<tbody><tr><td colspan="4" class="error">설비 정보를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
-    }
-
-    return table + tbody;
-}
-
 
 // 9. Lot 추적 검색 폼
 export function lot_tracking_search_form() {
@@ -437,14 +411,13 @@ export function lot_tracking_search_form() {
                             </label>
                             <button type="submit">추적</button>
                         </form>`;
-
+    // 추후 이 폼도 .search-form 스타일로 수정이 필요
     return search_bar;
 }
 
 
 
 // 10. Lot 번호 추적 (품질 관리)
-
 export async function lot_tracking(formData) {
     const lot_number = formData.lot_number || '';
 
@@ -601,14 +574,14 @@ export async function work_order_lots(formData) {
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="6" class="no-data">등록된 Lot이 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="6" style="text-align:center;">등록된 Lot이 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
 
     } catch (error) {
         console.error('Lot 목록 조회 실패:', error);
-        tbody = `<tbody><tr><td colspan="6" class="error">Lot 목록을 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="6" style="text-align:center; color:red;">Lot 목록을 불러오는데 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -662,14 +635,14 @@ export async function work_order_defects(formData) {
                         <td></td>
                       </tr>`;
         } else {
-            tbody += `<tr><td colspan="4" class="no-data">불량 내역이 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="4" style="text-align:center;">불량 내역이 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
 
     } catch (error) {
         console.error('불량 내역 조회 실패:', error);
-        tbody = `<tbody><tr><td colspan="4" class="error">불량 내역을 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="4" style="text-align:center; color:red;">불량 내역을 불러오는데 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -725,7 +698,7 @@ export async function work_order_detail_popup(e) {
 
     // 2. 팝업 URL과 속성을 정의
     const url = `./../popup/detailWorkOrder.html?order_id=${order_id}`;
-    const features = 'width=600,height=500,resizable=yes,scrollbars=yes'; // 팝업 크기 조정
+    const features = 'width=700,height=600,resizable=yes,scrollbars=yes'; // 팝업 크기 조정
 
     // 3. 새 팝업 창
     window.open(url, 'detailWorkOrder', features).focus();
@@ -734,6 +707,6 @@ export async function work_order_detail_popup(e) {
 // 작업지시서 추가
 export function addWorkOrder(){
     const url='./../popup/addWorkOrder.html';
-    const features = 'width=570,height=350,resizable=no,scrollbars=yes';
+    const features = 'width=600,height=450,resizable=no,scrollbars=yes';
     window.open(url,'add_WorkOrder', features).focus();
 }

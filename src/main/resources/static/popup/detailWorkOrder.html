@@ -4,15 +4,123 @@
     <meta charset="UTF-8">
     <title>작업지시서 상세</title>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #50B86C;
+            --danger-color: #E95353;
+            --bg-light: #F8F9FA;
+            --text-dark: #333333;
+            --border-color: #E0E0E0;
+            --card-bg: #FFFFFF;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding: 20px;
+            margin: 0;
+        }
+        .detail-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 20px 30px;
+        }
+        h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 8px;
+        }
+        .status-badge {
+            font-size: 16px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 15px;
+            color: white;
+        }
+        .status-waiting { background-color: #6c757d; }
+        .status-progress { background-color: var(--primary-color); }
+        .status-complete { background-color: var(--secondary-color); }
+
+        /* 정보 표시용 그리드 */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 150px 1fr; /* 라벨-값 */
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .info-grid .label {
+            font-weight: 500;
+            color: #555;
+            background-color: var(--bg-light);
+            padding: 8px 10px;
+            border-radius: 4px;
+        }
+        .info-grid .value {
+            padding: 8px 10px;
+            font-weight: 500;
+            background-color: #fcfcfc;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .info-grid .value.good { color: var(--secondary-color); }
+        .info-grid .value.defect { color: var(--danger-color); }
+
+        /* 버튼 영역 */
+        .action-container {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+        }
+        .action-button {
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: #3A7BD5; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+        .btn-danger { background-color: var(--danger-color); }
+        .btn-danger:hover { background-color: #d94343; }
+    </style>
 </head>
 <body>
-<h2>작업지시서 상세 정보</h2>
 
-<div id="detail-container">
-    <p>상세 정보를 불러오는 중입니다...</p>
+<div class="detail-card">
+    <div id="detail-header">
+    </div>
+
+    <div id="detail-container">
+        <p>상세 정보를 불러오는 중입니다...</p>
+    </div>
+
+    <div id="action-container" class="action-container">
+    </div>
 </div>
-
-<div id="action-container" style="margin-top: 20px;"></div>
 
 <script>
     // 날짜 포맷 (YYYY-MM-DD)
@@ -31,8 +139,19 @@
         return parseInt(num).toLocaleString('ko-KR');
     }
 
+    // 상태 클래스 반환
+    function getStatusClass(status) {
+        switch(status) {
+            case '대기': return 'status-waiting';
+            case '진행중': return 'status-progress';
+            case '완료': return 'status-complete';
+            default: return 'status-waiting';
+        }
+    }
+
     // === 팝업 로드 시 실행되는 메인 로직 ===
     $(document).ready(async function() {
+        const headerContainer = $('#detail-header');
         const container = $('#detail-container');
         const actionContainer = $('#action-container');
 
@@ -52,65 +171,67 @@
                 dataType: 'json'
             });
 
-            // 3. HTML 생성 (스타일 없는 순수 HTML)
+            // 3. HTML 생성
             const progress = data.target_quantity > 0
                 ? Math.round((data.good_quantity / data.target_quantity) * 100)
                 : 0;
 
-            // addSale.html의 <label> 형식을 차용
-            let detailHtml = `
-                    <div>
-                        <label>작업지시번호: </label>
-                        <strong>${data.order_id}</strong>
-                    </div>
-                    <div>
-                        <label>상태: </label>
-                        <span>${data.order_status}</span>
-                    </div>
-                    <hr>
-                    <h4>기본 정보</h4>
-                    <div>
-                        <label>물품번호: </label>
-                        <span>${data.item_id}</span>
-                    </div>
-                    <div>
-                        <label>시작일: </label>
-                        <span>${formatDate(data.start_date)}</span>
-                    </div>
-                    <div>
-                        <label>완료일: </label>
-                        <span>${formatDate(data.due_date)}</span>
-                    </div>
-                    <hr>
-                    <h4>생산 수량</h4>
-                    <div>
-                        <label>목표수량: </label>
-                        <span>${numberFormat(data.target_quantity)}</span>
-                    </div>
-                    <div>
-                        <label>양품수량: </label>
-                        <span>${numberFormat(data.good_quantity)}</span>
-                    </div>
-                    <div>
-                        <label>불량수량: </label>
-                        <span>${numberFormat(data.defect_quantity)}</span>
-                    </div>
-                    <div>
-                        <label>진행률: </label>
-                        <span>${progress}%</span>
-                    </div>
-                    <hr>
-                `;
+            // 헤더 생성
+            let headerHtml = `
+                <h2>
+                    <span><i class="fas fa-industry"></i> 작업지시서 상세</span>
+                    <span class="status-badge ${getStatusClass(data.order_status)}">${data.order_status}</span>
+                </h2>
+            `;
 
-            // 버튼 (스타일 없음)
+            // 상세 정보 HTML 생성
+            let detailHtml = `
+                <h3>기본 정보</h3>
+                <div class="info-grid">
+                    <div class="label">작업지시번호</div>
+                    <div class="value"><strong>${data.order_id}</strong></div>
+
+                    <div class="label">물품번호</div>
+                    <div class="value">${data.item_id}</div>
+
+                    <div class="label">시작일</div>
+                    <div class="value">${formatDate(data.start_date)}</div>
+
+                    <div class="label">완료일</div>
+                    <div class="value">${formatDate(data.due_date)}</div>
+                </div>
+
+                <h3>생산 수량</h3>
+                <div class="info-grid">
+                    <div class="label">목표수량</div>
+                    <div class="value">${numberFormat(data.target_quantity)}</div>
+
+                    <div class="label">양품수량</div>
+                    <div class="value good"><strong>${numberFormat(data.good_quantity)}</strong></div>
+
+                    <div class="label">불량수량</div>
+                    <div class="value defect"><strong>${numberFormat(data.defect_quantity)}</strong></div>
+
+                    <div class="label">진행률</div>
+                    <div class="value"><strong>${progress}%</strong></div>
+                </div>
+            `;
+
+            // 버튼 HTML 생성
             let actionHtml = `
-                    <h4>연관 작업</h4>
-                    <input type="button" class="btn-register-result" data-order-id="${data.order_id}" value="생산 실적 등록">
-                    <input type="button" class="btn-register-defect" data-order-id="${data.order_id}" value="불량 등록">
-                    <input type="button" class="btn-view-lots" data-order-id="${data.order_id}" value="Lot 조회">
-                `;
+                <button class="action-button btn-primary" data-order-id="${data.order_id}">
+                    <i class="fas fa-check-circle"></i> 생산 실적 등록
+                </button>
+                <button class="action-button btn-danger" data-order-id="${data.order_id}">
+                    <i class="fas fa-exclamation-triangle"></i> 불량 등록
+                </button>
+                <button class="action-button btn-secondary" data-order-id="${data.order_id}">
+                    <i class="fas fa-search"></i> Lot 조회
+                </button>
+            `;
 
             // 4. 컨테이너에 HTML 삽입
+            headerContainer.html(headerHtml);
             container.html(detailHtml);
             actionContainer.html(actionHtml);
 
