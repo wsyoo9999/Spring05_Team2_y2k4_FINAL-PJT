@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>마이페이지</title>
+    <title>마이페이지 수정</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
@@ -16,21 +16,9 @@
             --border-color: #E0E0E0; --card-bg: #FFFFFF;
             --nav-h: 64px; --sidebar-w: 280px;
         }
-
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-light); color: var(--text-dark); line-height: 1.6; min-height: 100vh; }
         /* Nav Bar Styles */
-        .nav-bar {
-            height: var(--nav-h); background: var(--bg-dark); color: var(--text-light);
-            display: flex; align-items: center; padding: 0 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;
-        }
+        .nav-bar { height: var(--nav-h); background: var(--bg-dark); color: var(--text-light); display: flex; align-items: center; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
         .nav-brand { font-weight: 700; font-size: 22px; color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
         .nav-brand .nav-logo { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-light); }
         .nav-spacer { flex: 1; }
@@ -41,7 +29,6 @@
         .nav-icon-btn { width: 40px; height: 40px; border: none; border-radius: 50%; background: transparent; color: rgba(255,255,255,0.7); cursor: pointer; transition: background 0.2s, color 0.2s; font-size: 18px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         .nav-icon-btn.active { color: var(--text-light); background: rgba(255,255,255,0.1); }
         .nav-icon-btn:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
-
         /* Main Layout Styles */
         .main-container { display: flex; }
         .accordion-container { width: var(--sidebar-w); background-color: var(--card-bg); flex-shrink: 0; height: calc(100vh - var(--nav-h)); position: sticky; top: var(--nav-h); overflow-y: auto; border-right: 1px solid var(--border-color); }
@@ -49,7 +36,6 @@
         .accordion-header { width: 100%; padding: 15px 20px; text-align: left; background-color: var(--card-bg); border: none; cursor: pointer; font-size: 16px; font-weight: 600; color: var(--text-dark); display: flex; justify-content: space-between; align-items: center; }
         .accordion-content { padding: 10px 20px; background-color: #fcfcfc; display: none; overflow: hidden; }
         .results { flex: 1; padding: 20px; min-height: calc(100vh - var(--nav-h)); background-color: var(--bg-light); display: flex; justify-content: center; }
-
         /* Mypage Content Card Styles */
         .content-card { max-width: 600px; width: 100%; background: var(--card-bg); border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 30px; height: fit-content; }
         h1 { font-size: 28px; font-weight: 700; color: var(--primary-color); margin-bottom: 20px; text-align: center; }
@@ -57,6 +43,7 @@
         form > div { margin-bottom: 15px; }
         form label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; font-size: 14px; }
         form input { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 5px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; }
+        /* mypageedit.html: 변경 불가 필드만 readonly 유지 */
         input[readonly] { background-color: var(--bg-light); cursor: not-allowed; color: #777; }
         .action-button { background-color: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 15px; margin-top: 20px; display: block; width: 100%; }
         .action-button:hover { background-color: #3A7BD5; }
@@ -100,68 +87,76 @@
 
     <div class="results">
         <div class="content-card">
-            <h1>마이페이지</h1>
+            <h1>마이페이지 (수정)</h1>
 
             <section id="profile-info-combined">
                 <h2>1. 👤 개인 정보 및 보안</h2>
-                <form>
+                <form action="/api/update-profile" method="post">
 
                     <div>
-                        <label for="name">이름</label>
-                        <input type="text" id="name" name="name" value="육현수" readonly>
+                        <label for="name">이름 (수정 가능)</label>
+                        <input type="text" id="name" name="name" value="육현수">
                     </div>
 
                     <div>
-                        <label for="birthday">생년월일</label>
+                        <label for="birthday">생년월일 (변경 불가)</label>
                         <input type="text" id="birthday" value="1999.06.15" readonly>
                     </div>
 
                     <div>
-                        <label for="user_id">아이디</label>
+                        <label for="user_id">아이디 (변경 불가)</label>
                         <input type="text" id="user_id" value="yhs_0615" readonly>
                     </div>
 
                     <div>
-                        <label for="email">이메일</label>
-                        <input type="email" id="email" name="email" value="yuk@naver.com" readonly>
+                        <label for="email">이메일 (수정 가능)</label>
+                        <input type="email" id="email" name="email" value="yuk@naver.com">
                     </div>
 
                     <div>
-                        <label for="contact">연락처</label>
-                        <input type="text" id="contact" name="contact" value="010-1234-5678" readonly>
+                        <label for="contact">연락처 (수정 가능)</label>
+                        <input type="text" id="contact" name="contact" value="010-1234-5678">
                     </div>
 
                     <div>
-                        <label for="company_name">회사명</label>
+                        <label for="company_name">회사명 (변경 불가)</label>
                         <input type="text" id="company_name" value="ERP 시스템즈" readonly>
                     </div>
                     <div>
-                        <label for="emp_id">사원번호</label>
+                        <label for="emp_id">사원번호 (변경 불가)</label>
                         <input type="text" id="emp_id" value="E2024001" readonly>
                     </div>
                     <div>
-                        <label for="dept">부서</label>
+                        <label for="dept">부서 (변경 불가)</label>
                         <input type="text" id="dept" value="IT 개발팀" readonly>
                     </div>
                     <div>
-                        <label for="job_title">직무</label>
+                        <label for="job_title">직무 (변경 불가)</label>
                         <input type="text" id="job_title" value="개발" readonly>
                     </div>
                     <div>
-                        <label for="position">직급</label>
+                        <label for="position">직급 (변경 불가)</label>
                         <input type="text" id="position" value="대리" readonly>
                     </div>
 
                     <hr>
-                    <h3>비밀번호</h3>
+                    <h3>비밀번호 변경</h3>
                     <div>
-                        <label for="password_display">비밀번호</label>
-                        <input type="password" id="password_display" value="********" readonly>
+                        <label for="current_pw">현재 비밀번호 (변경 시 필수)</label>
+                        <input type="password" id="current_pw" name="current_password">
+                    </div>
+                    <div>
+                        <label for="new_pw">새 비밀번호</label>
+                        <input type="password" id="new_pw" name="new_password">
+                    </div>
+                    <div>
+                        <label for="confirm_pw">새 비밀번호 확인</label>
+                        <input type="password" id="confirm_pw" name="confirm_password">
                     </div>
 
                     <button type="button" class="action-button"
-                            onclick="window.location.href='/mypageedit';">
-                        수정하기
+                            onclick="alert('수정 요청이 전송되었습니다. 마이페이지로 돌아갑니다.'); window.location.href='/mypage';">
+                        수정 완료
                     </button>
                 </form>
             </section>
