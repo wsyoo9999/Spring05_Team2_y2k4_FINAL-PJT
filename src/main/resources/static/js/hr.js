@@ -202,6 +202,7 @@ async function attendance_fetch_data(formData) {
                             <th>출근 시간</th>
                             <th>퇴근 시간</th>
                             <th>근무 상태</th>
+                            <th>관리</th>
                         </tr>
                     </thead>`;
     let tbody = '<tbody>';
@@ -232,18 +233,22 @@ async function attendance_fetch_data(formData) {
                 }
 
                 // 🚨 data-action="detail"로 통일
-                tbody += `<tr 
-                            data-action="detail" 
-                            data-file="hr" 
-                            data-fn="attendance_detail_popup"
-                            data-attendance-id="${row.attendance_id}"
-                            style="cursor: pointer;">
+                tbody += `<tr>
                             <td>${formatDate(row.work_date) || '-'}</td>
                             <td>${row.emp_id || '-'}</td>
                             <td>${row.emp_name || '-'}</td>
                             <td>${check_in_time}</td>
                             <td>${check_out_time}</td>
                             <td class="${status_class}"><strong>${row.attendance_status || '-'}</strong></td>
+                            <td class="actions">                    
+                                <button 
+                                    data-action="detail" 
+                                    data-file="hr" 
+                                    data-fn="attendance_detail_popup"
+                                    data-attendance-id="${row.attendance_id}" >
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
                           </tr>`; // 🚩 초과 근무 필드 제거
             });
         } else {
@@ -336,6 +341,7 @@ async function salary_fetch_data(formData) {
                             <th>총 공제액</th>
                             <th>실수령액</th>
                             <th>은행명</th>
+                            <th>관리</th>
                         </tr>
                     </thead>`;
     let tbody = '<tbody>';
@@ -359,17 +365,17 @@ async function salary_fetch_data(formData) {
                             <td class="num">${numberFormat(row.allowance)}</td>
                             <td class="num"><strong>${numberFormat(row.total_gross)}</strong></td>
                             <td class="num" style="color: red;">${numberFormat(row.deduction_amount)}</td>
-                            <td class="num">
-                                <strong 
+                            <td class="num"><stron>${numberFormat(row.total_pay)} </stron></td>
+                            <td>${row.bank_name || '-'}</td>
+                            <td class="actions">                    
+                                <button 
                                     data-action="detail" 
                                     data-file="hr" 
                                     data-fn="salary_detail_popup"
-                                    data-salary-id="${row.salary_id}" 
-                                    style="cursor: pointer; color: blue; text-decoration: underline;">
-                                    ${numberFormat(row.total_pay)}
-                                </strong>
+                                    data-salary-id="${row.salary_id}" >
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
                             </td>
-                            <td>${row.bank_name || '-'}</td>
                           </tr>`;
             });
         } else {

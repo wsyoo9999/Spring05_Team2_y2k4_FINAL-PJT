@@ -48,11 +48,7 @@ export async function stock_listAll() {
                 <td>${row.storage_location}</td>
                 <td>${row.expiration_date}</td>
                 <td>${convertGubun(row.gubun)}</td>
-                <td class="actions">
-                    <button id="stock_detail" data-value="${row.stock_id}">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                    
+                <td class="actions">                    
                     <button id="stock_edit" data-value="${row.stock_id}">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -117,10 +113,6 @@ export async function stock_list(formData) {
                 <td>${row.expiration_date}</td>
                 <td>${convertGubun(row.gubun)}</td>
                 <td class="actions">
-                    <button id="stock_detail" data-value="${row.stock_id}">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                    
                     <button id="stock_edit" data-value="${row.stock_id}">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -136,6 +128,7 @@ export async function stock_list(formData) {
 export function stock_search_form() {
     return `
         <form data-file="stock" data-fn="items_list">
+            
             <label>물품명:</label>
             <input type="text" name="stock_name" placeholder="예: 드릴" />
 
@@ -152,10 +145,9 @@ export function stock_search_form() {
             <label>보관위치:</label>
             <input type="text" name="storage_location" placeholder="예: A-01-03" />
 
-            <input type="button" class="search_btn"
-                   data-file="item"
-                   data-fn="items_list"
-                   value="검색" />
+            <button type="submit" class="search_btn"data-file="item"data-fn="stock_list">
+                <i class="fas fa-search">검색</i>
+            </button>
         </form>
     `;
 }
@@ -194,12 +186,6 @@ $(document).on('click', '#stock_edit', function() {
     editStock(value);
 });
 
-// 상세보기 버튼 클릭 감지 (필요시)
-// $(document).on('click', '#stock_detail', function() {
-//     const value = $(this).data('value');
-//     viewStockDetail(value);
-// });
-
 // 재고 조회 팝업 호출
 export function editStock(value){
     console.log('클릭된 값:', value);
@@ -207,14 +193,6 @@ export function editStock(value){
     const features = 'width=570,height=350,resizable=no,scrollbars=yes';
     window.open(url, 'view_stock', features).focus();
 }
-
-// 재고 상세보기 팝업 호출 (필요시)
-// export function viewStockDetail(value){
-//     console.log('상세보기 클릭된 값:', value);
-//     const url = `./../popup/inventory/stockDetail.html?id=${value}`;
-//     const features = 'width=700,height=500,resizable=no,scrollbars=yes';
-//     window.open(url, 'stock_detail', features).focus();
-// }
 
 // =============================================입고=============================================
 
@@ -270,10 +248,6 @@ export async function inbound_listAll() {
                 <td>${row.manager}</td>
                 <td>${row.remark}</td>
                 <td class="actions">
-                    <button id="inbound_detail" data-value="${row.stock_id}">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                    
                     <button id="inbound_edit" data-value="${row.stock_id}">
                         <i class="fas fa-edit"></i>
                      </button>
@@ -364,10 +338,9 @@ export function inbound_search_form() {
             <label>소비기한:</label>
             <input type="date" name="expand_date" />
 
-            <input type="button" class="search_btn"
-                   data-file="inbound"
-                   data-fn="inbound_list"
-                   value="검색" />
+            <button type="submit" class="search_btn" data-file="stock" data-fn="inbound_list">
+                <i class="fas fa-search">검색</i>
+            </button>
         </form>
 
 
@@ -404,12 +377,6 @@ $(document).on('click', '#inbound_edit', function() {
     editInbound(value);
 });
 
-// 상세보기 버튼 클릭 감지 (필요시)
-// $(document).on('click', '#inbound_detail', function() {
-//     const value = $(this).data('value');
-//     viewInboundDetail(value);
-// });
-
 // 입고 조회 팝업 호출
 export function editInbound(value){
     console.log('클릭된 값:', value);
@@ -417,14 +384,6 @@ export function editInbound(value){
     const features = 'width=570,height=350,resizable=no,scrollbars=yes';
     window.open(url, 'view_stock', features).focus();
 }
-
-// 입고 상세보기 팝업 호출 (필요시)
-// export function viewInboundDetail(value){
-//     console.log('상세보기 클릭된 값:', value);
-//     const url = `./../popup/inventory/inboundDetail.html?id=${value}`;
-//     const features = 'width=700,height=500,resizable=no,scrollbars=yes';
-//     window.open(url, 'inbound_detail', features).focus();
-// }
 
 // =============================================출고=============================================
 
@@ -471,10 +430,6 @@ export async function outbound_listAll() {
                 <td>${row.manager}</td>
                 <td>${row.remark}</td>
                 <td class="actions">
-                    <button id="outbound_detail" data-value="${row.outbound_id}">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                    
                     <button id="outbound_edit" data-value="${row.outbound_id}">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -554,10 +509,9 @@ export function outbound_search_form() {
             <label>출고일:</label>
             <input type="date" name="outbound_date" />
 
-            <input type="button" class="search_btn"
-                   data-file="outbound"
-                   data-fn="outbound_list"
-                   value="검색" />
+            <button type="submit" class="search_btn" data-file="inventory" data-fn="outbound_list">
+                <i class="fas fa-search">검색</i>
+            </button>
         </form>
 
         <script>
@@ -595,12 +549,6 @@ $(document).on('click', '#outbound_edit', function() {
     editOutbound(value);
 });
 
-// 상세보기 버튼 클릭 감지 (필요시)
-// $(document).on('click', '#outbound_detial', function() {
-//     const value = $(this).data('value');
-//     viewStockDetail(value);
-// });
-
 // 재고 조회 팝업 호출
 export function editOutbound(value){
     console.log('클릭된 값:', value);
@@ -608,11 +556,3 @@ export function editOutbound(value){
     const features = 'width=570,height=350,resizable=no,scrollbars=yes';
     window.open(url, 'view_outbound', features).focus();
 }
-
-// 재고 상세보기 팝업 호출 (필요시)
-// export function viewOutboundDetail(value){
-//     console.log('상세보기 클릭된 값:', value);
-//     const url = `./../popup/inventory/outboundDetail.html?id=${value}`;
-//     const features = 'width=700,height=500,resizable=no,scrollbars=yes';
-//     window.open(url, 'outbound_detail', features).focus();
-// }
