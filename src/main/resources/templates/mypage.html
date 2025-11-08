@@ -48,6 +48,8 @@
         .accordion-item { border-bottom: 1px solid var(--border-color); }
         .accordion-header { width: 100%; padding: 15px 20px; text-align: left; background-color: var(--card-bg); border: none; cursor: pointer; font-size: 16px; font-weight: 600; color: var(--text-dark); display: flex; justify-content: space-between; align-items: center; }
         .accordion-content { padding: 10px 20px; background-color: #fcfcfc; display: none; overflow: hidden; }
+        .accordion-content button.menu { display: block; width: 100%; padding: 10px 15px; margin-bottom: 5px; background: none; border: none; text-align: left; font-size: 14px; color: #555; cursor: pointer; border-radius: 4px; transition: background-color 0.2s, color 0.2s; }
+        .accordion-content button.menu:hover { background-color: rgba(74, 144, 226, 0.1); color: var(--primary-color); }
         .results { flex: 1; padding: 20px; min-height: calc(100vh - var(--nav-h)); background-color: var(--bg-light); display: flex; justify-content: center; }
 
         /* Mypage Content Card Styles */
@@ -91,11 +93,11 @@
 
 <div class="main-container">
     <div class="accordion-container">
-        <div class="accordion-item"><button class="accordion-header">재무/회계 <i class="fas fa-chevron-right"></i></button><div class="accordion-content">...</div></div>
-        <div class="accordion-item"><button class="accordion-header">판매/구매 <i class="fas fa-chevron-right"></i></button><div class="accordion-content">...</div></div>
-        <div class="accordion-item"><button class="accordion-header">생산/제조 <i class="fas fa-chevron-right"></i></button><div class="accordion-content">...</div></div>
-        <div class="accordion-item"><button class="accordion-header">재고 <i class="fas fa-chevron-right"></i></button><div class="accordion-content">...</div></div>
-        <div class="accordion-item"><button class="accordion-header">인사 <i class="fas fa-chevron-right"></i></button><div class="accordion-content">...</div></div>
+        <div class="accordion-item"><button class="accordion-header">재무/회계 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="finance" data-fn="documents_listAll" data-table="documents">결재 문서 관리</button><button class="menu" data-file="finance" data-fn="budget_listAll" data-table="budget">예산 관리</button><button class="menu" data-file="finance" data-fn="slips_listAll" data-table="slips">회계 전표 관리</button></div></div>
+        <div class="accordion-item"><button class="accordion-header">판매/구매 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="transaction" data-fn="sale_listAll" data-table="sale">판매</button><button class="menu" data-file="transaction" data-fn="purchase_listAll" data-table="purchase">구매</button></div></div>
+        <div class="accordion-item"><button class="accordion-header">생산/제조 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="production" data-fn="work_order_listAll" data-table="work_order">작업 지시서</button><button class="menu" data-file="production" data-fn="bom_listAll" data-table="bom">자재 명세서</button></div></div>
+        <div class="accordion-item"><button class="accordion-header">재고 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="inventory" data-fn="stock_listAll" data-table="stock">재고 목록</button><button class="menu" data-file="inventory" data-fn="inbound_listAll" data-table="inbound">입고</button><button class="menu" data-file="inventory" data-fn="outbound_listAll" data-table="outbound">출고</button></div></div>
+        <div class="accordion-item"><button class="accordion-header">인사 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="hr" data-fn="employees_listAll" data-table="employees">직원 목록</button><button class="menu" data-file="hr" data-fn="attendance_listAll" data-table="attendance">근태 현황</button><button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button></div></div>
     </div>
 
     <div class="results">
