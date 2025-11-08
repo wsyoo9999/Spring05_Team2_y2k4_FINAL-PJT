@@ -27,11 +27,21 @@ export async function sale_listAll(){
     console.log(data);
     $.each(data, function (i, row){
         tbody += tbody +=`<tr>
-                        <td >
-                            <input type="button" value="${row.emp_id}" data-action = "detail" data-file="transaction" data-fn="addSale">    <!-- 추후 data-file과 data-fn의 수정 필요(다른 테이블 참조)-->
+                        <td class="emp-id"
+                            data-value="${row.emp_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';"
+                            data-action="detail" data-file="transaction" data-fn="addSale">
+                          ${row.emp_id}
                         </td>
-                        <td>
-                            <input type="button" value="${row.client_id}" data-action = "detail" data-file="transaction" data-fn="addSale"><!-- 추후 data-file과 data-fn의 수정 필요(다른 테이블 참조)-->
+                        <td class="client-id"
+                            data-value="${row.emp_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';"
+                            data-action="detail" data-file="transaction" data-fn="addSale">
+                          ${row.client_id}
                         </td>
                         <td>
                             ${row.order_date}
@@ -108,11 +118,21 @@ export async function sale_list(formData){
     console.log(data);
     $.each(data, function (i, row){
         tbody +=`<tr>
-                        <td>
-                            <input type="button" value="${row.emp_id}" data-action = "detail" data-file="transaction" data-fn="addSale">    <!-- 추후 data-file과 data-fn의 수정 필요(다른 테이블 참조)-->
+                        <td class="emp-id"
+                            data-value="${row.emp_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';"
+                            data-action="detail" data-file="transaction" data-fn="addSale">
+                          ${row.emp_id}
                         </td>
-                        <td>
-                            <input type="button" value="${row.client_id}" data-action = "detail" data-file="transaction" data-fn="addSale"><!-- 추후 data-file과 data-fn의 수정 필요(다른 테이블 참조)-->
+                        <td class="client-id"
+                            data-value="${row.client_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';" 
+                            data-action="detail" data-file="transaction" data-fn="addSale">
+                          ${row.client_id}
                         </td>
                         <td>
                             ${row.order_date}
@@ -123,15 +143,19 @@ export async function sale_list(formData){
                         <td>
                             ${row.status}
                         </td>
-                        <td>
-                            <input type="button" value="상태 변경" data-action = "edit" data-file="transaction" data-fn="editSaleStatus">
-                        </td>  
-                         <td>
-                            <input type="button" value="수정" data-action = "edit" data-file="transaction" data-fn="editSale">
+                         <td  class = "actions">
+                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                                <i class="fas fa-gear"></i>
+                            </button>
                         </td> 
+                         <td  class = "actions">
+                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>  
                         </tr>`;
     })
-    tbody += `</tbody></table><input type="button" data-action="add" data-file="transaction" data-fn="addSale" value="추가">`;
+    tbody += `</tbody></table>`;
 
 
     const actionRow = `
@@ -173,11 +197,21 @@ export async function purchase_listAll(){
     console.log(data);
     $.each(data, function (i, row){
         tbody += `<tr>
-                        <td>
-                            <input type="button" value="${row.emp_id}" data-action = "detail" data-file="transaction" data-fn="addPurchase">    <!-- 추후 data-file과 data-fn의 수정 필요(다른 테이블 참조)-->
+                        <td class="emp-id"
+                            data-value="${row.emp_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';"
+                            data-action="detail" data-file="transaction" data-fn="addSale">
+                          ${row.emp_id}
                         </td>
-                        <td>
-                            <input type="button" value="${row.client_id}" data-action = "detail" data-file="transaction" data-fn="addPurchase"><!-- 추후 data-file과 data-fn의 수정 필요(다른 테이블 참조)-->
+                        <td class="client-id"
+                            data-value="${row.client_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';" 
+                            data-action="detail" data-file="transaction" data-fn="addSale">
+                          ${row.client_id}
                         </td>
                         <td>
                             ${row.order_date}
@@ -188,15 +222,19 @@ export async function purchase_listAll(){
                         <td>
                             ${row.status}
                         </td>
-                        <td>
-                            <input type="button" value="상태 변경" data-action = "edit" data-file="transaction" data-fn="editPurchaseStatus">
-                        </td>  
-                         <td>
-                            <input type="button" value="수정" data-action = "edit" data-file="transaction" data-fn="editPurchase">
+                         <td  class = "actions">
+                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                                <i class="fas fa-gear"></i>
+                            </button>
+                        </td> 
+                         <td  class = "actions">
+                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                                <i class="fas fa-edit"></i>
+                            </button>
                         </td> 
                         </tr>`;
     })
-    tbody += `</tbody></table><input type="button" data-action="add" data-file="transaction" data-fn="addPurchase" value="추가">`;
+    tbody += `</tbody></table>`;
 
 
     const actionRow = `
@@ -249,11 +287,21 @@ export async function purchase_list(formData){
     console.log(data);
     $.each(data, function (i, row){
         tbody += `<tr>
-                        <td>
-                            <input type="button" value="${row.emp_id}" data-action = "detail" data-file="transaction" data-fn="addPurchase">    <!-- 추후 data-file과 data-fn의 수정 필요(다른 테이블 참조)-->
+                        <td class="emp-id"
+                            data-value="${row.emp_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';"
+                            data-action="detail" data-file="transaction" data-fn="addSale">
+                          ${row.emp_id}
                         </td>
-                        <td>
-                            <input type="button" value="${row.client_id}" data-action = "detail" data-file="transaction" data-fn="addPurchase"><!-- 추후 data-file과 data-fn의 수정 필요(다른 테이블 참조)-->
+                        <td class="client-id"
+                            data-value="${row.client_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';" 
+                            data-action="detail" data-file="transaction" data-fn="addSale">
+                          ${row.client_id}
                         </td>
                         <td>
                             ${row.order_date}
@@ -264,15 +312,19 @@ export async function purchase_list(formData){
                         <td>
                             ${row.status}
                         </td>
-                        <td>
-                            <input type="button" value="상태 변경" data-action = "edit" data-file="transaction" data-fn="editPurchaseStatus">
-                        </td>  
-                         <td>
-                            <input type="button" value="수정" data-action = "edit" data-file="transaction" data-fn="editPurchase">
+                         <td  class = "actions">
+                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                                <i class="fas fa-gear"></i>
+                            </button>
+                        </td> 
+                         <td  class = "actions">
+                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                                <i class="fas fa-edit"></i>
+                            </button>
                         </td> 
                         </tr>`;
     })
-    tbody += `</tbody></table><input type="button" data-action="add" data-file="transaction" data-fn="addPurchase" value="추가">`;
+    tbody += `</tbody></table>`;
 
 
     const actionRow = `
