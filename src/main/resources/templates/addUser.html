@@ -7,14 +7,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        /* CSS 변수 및 기본 스타일 (login.html과 동일) */
+        /* CSS 변수 및 기본 스타일 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary-color: #4A90E2; --secondary-color: #50B86C;
-            --bg-light: #F8F9FA; --bg-dark: #343A40;
-            --text-dark: #333333; --text-light: #FFFFFF;
-            --border-color: #E0E0E0; --card-bg: #FFFFFF;
-            --nav-h: 64px; --sidebar-w: 280px;
+            --primary-color: #4A90E2;
+            --bg-light: #F8F9FA;
+            --text-dark: #333333;
+            --card-bg: #FFFFFF;
+            --border-color: #E0E0E0;
         }
 
         body {
@@ -23,40 +23,36 @@
             color: var(--text-dark);
             line-height: 1.6;
             min-height: 100vh;
+            /* 폼을 화면 중앙에 배치하기 위한 Flexbox 설정 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
 
-        /* Nav Bar Styles (로그인 페이지와 동일하게 비활성화) */
-        .nav-bar {
-            height: var(--nav-h); background: var(--bg-dark); color: var(--text-light);
-            display: flex; align-items: center; padding: 0 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;
+        /* Content Card Styles (회원가입 폼 컨테이너) */
+        .content-card {
+            max-width: 450px;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            height: fit-content;
+            text-align: center;
         }
-        .nav-brand { font-weight: 700; font-size: 22px; color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
-        .nav-brand .nav-logo { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-light); }
-        .nav-spacer { flex: 1; }
-        .nav-links { display: flex; align-items: center; gap: 15px; }
-        .nav-link { display: inline-flex; align-items: center; height: 40px; padding: 0 15px; border-radius: 6px; color: rgba(255,255,255,0.4); text-decoration: none; font-size: 15px; font-weight: 500; cursor: default; }
-        .nav-right { display: flex; align-items: center; gap: 10px; margin-left: 20px; }
-        .nav-icon-btn { width: 40px; height: 40px; border: none; border-radius: 50%; background: transparent; color: rgba(255,255,255,0.4); cursor: default; font-size: 18px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
 
-        /* Main Layout Styles */
-        .main-container { display: flex; }
-        .accordion-container { width: var(--sidebar-w); background-color: var(--card-bg); flex-shrink: 0; height: calc(100vh - var(--nav-h)); position: sticky; top: var(--nav-h); overflow-y: auto; border-right: 1px solid var(--border-color); }
-        .accordion-item { border-bottom: 1px solid var(--border-color); }
-        .accordion-header { width: 100%; padding: 15px 20px; text-align: left; background-color: var(--card-bg); border: none; cursor: default; font-size: 16px; font-weight: 600; color: #aaa; display: flex; justify-content: space-between; align-items: center; }
-        .accordion-content { padding: 10px 20px; background-color: #fcfcfc; display: none; overflow: hidden; }
-        .accordion-content button.menu { display: block; width: 100%; padding: 10px 15px; margin-bottom: 5px; background: none; border: none; text-align: left; font-size: 14px; color: #aaa; cursor: default; border-radius: 4px; }
-
-        .results { flex: 1; padding: 20px; min-height: calc(100vh - var(--nav-h)); background-color: var(--bg-light); display: flex; justify-content: center; align-items: center; }
-
-        /* AddUser Content Card Styles */
-        .content-card { max-width: 450px; width: 100%; background: var(--card-bg); border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 30px; height: fit-content; text-align: center; }
-        h2 { font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 25px; }
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+        }
 
         /* Form Styles */
         form { text-align: left; }
-        form > div { margin-bottom: 15px; } /* label 대신 div로 묶기 */
-        form label { display: block; }
+        form > div { margin-bottom: 15px; }
+        form label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; color: #555; }
         form input { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 5px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; }
         form input:focus { border-color: var(--primary-color); outline: none; }
 
@@ -68,10 +64,10 @@
         }
         .input-with-button input {
             flex-grow: 1;
-            width: auto; /* width 100% 오버라이드 */
+            width: auto;
         }
         .input-with-button button {
-            background-color: #6c757d; /* 보조 버튼 색상 */
+            background-color: #6c757d;
             color: var(--text-light);
             border: none;
             padding: 12px 15px;
@@ -84,7 +80,6 @@
         .input-with-button button:hover {
             background-color: #5a6268;
         }
-
 
         /* Button Styles */
         button[type="submit"] {
@@ -103,7 +98,6 @@
         .login-links a {
             color: var(--primary-color);
             text-decoration: none;
-            margin: 0 8px;
             transition: color 0.2s;
         }
         .login-links a:hover {
@@ -114,110 +108,63 @@
 </head>
 <body>
 
-<header class="nav-bar">
-    <div class="nav-brand">
-        <span class="nav-logo" aria-hidden="true"><i class="fas fa-cube"></i></span>
-        <span>Y2K4 ERP</span>
-    </div>
-    <div class="nav-spacer"></div>
-    <!-- Nav Bar 메뉴 정보 (로그인 전 비활성 상태 유지) -->
-    <nav class="nav-links" id="navLinks">
-        <a href="#" class="nav-link" data-topnav="dashboard"><i class="fas fa-tachometer-alt"></i> 대시보드</a>
-        <a href="#" class="nav-link" data-topnav="finance"><i class="fas fa-calculator"></i> 재무/회계</a>
-        <a href="#" class="nav-link" data-topnav="sales"><i class="fas fa-chart-line"></i> 판매/구매</a>
-        <a href="#" class="nav-link" data-topnav="production"><i class="fas fa-industry"></i> 생산/제조</a>
-        <a href="#" class="nav-link" data-topnav="inventory"><i class="fas fa-boxes"></i> 재고</a>
-        <a href="#" class="nav-link" data-topnav="hr"><i class="fas fa-users"></i> 인사</a>
-        <a href="#" class="nav-link" data-topnav="reports"><i class="fas fa-file-alt"></i> 리포트</a>
-        <a href="#" class="nav-link" data-topnav="settings"><i class="fas fa-cog"></i> 설정</a>
-    </nav>
-    <div class="nav-right">
-        <button class="nav-icon-btn" title="알림" aria-label="알림" style="visibility: hidden;"><i class="fas fa-bell"></i></button>
-        <button class="nav-icon-btn" title="프로필" aria-label="프로필" style="visibility: hidden;"><i class="fas fa-user-circle"></i></button>
-    </div>
-</header>
+<div class="content-card">
+    <h2>회원 가입</h2>
 
-<div class="main-container">
-    <!-- 왼쪽 아코디언 메뉴 정보 (로그인 전 비활성 상태 유지) -->
-    <div class="accordion-container">
-        <div class="accordion-item"><button class="accordion-header">재무/회계 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="finance" data-fn="documents_listAll" data-table="documents">결재 문서 관리</button><button class="menu" data-file="finance" data-fn="budget_listAll" data-table="budget">예산 관리</button><button class="menu" data-file="finance" data-fn="slips_listAll" data-table="slips">회계 전표 관리</button></div></div>
-        <div class="accordion-item"><button class="accordion-header">판매/구매 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="transaction" data-fn="sale_listAll" data-table="sale">판매</button><button class="menu" data-file="transaction" data-fn="purchase_listAll" data-table="purchase">구매</button></div></div>
-        <div class="accordion-item"><button class="accordion-header">생산/제조 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="production" data-fn="work_order_listAll" data-table="work_order">작업 지시서</button><button class="menu" data-file="production" data-fn="bom_listAll" data-table="bom">자재 명세서</button></div></div>
-        <div class="accordion-item"><button class="accordion-header">재고 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="inventory" data-fn="stock_listAll" data-table="stock">재고 목록</button><button class="menu" data-file="inventory" data-fn="inbound_listAll" data-table="inbound">입고</button><button class="menu" data-file="inventory" data-fn="outbound_listAll" data-table="outbound">출고</button></div></div>
-        <div class="accordion-item"><button class="accordion-header">인사 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="hr" data-fn="employees_listAll" data-table="employees">직원 목록</button><button class="menu" data-file="hr" data-fn="attendance_listAll" data-table="attendance">근태 현황</button><button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button></div></div>
+    <form action="/addUser" method="post" onsubmit="return validateForm()">
 
-        <div style="padding: 20px; text-align: center; color: #aaa; font-size: 14px; border-top: 1px solid var(--border-color);">로그인 후 이용 가능합니다.</div>
-    </div>
-
-    <!-- 오른쪽: 회원가입 폼 영역 -->
-    <div class="results">
-        <div class="content-card">
-            <h2>회원 가입</h2>
-
-            <form action="/addUser" method="post" onsubmit="return validateForm()">
-
-                <!-- 아이디 + 중복체크 버튼 -->
-                <div>
-                    <label>아이디</label>
-                    <div class="input-with-button">
-                        <input type="text" name="id" id="user_id" placeholder="아이디" required>
-                        <button type="button" onclick="checkDuplicate()">중복 확인</button>
-                    </div>
-                </div>
-
-                <!-- 비밀번호 -->
-                <div>
-                    <label>비밀번호</label>
-                    <input type="password" name="password" id="password" placeholder="비밀번호" required>
-                </div>
-
-                <!-- 비밀번호 재확인 (추가됨) -->
-                <div>
-                    <label>비밀번호 확인</label>
-                    <input type="password" name="password_confirm" id="password_confirm" placeholder="비밀번호 재확인" required>
-                </div>
-
-                <!-- 이메일 -->
-                <div>
-                    <label>이메일</label>
-                    <input type="email" name="email" placeholder="이메일" required>
-                </div>
-
-                <!-- 이름 -->
-                <div>
-                    <label>이름</label>
-                    <input type="text" name="name" placeholder="이름" required>
-                </div>
-
-                <!-- 회사 찾기 -->
-                <div>
-                    <label>회사명</label>
-                    <div class="input-with-button">
-                        <input type="text" id="company_display" placeholder="회사명 입력" disabled>
-                        <button type="button" onclick="find_Company()">회사 찾기</button>
-                    </div>
-                    <input type="hidden" name="company_id" id="company_id_hidden">
-                </div>
-
-                <!-- 생년월일 -->
-                <div>
-                    <label>생년월일</label>
-                    <input type="number" name="birthday" maxlength="8" placeholder="생년월일 8자리 (YYYYMMDD)" required>
-                </div>
-
-                <!-- 휴대전화 번호 -->
-                <div>
-                    <label>휴대전화 번호</label>
-                    <input type="number" name="phone" maxlength="11" placeholder="휴대전화 번호 (숫자만)" required>
-                </div>
-
-                <button type="submit">회원 등록</button>
-            </form>
-
-            <div class="login-links">
-                <a href="/login">로그인으로 돌아가기</a>
+        <div>
+            <label>아이디</label>
+            <div class="input-with-button">
+                <input type="text" name="id" id="user_id" placeholder="아이디" required>
+                <button type="button" onclick="checkDuplicate()">중복 확인</button>
             </div>
         </div>
+
+        <div>
+            <label>비밀번호</label>
+            <input type="password" name="password" id="password" placeholder="비밀번호" required>
+        </div>
+
+        <div>
+            <label>비밀번호 확인</label>
+            <input type="password" name="password_confirm" id="password_confirm" placeholder="비밀번호 재확인" required>
+        </div>
+
+        <div>
+            <label>이메일</label>
+            <input type="email" name="email" placeholder="이메일" required>
+        </div>
+
+        <div>
+            <label>이름</label>
+            <input type="text" name="name" placeholder="이름" required>
+        </div>
+
+        <div>
+            <label>회사명</label>
+            <div class="input-with-button">
+                <input type="text" id="company_display" placeholder="회사 찾기를 눌러주세요" disabled>
+                <button type="button" onclick="find_Company()">회사 찾기</button>
+            </div>
+            <input type="hidden" name="company_id" id="company_id_hidden">
+        </div>
+
+        <div>
+            <label>생년월일</label>
+            <input type="number" name="birthday" maxlength="8" placeholder="생년월일 8자리 (YYYYMMDD)" required>
+        </div>
+
+        <div>
+            <label>휴대전화 번호</label>
+            <input type="number" name="phone" maxlength="11" placeholder="휴대전화 번호 (숫자만)" required>
+        </div>
+
+        <button type="submit">회원 등록</button>
+    </form>
+
+    <div class="login-links">
+        <a href="/login">로그인으로 돌아가기</a>
     </div>
 </div>
 
@@ -226,7 +173,7 @@
     let isIdAvailable = false;
     let originalId = '';
 
-    // 1. 아이디 중복 확인 기능
+    // 1. 아이디 중복 확인 기능 (Mockup)
     function checkDuplicate() {
         const userId = document.getElementById('user_id').value;
         if (userId.length < 4) {
@@ -234,34 +181,33 @@
             return;
         }
 
-        // 실제로는 서버에 비동기(AJAX) 요청을 보냅니다.
-        alert(`서버에서 '${userId}'의 중복을 확인합니다.`);
-
         // --- Mockup 결과 ---
         const isDuplicated = userId === 'testuser' || userId === 'admin';
 
-        if (isDuplicated) {
-            alert('이미 사용 중인 아이디입니다.');
-            isIdAvailable = false;
-        } else {
-            alert('사용 가능한 아이디입니다.');
-            isIdAvailable = true;
-            originalId = userId;
-        }
+        // 실제 AJAX 요청을 시뮬레이션
+        setTimeout(() => {
+            if (isDuplicated) {
+                alert(`'${userId}'는 이미 사용 중인 아이디입니다.`);
+                isIdAvailable = false;
+            } else {
+                alert(`'${userId}'는 사용 가능한 아이디입니다.`);
+                isIdAvailable = true;
+                originalId = userId;
+            }
+        }, 500);
     }
 
     // 2. 회사 찾기 기능
     function find_Company(){
-        // 회원가입 폼에서 제공된 팝업 경로와 기능을 사용합니다.
+        // findCompany.html은 팝업 폴더에 있다고 가정합니다.
         const url='./../popup/findCompany.html';
         const features = 'width=700,height=750,resizable=no,scrollbars=yes';
-        // window.open은 자바스크립트가 실행되는 환경에 따라 동작하지 않을 수 있습니다.
         window.open(url,'find_Company',features).focus();
     }
 
-    // 3. 회사 찾기 팝업에서 호출될 함수 (실제 데이터 수신)
-    function setCompany(result){
-        // result 예시: { bno: '398-87-01116', company: '(주)우리금융지주' }
+    // 3. 회사 찾기 팝업에서 호출될 함수 (전역 범위에 있어야 함)
+    window.setCompany = function(result){
+        // result 예시: { bno: '398-87-01116', company: '(주)회사명' }
         document.getElementById('company_display').value =
             `${result.company} (${result.bno})`;
         document.getElementById('company_id_hidden').value = result.bno;
@@ -274,27 +220,31 @@
         const confirm = document.getElementById('password_confirm').value;
         const userId = document.getElementById('user_id').value;
 
-        // 중복 확인 검사
+        // 1. 중복 확인 검사
         if (!isIdAvailable || userId !== originalId) {
             alert('아이디 중복 확인을 완료하거나 아이디 변경 후 재확인해 주세요.');
             return false;
         }
 
-        // 비밀번호 일치 검사
+        // 2. 비밀번호 일치 검사
         if (password !== confirm) {
             alert('비밀번호와 비밀번호 확인 값이 일치하지 않습니다.');
             return false;
         }
 
-        // 회사 정보 필수 검사
+        // 3. 회사 정보 필수 검사
         const companyId = document.getElementById('company_id_hidden').value;
         if (!companyId) {
             alert('회사 찾기를 통해 회사 정보를 선택해 주세요.');
             return false;
         }
 
+        // 4. 간단한 길이 및 형식 검사 (추가 구현 필요)
+        // (생략)
+
         alert('회원가입 요청을 서버로 전송합니다.');
-        return true; // 서버 전송 허용
+        // return true; // 실제 구현 시 서버 전송
+        return false; // 현재 Mockup 상태에서는 전송 방지
     }
 </script>
 </body>

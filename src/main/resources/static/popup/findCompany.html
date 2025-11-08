@@ -1,84 +1,220 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-    <title>Title</title>
-
+    <title>회사 찾기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        .page-btn{margin:0 4px; padding:6px 10px; border:1px solid #d1d5db; background:#fff; border-radius:8px; cursor:pointer;}
-        .page-btn:disabled{opacity:.6; cursor:not-allowed;}
+        /* [1/4] ERP 디자인 변수 및 기본 스타일 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #50B86C;
+            --bg-light: #F8F9FA;
+            --text-dark: #333333;
+            --text-light: #FFFFFF;
+            --border-color: #E0E0E0;
+            --card-bg: #FFFFFF;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        /* [2/4] 검색 입력 및 버튼 스타일 (회원가입/검색 폼 참조) */
+        .container {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .container label {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        #company_name {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        #company_name:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        #search {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+        #search:hover { background-color: #3A7BD5; }
+
+        /* [3/4] 테이블 스타일 (ERP 결과 테이블 참조) */
+        #result table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        #result th, #result td {
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            text-align: left;
+            font-size: 14px;
+        }
+        #result th {
+            background-color: var(--bg-light);
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        #result tr:nth-child(even) { background-color: #f9f9f9; }
+        #result tr:hover { background-color: #f1f1f1; }
+        #result td:last-child { text-align: center; width: 80px; } /* 선택 버튼 열 중앙 정렬 */
+
+        /* 선택 버튼 스타일 */
+        .select {
+            background-color: var(--secondary-color);
+            color: var(--text-light);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background-color 0.2s;
+        }
+        .select:hover { background-color: #4CAF50; }
+
+        /* [4/4] 페이징 스타일 */
+        #pagination {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .page-btn{
+            margin:0 4px;
+            padding:8px 12px;
+            border:1px solid var(--border-color);
+            background:var(--card-bg);
+            border-radius:5px;
+            cursor:pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .page-btn:not(.active):hover {
+            background: var(--bg-light);
+        }
+        .page-btn:disabled{ opacity:.6; cursor:not-allowed; }
         /* 현재 페이지 강조 */
         .page-btn.active{
-            background:#2b6cff;
-            border-color:#2b6cff;
-            color:#fff;
+            background:var(--primary-color);
+            border-color:var(--primary-color);
+            color:var(--text-light);
             font-weight:600;
             cursor:default;
+        }
+
+        #page_data {
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-top: 10px;
+        }
+        #page_data p {
+            display: inline;
+            margin: 0 5px;
         }
     </style>
 </head>
 <body>
 <div class = "container">
-
-  <label>
-    <input type="text" id = "company_name" name="company_name" class="form-control" placeholder="회사명 입력" required>
-    <input type="button" id="search" value="검색" onclick="findCompany(1)">
-  </label>
+    <label>
+        <input type="text" id = "company_name" name="company_name" placeholder="회사명 입력" required>
+        <input type="button" id="search" value="검색" onclick="findCompany(1)">
+    </label>
 
 </div>
+
 <div id = "result"></div>
 <div id="pagination"></div>
 <div id="page_data"></div>
 
 </body>
 <script>
-  let resultStatus={
-    page : 1,
-    maxPage :1,
-    totalCount : 0,
-  };
+    let resultStatus={
+        page : 1,
+        maxPage :1,
+        totalCount : 0,
+    };
 
-function findCompany(page) {
-    const companyName = document.getElementById("company_name").value.trim();
-  resultStatus.page = page;//현재 출력할 페이지
+    function findCompany(page) {
+        const companyName = document.getElementById("company_name").value.trim();
+        resultStatus.page = page;//현재 출력할 페이지
 
-    if(!companyName) { //회사명을 공백으로만 했을 경우
-      return;
+        if(!companyName) { //회사명을 공백으로만 했을 경우
+            return;
+        }
+        // API KEY
+        const url = 'https://bizno.net/api/fapi?key=Gc5XJ3FYGgdtEc5OKTzrlTBoIwdN&gb=3&type=json&q='+encodeURIComponent(companyName)+'&page='+encodeURIComponent(page);
+
+
+        $.ajax({
+            url: url,
+            method: 'GET',
+            dataType: 'json',
+            timeout: 15000,
+
+        }).done(function(data) {
+            if(data.resultCode !==0){
+                // API 에러 처리 (필요시 상세화)
+                document.getElementById("result").innerHTML = `<div style="padding: 20px; color: red; text-align: center;">에러 발생: ${data.resultMsg || 'API 호출에 실패했습니다.'}</div>`;
+                document.getElementById("pagination").innerHTML = '';
+                document.getElementById("page_data").innerHTML = '';
+                console.log("에러 발생, 에러코드 : "+data.resultCode);
+                return;
+            }
+
+
+            resultStatus.maxPage = Number(data.maxpage);
+            resultStatus.totalCount = Number(data.totalCount);
+            makeTable(data.items);
+            pagination();
+            pagedata();
+
+
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            document.getElementById("result").innerHTML = `<div style="padding: 20px; color: red; text-align: center;">통신 에러: 서버 응답을 받을 수 없습니다.</div>`;
+            document.getElementById("pagination").innerHTML = '';
+            document.getElementById("page_data").innerHTML = '';
+            console.log("AJAX 실패: " + textStatus);
+        });
+
     }
-    const url = 'https://bizno.net/api/fapi?key=Gc5XJ3FYGgdtEc5OKTzrlTBoIwdN&gb=3&type=json&q='+encodeURIComponent(companyName)+'&page='+encodeURIComponent(page);
 
-
-   $.ajax({
-     url: url,
-     method: 'GET',
-     dataType: 'json',
-     timeout: 15000,
-
-    }).done(function(data) {
-      if(data.resultCode !==0){
-        console.log("에러 발생, 에러코드 : "+data);
-        return;
-      }
-
-
-     resultStatus.maxPage = Number(data.maxpage);
-     resultStatus.totalCount = Number(data.totalCount);
-      makeTable(data.items);
-      pagination();
-      pagedata();
-
-
-   })
-
-  }
-
-  function makeTable(data) {
-  let table = document.getElementById("result");
-  table.innerHTML = '';
-  if(Array.isArray(data) && data.length > 0){
-    let thead = `<table>
+    function makeTable(data) {
+        let table = document.getElementById("result");
+        table.innerHTML = '';
+        if(Array.isArray(data) && data.length > 0){
+            let thead = `<table>
                             <thead>
                             <tr>
                             <th>회사명</th>
@@ -91,88 +227,99 @@ function findCompany(page) {
                             </tr>
                             </thead>
                         `;
-    let tbody = `<tbody>`
-    data.forEach(item => {
-      tbody +=`<tr>
+            let tbody = `<tbody>`
+            data.forEach(item => {
+                // API 응답 데이터가 null일 경우를 '비어있음' 대신 빈 문자열로 처리하여 깔끔하게 보이기
+                tbody +=`<tr>
                         <td>
-                            ${item.company||'비어있음'}
+                            ${item.company || ''}
                         </td>
                         <td>
-                            ${item.bno||'비어있음'}
+                            ${item.bno || ''}
                         </td>
                         <td>
-                           ${item.cno||'비어있음'}
+                           ${item.cno || ''}
                         </td>
                         <td>
-                            ${item.bstt||'비어있음'}
+                            ${item.bstt || ''}
                         </td>
                         <td>
-                            ${item.taxtype||'비어있음'}
+                            ${item.taxtype || ''}
                         </td>
                         <td>
-                            ${item.EndDt||'비어있음'}
+                            ${item.EndDt || ''}
                         </td>
                         <td>
-                            <input type="button" class="select" data-company="${item.company}" data-bno = "${item.bno}" value="선택">
+                            <input type="button" class="select" data-company="${item.company || ''}" data-bno = "${item.bno || ''}" value="선택">
                         </td>
                         </tr>`;
-    })
-    tbody += `</tbody></table>`;
-    table.innerHTML+=thead+tbody;
+            })
+            tbody += `</tbody></table>`;
+            table.innerHTML+=thead+tbody;
 
-    table.querySelectorAll('.select').forEach((item) => {
-        item.addEventListener('click', (e) => {
-            const result_data = {
-                company: item.dataset.company,
-                bno: item.dataset.bno,
-            };
-            window.opener.setCompany(result_data);
-            window.close();
-        })
-    })
+            table.querySelectorAll('.select').forEach((item) => {
+                item.addEventListener('click', (e) => {
+                    const result_data = {
+                        company: item.dataset.company,
+                        bno: item.dataset.bno,
+                    };
+                    // window.opener.setCompany() 호출 전에 null/undefined 체크
+                    if(window.opener && window.opener.setCompany) {
+                        window.opener.setCompany(result_data);
+                        window.close();
+                    } else {
+                        alert("호출할 부모 창 함수(setCompany)를 찾을 수 없습니다.");
+                    }
+                })
+            })
 
-  }else{
-    console.log(data)
-  }
-  }
-  function pagination() {
-    let pagination = document.getElementById('pagination');
-    pagination.innerHTML = '';
-    if(resultStatus.maxPage<=1) return;
-
-    //페이징 범위 자르기
-    const size = 5;
-    let startPage = Math.max(1,resultStatus.page - Math.floor(size/2));
-    let endPage = Math.min(resultStatus.maxPage, startPage+size-1);
-    if (endPage - startPage + 1 < size) {   //마지막 부분 출력 예외 처리
-      startPage = Math.max(1, endPage - size + 1);
+        }else{
+            // 검색 결과가 없는 경우
+            table.innerHTML = `<div style="padding: 20px; text-align: center; color: #555;">검색된 회사 정보가 없습니다.</div>`;
+        }
     }
 
-    //이전 페이지 이동 버튼 처리
-      if(resultStatus.page!==1){
-          pagination.innerHTML += `<button class="page-btn" type="button" value = "이전"  onclick="findCompany(resultStatus.page-1)">이전</button>`;
-      }else{
-          pagination.innerHTML += `<button class="page-btn" type="button" value = "이전" disabled>이전</button>`;
-      }
-      for(let i = startPage; i <= endPage; i++){
-          if(resultStatus.page === i){
-              pagination.innerHTML += `<button class="page-btn active" aria-current="page" type="button" value = "${i}"  onclick="findCompany(${i})">${i}</button>`;
-          }else {
-              pagination.innerHTML += `<button class="page-btn" type="button" value = "${i}" onclick="findCompany(${i})">${i}</button>`;
-          }
-      }
-      if(resultStatus.maxPage>=resultStatus.page){
-          pagination.innerHTML += `<button class="page-btn" type="button" value = "다음"  onclick="findCompany(resultStatus.page+1)">다음</button>`;
-      }else{
-          pagination.innerHTML += `<button class="page-btn" type="button" value = "다음" disabled>다음</button>`;
-      }
-  }
-  function pagedata(){
-      let pd = document.getElementById("page_data");
-      pd.innerHTML = `<p>총 ${resultStatus.totalCount}</p>${resultStatus.page}/${resultStatus.maxPage}<p></p>`;
+    function pagination() {
+        let pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        if(resultStatus.maxPage<=1) return;
+
+        //페이징 범위 자르기
+        const size = 5;
+        let startPage = Math.max(1,resultStatus.page - Math.floor(size/2));
+        let endPage = Math.min(resultStatus.maxPage, startPage+size-1);
+        if (endPage - startPage + 1 < size) {   //마지막 부분 출력 예외 처리
+            startPage = Math.max(1, endPage - size + 1);
+        }
+
+        // 이전 버튼
+        if(resultStatus.page!==1){
+            pagination.innerHTML += `<button class="page-btn" type="button" onclick="findCompany(resultStatus.page-1)">이전</button>`;
+        }else{
+            pagination.innerHTML += `<button class="page-btn" type="button" disabled>이전</button>`;
+        }
+        // 페이지 버튼
+        for(let i = startPage; i <= endPage; i++){
+            if(resultStatus.page === i){
+                pagination.innerHTML += `<button class="page-btn active" aria-current="page" type="button" onclick="findCompany(${i})">${i}</button>`;
+            }else {
+                pagination.innerHTML += `<button class="page-btn" type="button" onclick="findCompany(${i})">${i}</button>`;
+            }
+        }
+        // 다음 버튼
+        if(resultStatus.page < resultStatus.maxPage){
+            pagination.innerHTML += `<button class="page-btn" type="button" onclick="findCompany(resultStatus.page+1)">다음</button>`;
+        }else{
+            pagination.innerHTML += `<button class="page-btn" type="button" disabled>다음</button>`;
+        }
+    }
+
+    function pagedata(){
+        let pd = document.getElementById("page_data");
+        pd.innerHTML = `<p>총 ${resultStatus.totalCount}건</p> | <p>${resultStatus.page}/${resultStatus.maxPage} 페이지</p>`;
 
 
-  }
+    }
 
 </script>
 </html>
