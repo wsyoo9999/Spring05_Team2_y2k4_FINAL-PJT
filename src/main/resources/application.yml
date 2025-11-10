@@ -1,0 +1,40 @@
+server:
+  port: 8080
+
+spring:
+  # 1) 회원관리/관리용 DataSource (tenant_registry DB)
+  datasource:
+    management:
+      # EC2에 올라간 MySQL 도커가 리스닝하는 곳
+      # - EC2에 MySQL 도커만 있고, 앱은 로컬에서 돌리니까
+      #   여기에는 "EC2 퍼블릭 IP 또는 탄력 IP"를 적어준다.
+      url: jdbc:mysql://13.39.205.43:3306/userDB?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=utf8
+      username: root          # docker-compose에서 설정한 계정
+      password: 12345678     # docker-compose의 MYSQL_ROOT_PASSWORD와 일치
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # 여러 DataSource/빈들을 직접 등록하고 있어서 충돌 나지 않도록 허용
+  main:
+    allow-bean-definition-overriding: true
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true      # user_id -> userId 자동 매핑
+    default-statement-timeout: 30           # 쿼리 타임아웃 30초
+
+# 2) TenantDataSourceProvider에서 사용할 공통 MySQL 설정
+app:
+  mysql:
+    # 여기 역시 EC2 퍼블릭 IP 또는 DNS
+    host: 13.39.205.43
+    port: 3306
+    username: root
+    password: 12345678
+    # dbName만 바꿔 끼우는 JDBC URL 패턴
+    urlPattern: jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=utf8
+
+logging:
+  level:
+    root: INFO
+    # 멀티테넌트 디버깅이 필요하면 아래처럼 패키지 기준으로 DEBUG 켜도 됨
+    # com.example.multitenant: DEBUG

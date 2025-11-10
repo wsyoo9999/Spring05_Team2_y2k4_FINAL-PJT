@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.multi.y2k4.mapper.tenant.DatabaseMapper">
+
+    <!-- DB 존재 여부 확인 -->
+    <select id="existsDatabase" parameterType="string" resultType="int">
+        SELECT COUNT(SCHEMA_NAME)
+        FROM information_schema.SCHEMATA
+        WHERE SCHEMA_NAME = #{dbName}
+    </select>
+
+    <!--
+      DB 생성: dbName은 서비스에서 안전하게 만든 문자열만 들어와야 한다.
+      ${dbName} 은 SQL에 그대로 인라인되므로, 절대 사용자가 입력한 값을 그대로 넣으면 안된다.
+    -->
+    <update id="createDatabase" parameterType="string">
+        CREATE DATABASE IF NOT EXISTS `${dbName}`
+        CHARACTER SET utf8mb4
+        COLLATE utf8mb4_unicode_ci
+    </update>
+
+</mapper>
