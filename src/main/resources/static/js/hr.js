@@ -273,7 +273,7 @@ export function attendance_detail_popup(e) {
 
     // URL은 그대로 attendanceEdit.html을 사용 (수정 기능이 목적이므로)
     const url = `./popup/attendanceEdit.html?attendanceId=${attendanceId}`;
-    const features = 'width=500,height=400,resizable=yes,scrollbars=yes';
+    const features = 'width=500,height=500,resizable=yes,scrollbars=yes';
     window.open(url, `attendance_detail_${attendanceId}`, features);
 }
 
@@ -399,6 +399,6 @@ export function salary_detail_popup(e) {
     }
 
     const url = `./popup/salaryDetail.html?salaryId=${salaryId}`;
-    const features = 'width=500,height=500,resizable=yes,scrollbars=yes';
+    const features = 'width=500,height=635,resizable=yes,scrollbars=yes';
     window.open(url, `salary_detail_${salaryId}`, features);
 }

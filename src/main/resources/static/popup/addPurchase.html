@@ -4,6 +4,156 @@
     <meta charset="UTF-8">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <title>판매 목록 추가</title>
+    <style>
+        :root{
+            --primary-color:#4A90E2;
+            --bg-light:#F8F9FA;
+            --text-dark:#333333;
+            --border-color:#E0E0E0;
+            --card-bg:#FFFFFF;
+        }
+        /* 배경/폰트 기본 */
+        html,body{
+            height:100%;
+        }
+        body{
+            margin:0;
+            font-family:'Noto Sans KR', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            background:var(--bg-light);
+            color:var(--text-dark);
+            display:flex;
+            align-items:flex-start;
+            justify-content:center;
+            padding:24px;
+            box-sizing:border-box;
+        }
+
+        /* 폼 카드 느낌 (폼 태그 자체를 카드로) */
+        form#form{
+            width:min(680px, 100%);
+            background:var(--card-bg);
+            border-radius:12px;
+            box-shadow:0 8px 20px rgba(0,0,0,.06);
+            padding:22px 24px;
+            border:1px solid var(--border-color);
+        }
+
+        /* 제목 효과 없이 상단 라벨 정리 */
+        form#form > label{
+            display:inline-block;
+            width:calc(50% - 10px);
+            vertical-align:top;
+            margin:0 10px 14px 0;
+        }
+        /* 줄바꿈 <br> 간격 최소화 */
+        form#form br{ line-height:0; }
+
+        /* 공통 라벨/인풋 */
+        label{
+            font-size:14px;
+            color:#555;
+            font-weight:600;
+        }
+        label > input[type="text"],
+        label > input[type="date"],
+        label > input[type="number"]{
+            display:block;
+            width:100%;
+            margin-top:6px;
+            padding:10px 12px;
+            font-size:15px;
+            color:var(--text-dark);
+            border:1px solid var(--border-color);
+            border-radius:6px;
+            outline:none;
+            box-sizing:border-box;
+            transition:border-color .15s, box-shadow .15s;
+            background:#fff;
+        }
+        input:focus{
+            border-color:var(--primary-color);
+            box-shadow:0 0 0 3px rgba(74,144,226,.15);
+        }
+
+        /* 상세 항목 영역을 그리드처럼 */
+        .detail{
+            margin-top:8px;
+            padding:14px 12px;
+            background:#fbfcff;
+            border:1px dashed #dbe6ff;
+            border-radius:8px;
+        }
+        .detail > label{
+            display:inline-block;
+            width:calc(50% - 10px);
+            margin:0 10px 12px 0;
+        }
+        .detail > div{ /* 동적 추가되는 div */
+            margin-top:8px;
+        }
+        .detail > div > label{
+            display:inline-block;
+            width:calc(50% - 10px);
+            margin:0 10px 12px 0;
+        }
+
+        /* 버튼들 */
+        input[type="submit"]{
+            width:100%;
+            margin-top:10px;
+            padding:12px 18px;
+            border:none;
+            border-radius:8px;
+            background:var(--primary-color);
+            color:#fff;
+            font-size:16px;
+            font-weight:600;
+            cursor:pointer;
+            transition:filter .15s, transform .03s;
+        }
+        input[type="submit"]:hover{ filter:brightness(0.95); }
+        input[type="submit"]:active{ transform:translateY(1px); }
+
+        .createForm{
+            display:block;
+            width:min(680px, 100%);
+            margin:12px auto 0;
+            padding:10px 14px;
+            border-radius:8px;
+            border:1px solid #cfe0ff;
+            background:#e9f1ff;
+            color:#1f4d8a;
+            font-weight:600;
+            cursor:pointer;
+            transition:background .15s, border-color .15s;
+        }
+        .createForm:hover{
+            background:#dfeaff;
+            border-color:#bcd2ff;
+        }
+
+        /* 반응형 최적화 */
+        @media (max-width:640px){
+            form#form > label,
+            .detail > label,
+            .detail > div > label{
+                width:100%;
+                margin-right:0;
+            }
+            .createForm{ width:100%; }
+        }
+
+        /* 작은 섹션 라인 (주문일/납기일 라인 구분 감성) */
+        form#form > label:nth-of-type(3),
+        form#form > label:nth-of-type(4){
+            position:relative;
+        }
+        form#form > label:nth-of-type(4)::after{
+            content:"";
+            position:absolute; left:0; right:0; bottom:-8px;
+            height:1px; background:#eef2f6;
+        }
+    </style>
 </head>
 <body>
 <form method="POST" action="/api/transaction/purchase/add" id="form">
@@ -30,9 +180,10 @@
     </div>
 
     <input type="submit" value="입력 완료">
+    <input type="button" class ="createForm" value="추가 입력">
+
 </form>
 
-<input type="button" class ="createForm" value="추가 입력">
 
 </body>
 

@@ -327,6 +327,7 @@ export async function bom_listAll() {
         tbody += `</tbody></table>`;
 //나중에 추가
 
+
     } catch (error) {
         console.error('BOM 조회 실패:', error);
         tbody = `<tbody><tr><td colspan="4" style="text-align:center; color:red;">BOM 정보를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
@@ -707,6 +708,6 @@ export async function work_order_detail_popup(e) {
 // 작업지시서 추가
 export function addWorkOrder(){
     const url='./../popup/addWorkOrder.html';
-    const features = 'width=600,height=450,resizable=no,scrollbars=yes';
+    const features = 'width=600,height=480,resizable=no,scrollbars=yes';
     window.open(url,'add_WorkOrder', features).focus();
 }
