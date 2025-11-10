@@ -252,7 +252,7 @@
         }
 
         /* 검색 폼 스타일 */
-        .search-form {
+        .search-form > form {
             background-color: var(--card-bg);
             padding: 15px;
             border-radius: 8px;
@@ -263,21 +263,21 @@
             gap: 15px;
             align-items: flex-end;
         }
-        .search-form .form-group {
+        .search-form > form .form-group {
             flex: 1 1 200px;
             min-width: 150px;
         }
-        .search-form label {
+        .search-form > form label {
             display: block;
             margin-bottom: 5px;
             font-weight: 500;
             color: #555;
             font-size: 13px;
         }
-        .search-form input[type="text"],
-        .search-form input[type="number"],
-        .search-form select,
-        .search-form input[type="date"] {
+        .search-form > form input[type="text"],
+        .search-form > form input[type="number"],
+        .search-form > form select,
+        .search-form > form input[type="date"] {
             width: 100%;
             padding: 8px 10px;
             border: 1px solid var(--border-color);
@@ -287,14 +287,14 @@
             transition: border-color 0.2s;
             box-sizing: border-box; /* date 인풋 깨짐 방지 */
         }
-        .search-form input[type="text"]:focus,
-        .search-form select:focus,
-        .search-form input[type="number"]:focus,
-        .search-form input[type="date"]:focus {
+        .search-form > form input[type="text"]:focus,
+        .search-form > form select:focus,
+        .search-form > form input[type="number"]:focus,
+        .search-form > form input[type="date"]:focus {
             border-color: var(--primary-color);
             outline: none;
         }
-        .search-form button[type="submit"] {
+        .search-form > form button[type="submit"] {
             background-color: var(--primary-color);
             color: var(--text-light);
             border: none;
@@ -306,7 +306,7 @@
             transition: background-color 0.2s;
             align-self: flex-end;
         }
-        .search-form button[type="submit"]:hover {
+        .search-form > form button[type="submit"]:hover {
             background-color: #3A7BD5;
         }
 

@@ -352,9 +352,12 @@ export function  sale_search_form(){
                                 <label> 요청 납기일:
                                     <input type="date" name="due_date"  />
                                 </label>
-                                    <label> 상태:
-                                <input type="button" data-file="transaction" data-fn="sale_list" data-action = "search" value = "검색">
+                                 <label> 상태:
+                                    <button type="submit" class="search_btn" data-file="transaction" data-fn="sale_list">
+                                        <i class="fas fa-search">검색</i>
+                                    </button>
                                 </label>
+                                
                                 </form>`;
 
 }
@@ -373,8 +376,10 @@ export function  purchase_search_form(){
                                 <label> 납기일:
                                     <input type="date" name="del_date"  />
                                 </label>
-                                    <label> 상태:
-                                <input type="button" data-file="transaction" data-fn="purchase_list" data-action = "search" value = "검색">
+                                <label> 상태:
+                                    <button type="submit" class="search_btn" data-file="transaction" data-fn="purchase_list">
+                                        <i class="fas fa-search">검색</i>
+                                    </button>                                
                                 </label>
                                 </form>`;
 
@@ -382,7 +387,7 @@ export function  purchase_search_form(){
 
 export function addSale(){
     const url='./../popup/addSale.html';
-    const features = 'width=570,height=350,resizable=no,scrollbars=yes';
+    const features = 'width=570,height=700,resizable=no,scrollbars=yes';
     window.open(url,'add_Sale',features).focus();
 
 
@@ -390,7 +395,7 @@ export function addSale(){
 
 export function addPurchase() {
     const url = './../popup/addPurchase.html';
-    const features = 'width=570,height=350,resizable=no,scrollbars=yes';
+    const features = 'width=570,height=700,resizable=no,scrollbars=yes';
     window.open(url, 'add_Sale', features).focus();
 }
 
