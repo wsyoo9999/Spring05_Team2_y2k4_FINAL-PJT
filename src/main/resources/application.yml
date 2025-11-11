@@ -3,6 +3,11 @@ server:
 
 spring:
 
+  thymeleaf:
+    prefix : classpath:templates/
+    suffix : .html
+    cache : false
+
   flyway:
     enabled: false
   # 1) 회원관리/관리용 DataSource (tenant_registry DB)

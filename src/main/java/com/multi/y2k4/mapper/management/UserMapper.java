@@ -8,4 +8,7 @@ import org.apache.ibatis.annotations.Param;
 public interface UserMapper {
 
     UserVO checkLogin(@Param("id") String id, @Param("password") String password);
+
+    int addUser(UserVO userVO);
+
 }

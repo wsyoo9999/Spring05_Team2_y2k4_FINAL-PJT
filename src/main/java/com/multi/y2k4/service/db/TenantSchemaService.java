@@ -1,4 +1,4 @@
-package com.multi.y2k4.service;
+package com.multi.y2k4.service.db;
 
 import lombok.RequiredArgsConstructor;
 import org.flywaydb.core.Flyway;

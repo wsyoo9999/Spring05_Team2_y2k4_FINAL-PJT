@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -113,6 +113,14 @@
         <a href="#">비밀번호 찾기</a>
     </div>
 </div>
+<div th:if="${login_alert}">
+    <script th:inline="javascript">
 
+        /*<![CDATA[*/
+        alert([[${login_alert}]]);
+        /*]]>*/
+
+    </script>
+</div>
 </body>
 </html>
