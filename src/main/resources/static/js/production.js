@@ -81,6 +81,7 @@ export async function work_order_listAll() {
 export function work_order_search_form() {
     // main.html의 .search-form 디자인에 맞게 수정
     const search_bar = `
+        <form data-file="production" data-fn="work_order_list">
         <div class="form-group">
             <label for="order_status">상태</label>
             <select id="order_status" name="order_status">
@@ -105,6 +106,7 @@ export function work_order_search_form() {
         <button type="submit" data-action="search" data-file="production" data-fn="work_order_list">
             <i class="fas fa-search"></i> 검색
         </button>
+        </form>
     `;
     return search_bar;
 }
@@ -341,6 +343,8 @@ export async function bom_listAll() {
 export function bom_search_form() {
     // main.html의 .search-form 디자인에 맞게 수정
     const search_bar = `
+    <form data-file="production" data-fn="bom_list">
+
         <div class="form-group">
             <label for="bom_item_id">물품번호</label>
             <input type="text" id="bom_item_id" name="item_id" placeholder="물품번호 입력" />
@@ -348,6 +352,7 @@ export function bom_search_form() {
         <button type="submit" data-action="search" data-file="production" data-fn="bom_list">
             <i class="fas fa-search"></i> 검색
         </button>
+    </form>
     `;
     return search_bar;
 }

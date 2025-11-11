@@ -336,23 +336,24 @@ export function inbound_search_form() {
     return `
         <form data-file="inbound" data-fn="inbound_list">
         <div class="form-group">
+            <label>검색 카테고리</label>
             <select id="keywordType" name="keywordType">
                 <option value="inbound_id">입고 번호</option>
                 <option value="stock_id">재고 코드</option>
                 <option value="item_name">물품명</option>
                 <option value="supplier">공급업체</option>
             </select>
+            
         </div>
-        
         <div class="form-group">
             <input id="keyword" type="number" name="keyword" placeholder="예: 3001"/>
         </div>
         <div class="form-group">
-            <label>입고일:</label>
+            <label>입고일</label>
             <input type="date" name="inbound_date" />
         </div>
         <div class="form-group">
-            <label>소비기한:</label>
+            <label>소비기한</label>
             <input type="date" name="expand_date" />
         </div>
             <button type="submit" class="search_btn" data-file="stock" data-fn="inbound_list">

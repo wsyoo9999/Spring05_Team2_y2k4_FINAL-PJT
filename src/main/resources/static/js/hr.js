@@ -39,27 +39,34 @@ function numberFormat(num) {
 // ================================================================
 
 export function employees_search_form() {
-    const search_bar = `<form data-file="hr" data-fn="employees_list">
-                            <label>정렬:
-                                <select name="sort">
-                                    <option value="emp_id,asc">사번↑</option>
-                                    <option value="emp_id,desc">사번↓</option>
-                                    <option value="emp_name,asc">이름↑</option>
-                                </select>
-                            </label>
-                            
-                            <label>이름:
-                                <input type="text" name="search_name" placeholder="이름 검색" />
-                            </label>
-                            <label>부서:
-                                <input type="text" name="search_dept" placeholder="부서 검색" />
-                            </label>
-                            <label>직급:
-                                <input type="text" name="search_position" placeholder="직급 검색" />
-                            </label>
-                            
-                            <button type="submit" data-action="search" class="search_btn">검색</button>
-                        </form>`;
+    const search_bar = `
+        <form data-file="hr" data-fn="employees_list">
+            <div class="form-group">
+                <label>정렬:
+                    <select name="sort">
+                        <option value="emp_id,asc">사번↑</option>
+                        <option value="emp_id,desc">사번↓</option>
+                        <option value="emp_name,asc">이름↑</option>
+                    </select>
+                </label>
+            </div>
+            <div class="form-group">
+                <label>이름:
+                    <input type="text" name="search_name" placeholder="이름 검색" />
+                </label>
+            </div>
+            <div class="form-group">
+                <label>부서:
+                    <input type="text" name="search_dept" placeholder="부서 검색" />
+                </label>
+            </div>
+            <div class="form-group">
+                <label>직급:
+                    <input type="text" name="search_position" placeholder="직급 검색" />
+                </label>
+            </div>
+                <button type="submit" data-action="search" class="search_btn">검색</button>
+            </form>`;
     return search_bar;
 }
 
@@ -167,16 +174,23 @@ export function employee_detail_popup(e) {
 export function attendance_search_form() {
     const today = new Date().toISOString().substring(0, 10);
 
-    return `<form data-file="hr" data-fn="attendance_list">
+    return `
+        <form data-file="hr" data-fn="attendance_list">
+            <div class="form-group">
                 <label>시작일:
                     <input type="date" name="start_date" value="" />
                 </label>
+            </div>
+            <div class="form-group">
                 <label>종료일:
                     <input type="date" name="end_date" value="${today}" />
                 </label>
+            </div>
+            <div class="form-group">
                 <label>검색:
                     <input type="text" name="search_keyword" placeholder="이름/상태 검색" />
                 </label>
+            </div>
                 <button type="submit" data-action="search" class="search_btn">검색</button>
             </form>`;
 }
@@ -303,14 +317,18 @@ export function salary_search_form() {
     const monthOptions = months.map(m => `<option value="${m.value}">${m.label}</option>`).join('');
 
     return `<form data-file="hr" data-fn="salary_list">
+            <div class="form-group">
                 <label>년도 검색:
                     <input type="number" name="search_year" value="${currentYear}" placeholder="년도 입력 (예: 2025)" />
                 </label>
+            </div>
+            <div class="form-group">
                 <label>월 선택:
                     <select name="search_month">
                         ${monthOptions}
                     </select>
                 </label>
+            </div>
                 <button type="submit" data-action="search" class="search_btn">검색</button>
             </form>`;
 }
