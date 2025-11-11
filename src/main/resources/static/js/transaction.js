@@ -391,7 +391,7 @@ export function  purchase_search_form(){
                     <input type="date" name="del_date"  />
                 </label>
             </div>
-            <button type="submit" class="search_btn" data-file="transaction" data-fn="purchase_list">
+            <button type="submit" class="search_btn" data-action="search" data-file="transaction" data-fn="purchase_list">
                 <i class="fas fa-search">검색</i>
             </button>                                
                 </label>
