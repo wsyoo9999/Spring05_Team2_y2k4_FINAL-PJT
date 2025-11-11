@@ -26,7 +26,7 @@ export async function sale_listAll(){
     tbody= `<tbody>`;
     console.log(data);
     $.each(data, function (i, row){
-        tbody += tbody +=`<tr>
+        tbody  +=`<tr>
                         <td class="emp-id"
                             data-value="${row.emp_id}"
                             style="cursor:pointer"
@@ -35,13 +35,13 @@ export async function sale_listAll(){
                             data-action="detail" data-file="transaction" data-fn="addSale">
                           ${row.emp_id}
                         </td>
-                        <td class="client-id"
+                        <td class="ac-id"
                             data-value="${row.emp_id}"
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.client_id}
+                          ${row.ac_id}
                         </td>
                         <td>
                             ${row.order_date}
@@ -81,7 +81,7 @@ export async function sale_listAll(){
 
 export async function sale_list(formData){
     const emp_id = formData.emp_id;     //담당자
-    const client_id = formData.client_id;       //거래처
+    const ac_id = formData.ac_id;       //거래처
     const order_date = formData.order_date;     //주문일
     const due_date = formData.due_date;         //요청 납기일
     const status = formData.status;             //현상태
@@ -107,7 +107,7 @@ export async function sale_list(formData){
         dataType: 'json',
         data:{
             emp_id : emp_id,
-            client_id : client_id,
+            ac_id : ac_id,
             order_date : order_date,
             due_date : due_date,
             status : status,
@@ -126,13 +126,13 @@ export async function sale_list(formData){
                             data-action="detail" data-file="transaction" data-fn="addSale">
                           ${row.emp_id}
                         </td>
-                        <td class="client-id"
-                            data-value="${row.client_id}"
+                        <td class="ac-id"
+                            data-value="${row.ac_id}"
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';" 
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.client_id}
+                          ${row.ac_id}
                         </td>
                         <td>
                             ${row.order_date}
@@ -205,13 +205,13 @@ export async function purchase_listAll(){
                             data-action="detail" data-file="transaction" data-fn="addSale">
                           ${row.emp_id}
                         </td>
-                        <td class="client-id"
-                            data-value="${row.client_id}"
+                        <td class="ac-id"
+                            data-value="${row.ac_id}"
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';" 
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.client_id}
+                          ${row.ac_id}
                         </td>
                         <td>
                             ${row.order_date}
@@ -250,7 +250,7 @@ export async function purchase_listAll(){
 
 export async function purchase_list(formData){
     const emp_id = formData.emp_id;     //담당자
-    const client_id = formData.client_id;       //거래처
+    const ac_id = formData.ac_id;       //거래처
     const order_date = formData.order_date;     //주문일
     const del_date = formData.del_date;         //요청 납기일
     const status = formData.status;             //현상태
@@ -276,7 +276,7 @@ export async function purchase_list(formData){
         dataType: 'json',
         data:{
             emp_id : emp_id,
-            client_id : client_id,
+            ac_id : ac_id,
             order_date : order_date,
             del_date : del_date,
             status : status,
@@ -295,13 +295,13 @@ export async function purchase_list(formData){
                             data-action="detail" data-file="transaction" data-fn="addSale">
                           ${row.emp_id}
                         </td>
-                        <td class="client-id"
-                            data-value="${row.client_id}"
+                        <td class="ac-id"
+                            data-value="${row.ac_id}"
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';" 
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.client_id}
+                          ${row.ac_id}
                         </td>
                         <td>
                             ${row.order_date}
@@ -348,7 +348,7 @@ export function  sale_search_form(){
             </div>
             <div class="form-group">
                 <label> 거래처:
-                    <input type="text" name="client_id" value="" />
+                    <input type="text" name="ac_id" value="" />
                 </label>
             </div>
             <div class="form-group">
@@ -378,7 +378,7 @@ export function  purchase_search_form(){
             </div>
             <div class="form-group">    
                 <label> 거래처:
-                    <input type="text" name="client_id" value="" />
+                    <input type="text" name="ac_id" value="" />
                 </label>
             </div>
             <div class="form-group">

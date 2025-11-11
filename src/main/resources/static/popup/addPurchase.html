@@ -161,7 +161,7 @@
         <input type="text" name="emp_id" required>
     </label>
     <label>거래처
-        <input type="text" name="client_id" required>
+        <input type="text" name="ac_id" required>
     </label><br>
     <label>주문 수주일
         <input type="date" name="order_date" required>
@@ -171,12 +171,16 @@
     </label><br>
     <div class = "detail">
         <label>제품명
-            <input type="text" name="item_id[]" required>
+            <input type="text" name="stock_id[]" required>
 
         </label><!--추후 이름으로 입력 되도록 변경-->
         <label>수량
             <input type="text" name="qty[]" min="1" required>
-        </label><br>
+        </label>
+        <label>가격
+        <input type="number" name="price_per_unit[]" min="0.00" step="0.01" required>
+    </label>
+        <br>
     </div>
 
     <input type="submit" value="입력 완료">
@@ -192,12 +196,15 @@
     const detail = document.querySelector(".detail");
     create.addEventListener("click", (e) => {
         const addDataForm = document.createElement('div');
-        addDataForm.innerHTML = ` <label>제품명
-                                    <input type="text" name="item_id[]" required>
+        addDataForm.innerHTML = ` <hr><label>제품명
+                                    <input type="text" name="stock_id[]" required>
                                     </label>
                                     <label>수량
                                         <input type="number" name="qty[]" min="1" required>
-                                    </label><br>`;
+                                    </label>
+                                    <label>가격
+                                    <input type="number" name="price_per_unit[]" min="0.00" step="0.01" required>
+                                  </label><br>`;
         detail.appendChild(addDataForm);
     })
 

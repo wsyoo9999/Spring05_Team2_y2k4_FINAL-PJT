@@ -4,5 +4,13 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.transaction.SaleMapper">
+    <select id="list_all" resultType="com.multi.y2k4.vo.transaction.Sale">
+        select * from sale
+    </select>
+
+    <insert id="addSale" parameterType="com.multi.y2k4.vo.transaction.Sale" useGeneratedKeys="true" keyProperty="sale_id" keyColumn="sale_id">
+        insert into sale (emp_id, ac_id, order_date, due_date, total_price, status)
+        values (#{emp_id}, #{ac_id}, #{order_date}, #{due_date}, #{total_price}, #{status})
+    </insert>
 
 </mapper>

@@ -1,9 +1,17 @@
 package com.multi.y2k4.controller;
 
 
+import com.multi.y2k4.service.transaction.PurchaseDetailsService;
+import com.multi.y2k4.service.transaction.PurchaseService;
+import com.multi.y2k4.service.transaction.SaleDetailsService;
+import com.multi.y2k4.service.transaction.SaleService;
 import com.multi.y2k4.vo.transaction.Purchase;
+import com.multi.y2k4.vo.transaction.PurchaseDetails;
 import com.multi.y2k4.vo.transaction.Sale;
+import com.multi.y2k4.vo.transaction.SaleDetails;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,56 +22,66 @@ import java.util.List;
 
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/transaction")
 public class TransactionController {
+    private final SaleService saleService;
+    private final PurchaseService purchaseService;
+    private final SaleDetailsService saleDetailsService;
+    private final PurchaseDetailsService purchaseDetailsService;
 
     @GetMapping("/sale/list")
-    public List<Sale> saleList(@RequestParam(required = false) Integer emp_id,
-                       @RequestParam(required = false) Integer client_id,
+    public List<Sale> saleList(@RequestParam(required = false) Integer sale_id,
+                       @RequestParam(required = false) Integer emp_id,
+                       @RequestParam(required = false) Integer ac_id,
                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
+                       @RequestParam(required = false) Double total_price,
                        @RequestParam(required = false) String status,
                        Model model) {
 
         //테스트를 위한 수동 리스트 값 생성
-        List<Sale> saleList = new ArrayList<>();
-        Sale sale = new Sale();
-        sale.setEmp_id(1);
-        sale.setClient_id(11);
-        sale.setOrder_date(LocalDate.parse("2025-11-03"));
-        sale.setDue_date(LocalDate.parse("2025-11-03"));
-        sale.setStatus("good");
-        saleList.add(sale);
-        Sale sale2 = new Sale();
-        sale2.setEmp_id(1);
-        sale2.setClient_id(11);
-        sale2.setOrder_date(LocalDate.parse("2025-11-03"));
-        sale2.setDue_date(LocalDate.parse("2025-11-03"));
-        sale2.setStatus("good");
-        saleList.add(sale2);
 
-        System.out.println(emp_id);
-        System.out.println(client_id);
-        System.out.println(order_date);
-        System.out.println(due_date);
-        System.out.println(status);
-        return saleList;
+
+        return saleService.list_all();
     }
 
     @PostMapping("/sale/add")
-    public boolean addSale(@RequestParam Integer emp_id,
-                          @RequestParam Integer client_id,
-                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
-                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
-                          @RequestParam Integer[] item_id,
-                          @RequestParam Integer[] qty,
-                          Model model){
-        System.out.println("emp_id : "+emp_id);
-        System.out.println("client_id : "+client_id);
-        System.out.println("order_date : "+order_date);
-        System.out.println("due_date : "+due_date);
-        System.out.println("item_id : "+ Arrays.toString(item_id));
-        System.out.println("qty : "+ Arrays.toString(qty));
+    @Transactional
+    public boolean addSale( @RequestParam(required = false) Integer emp_id,
+                            @RequestParam(required = false) Integer ac_id,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
+                            @RequestParam Integer[] stock_id,
+                            @RequestParam Integer[] qty,
+                            @RequestParam Double[] price_per_unit,
+                            Model model){
+
+        double total_price = 0;
+        List<SaleDetails> saleDetails = new ArrayList<>();
+        ;
+        for(int i = 0; i < stock_id.length; i++){
+            SaleDetails saleDetail = new SaleDetails();
+            saleDetail.setStock_id(stock_id[i]);
+            saleDetail.setQty(qty[i]);
+            saleDetail.setPrice_per_unit(price_per_unit[i]);
+            saleDetail.setTotal_price(price_per_unit[i]*qty[i]);
+            saleDetails.add(saleDetail);
+            total_price += saleDetail.getTotal_price();
+        }
+        Sale sale = new Sale();
+        sale.setAc_id(ac_id);   //거래처
+        sale.setEmp_id(emp_id); //담당자
+        sale.setOrder_date(order_date);
+        sale.setDue_date(due_date);
+        sale.setTotal_price(total_price);
+        sale.setStatus(0);
+        saleService.addSale(sale);
+        int id = sale.getSale_id();
+        for(int i = 0; i < stock_id.length; i++){
+            saleDetails.get(i).setSale_id(id);
+        }
+        saleDetailsService.addSaleDetails(saleDetails);
         return true;
     }
 
@@ -76,45 +94,48 @@ public class TransactionController {
                                        Model model) {
 
         //테스트를 위한 수동 리스트 값 생성
-        List<Purchase> purchaseList = new ArrayList<>();
-        Purchase purchase1 = new Purchase();
-        purchase1.setEmp_id(2);
-        purchase1.setClient_id(22);
-        purchase1.setOrder_date(LocalDate.parse("2025-11-04"));
-        purchase1.setDel_date(LocalDate.parse("2025-11-04"));
-        purchase1.setStatus("bad");
-        purchaseList.add(purchase1);
-        Purchase purchase2 = new Purchase();
-        purchase2.setEmp_id(2);
-        purchase2.setClient_id(22);
-        purchase2.setOrder_date(LocalDate.parse("2025-11-03"));
-        purchase2.setDel_date(LocalDate.parse("2025-11-03"));
-        purchase2.setStatus("bad");
-        purchaseList.add(purchase2);
 
-        System.out.println(emp_id);
-        System.out.println(client_id);
-        System.out.println(order_date);
-        System.out.println(del_date);
-        System.out.println(status);
-        return purchaseList;
+        return purchaseService.list_all();
     }
 
     @PostMapping("/purchase/add")
+    @Transactional
     public boolean addPurchase(@RequestParam Integer emp_id,
-                           @RequestParam Integer client_id,
-                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
-                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate del_date,
-                           @RequestParam Integer[] item_id,
-                           @RequestParam Integer[] qty,
+                                @RequestParam Integer ac_id,
+                                @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
+                                @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate del_date,
+                                @RequestParam Integer[] stock_id,
+                                @RequestParam Integer[] qty,
+                                @RequestParam Double[] price_per_unit,
                            Model model){
-        System.out.println("emp_id : "+emp_id);
-        System.out.println("client_id : "+client_id);
-        System.out.println("order_date : "+order_date);
-        System.out.println("due_date : "+del_date);
-        System.out.println("item_id : "+ Arrays.toString(item_id));
-        System.out.println("qty : "+ Arrays.toString(qty));
+        double total_price = 0;
+        List<PurchaseDetails> purchaseDetails = new ArrayList<>();
+
+        for(int i = 0; i < stock_id.length; i++){
+            PurchaseDetails purchaseDetail = new PurchaseDetails();
+            purchaseDetail.setStock_id(stock_id[i]);
+            purchaseDetail.setQty(qty[i]);
+            purchaseDetail.setPrice_per_unit(price_per_unit[i]);
+            purchaseDetail.setTotal_price(price_per_unit[i]*qty[i]);
+            purchaseDetails.add(purchaseDetail);
+            total_price += purchaseDetail.getTotal_price();
+        }
+
+        Purchase purchase = new Purchase();
+        purchase.setAc_id(ac_id);   //거래처
+        purchase.setEmp_id(emp_id); //담당자
+        purchase.setOrder_date(order_date);
+        purchase.setDel_date(del_date);
+        purchase.setStatus(0);
+        purchaseService.addPurchase(purchase);
+        int id = purchase.getPurchase_id();
+
+        for(int i = 0; i < stock_id.length; i++){
+            purchaseDetails.get(i).setPurchase_id(id);
+        }
+        purchaseDetailsService.addPurchaseDetails(purchaseDetails);
         return true;
+
     }
 
 }

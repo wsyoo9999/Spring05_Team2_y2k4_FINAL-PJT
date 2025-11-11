@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.multi.y2k4.mapper.tenant.transaction.PurchaseDetailsMapper">
+    <select id="searchById" resultType="com.multi.y2k4.vo.transaction.PurchaseDetails">
+        select * from purchase_details where purchase_id = #{purchase_id}
+    </select>
+
+    <insert id="addPurchaseDetails" parameterType="java.util.List" useGeneratedKeys="true">
+        insert into purchase_details (purchase_id, stock_id, purchase_qty, qty, price_per_unit, total_price) values
+        <foreach collection="purchaseDetails" item="item" separator=",">
+            (#{item.purchase_id}, #{item.stock_id}, #{item.purchase_qty}, #{item.qty}, #{item.price_per_unit}, #{item.total_price})
+        </foreach>
+    </insert>
+
+</mapper>

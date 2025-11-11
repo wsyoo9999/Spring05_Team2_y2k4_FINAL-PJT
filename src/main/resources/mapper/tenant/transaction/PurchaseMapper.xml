@@ -4,5 +4,13 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.transaction.PurchaseMapper">
+    <select id="list_all" resultType="com.multi.y2k4.vo.transaction.Purchase">
+        select * from purchase
+    </select>
+
+    <insert id="addPurchase" parameterType="com.multi.y2k4.vo.transaction.Purchase" useGeneratedKeys="true" keyProperty="purchase_id" keyColumn="purchase_id">
+        insert into purchase (emp_id, ac_id, order_date, del_date, total_price, status)
+        values (#{emp_id}, #{ac_id}, #{order_date}, #{del_date}, #{total_price}, #{status})
+    </insert>
 
 </mapper>
