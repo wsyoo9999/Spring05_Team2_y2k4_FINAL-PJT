@@ -71,9 +71,9 @@ export async function employees_listAll() {
                 </button>
             </div>
         `;
-    console.log(table)
-    return actionRow + table + tbody;
-    return await employees_fetch_data({});
+    // actionRow에 테이블 HTML을 덧붙여 반환해야 합니다.
+    const employeeTableHtml = await employees_fetch_data({}); // 🌟 이 부분이 실행되어야 함
+    return actionRow + employeeTableHtml;
 }
 
 export async function employees_list(formData) {
@@ -96,6 +96,7 @@ async function employees_fetch_data(formData) {
                             <th>입사일</th>
                             <th>재직상태</th>
                             <th>연락처</th>
+                            <th>관리</th>
                         </tr>
                     </thead>`;
     let tbody = '<tbody>';
@@ -116,23 +117,23 @@ async function employees_fetch_data(formData) {
         if (data && data.length > 0) {
             $.each(data, function (i, row) {
                 tbody += `<tr>
-                            <td>${row.emp_id || ''}</td>
-                            <td>
-                                <strong 
-                                    data-action="detail" 
-                                    data-file="hr" 
-                                    data-fn="employee_detail_popup"
-                                    data-emp-id="${row.emp_id}" 
-                                    style="cursor: pointer; color: #007bff; text-decoration: underline;">
-                                    ${row.emp_name || ''}
-                                </strong>
-                            </td>
-                            <td>${row.dept_name || ''}</td>
-                            <td>${row.position || ''}</td>
-                            <td>${formatDate(row.hire_date) || ''}</td>
-                            <td>${row.status || ''}</td>
-                            <td>${row.phone_number || ''}</td>
-                          </tr>`;
+                <td>${row.emp_id || ''}</td>
+                <td>${row.emp_name || ''}</td>
+                <td>${row.dept_name || ''}</td>
+                <td>${row.position || ''}</td>
+                <td>${formatDate(row.hire_date) || ''}</td>
+                <td>${row.status || ''}</td>
+                <td>${row.phone_number || ''}</td>
+                <td class="actions">
+                    <button 
+                        data-action="detail"
+                        data-file="hr"
+                        data-fn="employee_detail_popup"
+                        data-emp-id="${row.emp_id}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+              </tr>`;
             });
         } else {
             tbody += '<tr><td colspan="7" style="text-align:center;">데이터가 없습니다.</td></tr>';
@@ -192,7 +193,6 @@ export async function attendance_list(formData) {
 }
 
 async function attendance_fetch_data(formData) {
-    // 🚩 초과 근무 컬럼 삭제 (colspan 7 -> 6)
     let table = `<table>
                     <thead>
                         <tr>
@@ -341,7 +341,7 @@ async function salary_fetch_data(formData) {
                             <th>총 공제액</th>
                             <th>실수령액</th>
                             <th>은행명</th>
-                            <th>관리</th>
+                            <th>상세보기</th>
                         </tr>
                     </thead>`;
     let tbody = '<tbody>';
