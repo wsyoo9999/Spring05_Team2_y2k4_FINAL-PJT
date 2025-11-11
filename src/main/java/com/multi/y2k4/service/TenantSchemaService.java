@@ -36,5 +36,6 @@ public class TenantSchemaService {
 
         // 3) 마이그레이션 실행 (V1__... → V2__..., 순서대로)
         flyway.migrate();
+
     }
 }
