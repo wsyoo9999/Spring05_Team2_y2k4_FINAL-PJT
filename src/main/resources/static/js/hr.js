@@ -8,8 +8,8 @@ const API_BASE_URL = '/api/hr';
 // 날짜 포맷 (YYYY-MM-DD)
 function formatDate(dateString) {
     if (!dateString) return '-';
-    // String(dateString)이 없으므로, 이미 객체일 경우를 대비해 new Date 처리
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '-'; // ★ Invalid Date 방어
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -19,18 +19,18 @@ function formatDate(dateString) {
 // 시간 포맷 (HH:MM)
 function formatTime(dateTimeString) {
     if (!dateTimeString) return '-';
-    // LocalDateTime 문자열은 'YYYY-MM-DDTHH:MM:SS' 형식이므로 T를 기준으로 분리
-    const parts = dateTimeString.split('T');
+    const parts = String(dateTimeString).split('T'); // ★ 방어적 캐스팅
     const time = parts.length > 1 ? parts[1] : null;
-
     if (time) return time.substring(0, 5);
     return '-';
 }
 
-// 숫자 천단위 콤마 함수 추가
+// 숫자 천단위 콤마 함수
 function numberFormat(num) {
-    if (num === null || num === undefined) return '0';
-    return parseInt(num).toLocaleString('ko-KR');
+    if (num === null || num === undefined || num === '') return '0';
+    const n = Number(num);                 // ★ parseInt → Number
+    if (Number.isNaN(n)) return '0';       // ★ NaN 방어
+    return n.toLocaleString('ko-KR');
 }
 
 
@@ -63,7 +63,10 @@ export function employees_search_form() {
     return search_bar;
 }
 
+
 export async function employees_listAll() {
+    // 1. 테이블 상단 액션 버튼 HTML
+    // ⚠️ 기존 data-file / data-fn을 그대로 둡니다(기능 유지):contentReference[oaicite:4]{index=4}
     const actionRow = `
             <div class="table-actions-header">
                 <button class="action-button btn-primary" data-action="add" data-file="inventory" data-fn="addSale">
@@ -71,13 +74,17 @@ export async function employees_listAll() {
                 </button>
             </div>
         `;
-    console.log(table)
-    return actionRow + table + tbody;
-    return await employees_fetch_data({});
+
+    // 2. 실제 데이터와 테이블 HTML
+    const tableHtml = await employees_fetch_data({});
+
+    // 3. 합쳐서 반환
+    return actionRow + tableHtml;
 }
 
-export async function employees_list(formData) {
-    return await employees_fetch_data(formData);
+// ★ 불필요 await 제거(동작 동일)
+export function employees_list(formData) {
+    return employees_fetch_data(formData);
 }
 
 async function employees_fetch_data(formData) {
@@ -140,21 +147,19 @@ async function employees_fetch_data(formData) {
         tbody += `</tbody></table>`;
         return table + tbody;
     } catch (err) {
-        console.error("employees_list 로딩 실패:", err);
+        console.error("[HR] employees_list 로딩 실패:", err); // ★ 로그 prefix 통일
         return table + `<tbody><tr><td colspan="7" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
     }
 }
 
 // 직원 상세 조회 및 수정 팝업 함수
 export function employee_detail_popup(e) {
-    // 팝업 URL에 전달할 사번(empId) 가져오기
     const empId = e.dataset.empId;
     if (!empId) {
-        console.error("Employee ID가 없습니다.");
+        console.error("[HR] Employee ID가 없습니다."); // ★ 로그 prefix
         return;
     }
-
-    const url = `./popup/employeeDetail.html?empId=${empId}`; // ID를 쿼리 파라미터로 전달
+    const url = `./popup/employeeDetail.html?empId=${empId}`;
     const features = 'width=600,height=450,resizable=yes,scrollbars=yes';
     window.open(url, `employee_detail_${empId}`, features);
 }
@@ -187,12 +192,11 @@ export async function attendance_listAll() {
     return await attendance_fetch_data(formData);
 }
 
-export async function attendance_list(formData) {
-    return await attendance_fetch_data(formData);
+export function attendance_list(formData) {
+    return attendance_fetch_data(formData);
 }
 
 async function attendance_fetch_data(formData) {
-    // 🚩 초과 근무 컬럼 삭제 (colspan 7 -> 6)
     let table = `<table>
                     <thead>
                         <tr>
@@ -202,7 +206,6 @@ async function attendance_fetch_data(formData) {
                             <th>출근 시간</th>
                             <th>퇴근 시간</th>
                             <th>근무 상태</th>
-                            <th>관리</th>
                         </tr>
                     </thead>`;
     let tbody = '<tbody>';
@@ -232,34 +235,29 @@ async function attendance_fetch_data(formData) {
                     status_class = 'status-alert';
                 }
 
-                // 🚨 data-action="detail"로 통일
-                tbody += `<tr>
+                tbody += `<tr 
+                            data-action="detail" 
+                            data-file="hr" 
+                            data-fn="attendance_detail_popup"
+                            data-attendance-id="${row.attendance_id}"
+                            style="cursor: pointer;">
                             <td>${formatDate(row.work_date) || '-'}</td>
                             <td>${row.emp_id || '-'}</td>
                             <td>${row.emp_name || '-'}</td>
                             <td>${check_in_time}</td>
                             <td>${check_out_time}</td>
                             <td class="${status_class}"><strong>${row.attendance_status || '-'}</strong></td>
-                            <td class="actions">                    
-                                <button 
-                                    data-action="detail" 
-                                    data-file="hr" 
-                                    data-fn="attendance_detail_popup"
-                                    data-attendance-id="${row.attendance_id}" >
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </td>
-                          </tr>`; // 🚩 초과 근무 필드 제거
+                          </tr>`;
             });
         } else {
-            tbody += '<tr><td colspan="6" style="text-align:center;">데이터가 없습니다.</td></tr>'; // 🚩 colspan 7 -> 6
+            tbody += '<tr><td colspan="6" style="text-align:center;">데이터가 없습니다.</td></tr>';
         }
         tbody += `</tbody></table>`;
         return table + tbody;
 
     } catch (err) {
-        console.error("attendance_list 로딩 실패:", err);
-        return table + `<tbody><tr><td colspan="6" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`; // 🚩 colspan 7 -> 6
+        console.error("[HR] attendance_list 로딩 실패:", err); // ★ 로그 prefix
+        return table + `<tbody><tr><td colspan="6" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
     }
 }
 
@@ -267,13 +265,11 @@ async function attendance_fetch_data(formData) {
 export function attendance_detail_popup(e) {
     const attendanceId = e.dataset.attendanceId;
     if (!attendanceId) {
-        console.error("Attendance ID가 없습니다.");
+        console.error("[HR] Attendance ID가 없습니다."); // ★ 로그 prefix
         return;
     }
-
-    // URL은 그대로 attendanceEdit.html을 사용 (수정 기능이 목적이므로)
     const url = `./popup/attendanceEdit.html?attendanceId=${attendanceId}`;
-    const features = 'width=500,height=500,resizable=yes,scrollbars=yes';
+    const features = 'width=500,height=400,resizable=yes,scrollbars=yes';
     window.open(url, `attendance_detail_${attendanceId}`, features);
 }
 
@@ -321,8 +317,8 @@ export async function salary_listAll() {
     return await salary_fetch_data(formData);
 }
 
-export async function salary_list(formData) {
-    return await salary_fetch_data(formData);
+export function salary_list(formData) {
+    return salary_fetch_data(formData);
 }
 
 async function salary_fetch_data(formData) {
@@ -341,7 +337,6 @@ async function salary_fetch_data(formData) {
                             <th>총 공제액</th>
                             <th>실수령액</th>
                             <th>은행명</th>
-                            <th>관리</th>
                         </tr>
                     </thead>`;
     let tbody = '<tbody>';
@@ -356,7 +351,6 @@ async function salary_fetch_data(formData) {
 
         if (data && data.length > 0) {
             $.each(data, function (i, row) {
-
                 tbody += `<tr>
                             <td>${formatDate(row.payment_date) || '-'}</td>
                             <td>${row.emp_id || '-'}</td>
@@ -365,17 +359,17 @@ async function salary_fetch_data(formData) {
                             <td class="num">${numberFormat(row.allowance)}</td>
                             <td class="num"><strong>${numberFormat(row.total_gross)}</strong></td>
                             <td class="num" style="color: red;">${numberFormat(row.deduction_amount)}</td>
-                            <td class="num"><stron>${numberFormat(row.total_pay)} </stron></td>
-                            <td>${row.bank_name || '-'}</td>
-                            <td class="actions">                    
-                                <button 
+                            <td class="num">
+                                <strong 
                                     data-action="detail" 
                                     data-file="hr" 
                                     data-fn="salary_detail_popup"
-                                    data-salary-id="${row.salary_id}" >
-                                    <i class="fas fa-info-circle"></i>
-                                </button>
+                                    data-salary-id="${row.salary_id}" 
+                                    style="cursor: pointer; color: blue; text-decoration: underline;">
+                                    ${numberFormat(row.total_pay)}
+                                </strong>
                             </td>
+                            <td>${row.bank_name || '-'}</td>
                           </tr>`;
             });
         } else {
@@ -385,20 +379,18 @@ async function salary_fetch_data(formData) {
         return table + tbody;
 
     } catch (err) {
-        // 🚨 에러 발생 시 로그 출력 후 빈 테이블 반환
-        console.error("salary_list 로딩 실패 (numberFormat 함수 정의 누락):", err);
-        return table + `<tbody><tr><td colspan="9" style="text-align:center; color:red;">데이터 로딩 실패 (스크립트 오류)</td></tr></tbody></table>`;
+        console.error("[HR] salary_list 로딩 실패:", err); // ★ 로그 prefix 및 메시지 정리
+        return table + `<tbody><tr><td colspan="9" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
     }
 }
 
 export function salary_detail_popup(e) {
     const salaryId = e.dataset.salaryId;
     if (!salaryId) {
-        console.error("Salary ID가 없습니다.");
+        console.error("[HR] Salary ID가 없습니다."); // ★ 로그 prefix
         return;
     }
-
     const url = `./popup/salaryDetail.html?salaryId=${salaryId}`;
-    const features = 'width=500,height=635,resizable=yes,scrollbars=yes';
+    const features = 'width=500,height=500,resizable=yes,scrollbars=yes';
     window.open(url, `salary_detail_${salaryId}`, features);
 }
