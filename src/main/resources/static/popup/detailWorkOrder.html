@@ -133,6 +133,17 @@
         return `${year}-${month}-${day}`;
     }
 
+    function formatDateTime(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+    }
+
     // 숫자 천단위 콤마
     function numberFormat(num) {
         if (num === null || num === undefined) return '0';
@@ -158,29 +169,29 @@
         try {
             // 1. URL에서 order_id 추출
             const urlParams = new URLSearchParams(window.location.search);
-            const order_id = urlParams.get('order_id');
+            const work_order_id = urlParams.get('work_order_id');
 
-            if (!order_id) {
+            if (!work_order_id) {
                 throw new Error('작업 지시서 ID가 없습니다.');
             }
 
             // 2. API 호출
             const data = await $.ajax({
-                url: `/api/production/work_order/${order_id}`,
+                url: `/api/production/work_order/${work_order_id}`,
                 method: 'GET',
                 dataType: 'json'
             });
 
             // 3. HTML 생성
-            const progress = data.target_quantity > 0
-                ? Math.round((data.good_quantity / data.target_quantity) * 100)
+            const progress = data.target_qty > 0
+                ? Math.round((data.good_qty / data.target_qty) * 100)
                 : 0;
 
             // 헤더 생성
             let headerHtml = `
                 <h2>
                     <span><i class="fas fa-industry"></i> 작업지시서 상세</span>
-                    <span class="status-badge ${getStatusClass(data.order_status)}">${data.order_status}</span>
+                    <span class="status-badge ${getStatusClass(data.order_status)}">${data.order_status ?? '-'}</span>
                 </h2>
             `;
 
@@ -189,28 +200,34 @@
                 <h3>기본 정보</h3>
                 <div class="info-grid">
                     <div class="label">작업지시번호</div>
-                    <div class="value"><strong>${data.order_id}</strong></div>
+                    <div class="value"><strong>${data.work_order_id}</strong></div>
 
-                    <div class="label">물품번호</div>
-                    <div class="value">${data.item_id}</div>
+                    <div class="label">품목번호</div>
+                    <div class="value">${data.stock_id ?? '-'}</div>
+
+                    <div class="label">담당자</div>
+                    <div class="value">${data.emp_id ?? '-'}</div>
 
                     <div class="label">시작일</div>
                     <div class="value">${formatDate(data.start_date)}</div>
 
                     <div class="label">완료일</div>
                     <div class="value">${formatDate(data.due_date)}</div>
+
+                    <div class="label">요청일시</div>
+                    <div class="value">${formatDateTime(data.request_date)}</div>
                 </div>
 
                 <h3>생산 수량</h3>
                 <div class="info-grid">
                     <div class="label">목표수량</div>
-                    <div class="value">${numberFormat(data.target_quantity)}</div>
+                    <div class="value">${numberFormat(data.target_qty)}</div>
 
                     <div class="label">양품수량</div>
-                    <div class="value good"><strong>${numberFormat(data.good_quantity)}</strong></div>
+                    <div class="value good"><strong>${numberFormat(data.good_qty)}</strong></div>
 
                     <div class="label">불량수량</div>
-                    <div class="value defect"><strong>${numberFormat(data.defect_quantity)}</strong></div>
+                    <div class="value defect"><strong>${numberFormat(data.defect_qty)}</strong></div>
 
                     <div class="label">진행률</div>
                     <div class="value"><strong>${progress}%</strong></div>
@@ -219,13 +236,13 @@
 
             // 버튼 HTML 생성
             let actionHtml = `
-                <button class="action-button btn-primary" data-order-id="${data.order_id}">
+                <button class="action-button btn-primary" data-work-order-id="${data.work_order_id}">
                     <i class="fas fa-check-circle"></i> 생산 실적 등록
                 </button>
-                <button class="action-button btn-danger" data-order-id="${data.order_id}">
+                <button class="action-button btn-danger" data-work-order-id="${data.work_order_id}">
                     <i class="fas fa-exclamation-triangle"></i> 불량 등록
                 </button>
-                <button class="action-button btn-secondary" data-order-id="${data.order_id}">
+                <button class="action-button btn-secondary" data-work-order-id="${data.work_order_id}">
                     <i class="fas fa-search"></i> Lot 조회
                 </button>
             `;
