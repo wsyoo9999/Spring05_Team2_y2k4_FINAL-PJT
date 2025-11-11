@@ -75,30 +75,32 @@ export async function work_order_listAll() {
 export function work_order_search_form() {
     // main.html의 .search-form 디자인에 맞게 수정
     const search_bar = `
-        <div class="form-group">
-            <label for="order_status">상태</label>
-            <select id="order_status" name="order_status">
-                <option value="">전체</option>
-                <option value="대기">대기</option>
-                <option value="진행중">진행중</option>
-                <option value="완료">완료</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="stock_id">제품코드</label>
-            <input type="text" id="stock_id" name="stock_id" placeholder="제품코드 입력" />
-        </div>
-        <div class="form-group">
-            <label for="start_date">시작일</label>
-            <input type="date" id="start_date" name="start_date" />
-        </div>
-        <div class="form-group">
-            <label for="due_date">완료일</label>
-            <input type="date" id="due_date" name="due_date" />
-        </div>
-        <button type="submit" data-action="search" data-file="production" data-fn="work_order_list">
-            <i class="fas fa-search"></i> 검색
-        </button>
+        <form data-file="production" data-fn="work_order_list">
+            <div class="form-group">
+                <label for="order_status">상태</label>
+                <select id="order_status" name="order_status">
+                    <option value="">전체</option>
+                    <option value="대기">대기</option>
+                    <option value="진행중">진행중</option>
+                    <option value="완료">완료</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="stock_id">제품코드</label>
+                <input type="text" id="stock_id" name="stock_id" placeholder="제품코드 입력" />
+            </div>
+            <div class="form-group">
+                <label for="start_date">시작일</label>
+                <input type="date" id="start_date" name="start_date" />
+            </div>
+            <div class="form-group">
+                <label for="due_date">완료일</label>
+                <input type="date" id="due_date" name="due_date" />
+            </div>
+            <button type="submit" data-action="search" data-file="production" data-fn="work_order_list">
+                <i class="fas fa-search"></i> 검색
+            </button>
+        </form>
     `;
     return search_bar;
 }
@@ -338,13 +340,15 @@ export async function bom_listAll() {
 export function bom_search_form() {
     // main.html의 .search-form 디자인에 맞게 수정
     const search_bar = `
-        <div class="form-group">
-            <label for="parent_stock_id">목표 재고코드</label>
-            <input type="text" id="parent_stock_id" name="parent_stock_id" placeholder="목표 재고코드 입력" />
-        </div>
-        <button type="submit" data-action="search" data-file="production" data-fn="bom_list">
-            <i class="fas fa-search"></i> 검색
-        </button>
+        <form data-file="production" data-fn="bom_list">
+            <div class="form-group">
+                <label for="parent_stock_id">목표 재고코드</label>
+                <input type="text" id="parent_stock_id" name="parent_stock_id" placeholder="목표 재고코드 입력" />
+            </div>
+            <button type="submit" data-action="search" data-file="production" data-fn="bom_list">
+                <i class="fas fa-search"></i> 검색
+            </button>
+        </form>
     `;
     return search_bar;
 }

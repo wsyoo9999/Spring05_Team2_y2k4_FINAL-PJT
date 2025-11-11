@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.multi.y2k4.mapper.tenant.ProductionMapper">
+
+    <resultMap id="WorkOrderMap" type="com.multi.y2k4.vo.production.WorkOrder">
+        <id property="work_order_id" column="work_order_id"/>
+        <result property="stock_id" column="stock_id"/>
+        <result property="emp_id" column="emp_id"/>
+        <result property="start_date" column="start_date"/>
+        <result property="due_date" column="due_date"/>
+        <result property="target_qty" column="target_qty"/>
+        <result property="good_qty" column="good_qty"/>
+        <result property="defect_qty" column="defect_qty"/>
+        <result property="order_status" column="order_status"/>
+        <result property="request_date" column="request_date"/>
+    </resultMap>
+
+    <resultMap id="LotMap" type="com.multi.y2k4.vo.production.Lot">
+        <id property="lot_id" column="lot_id"/>
+        <result property="work_order_id" column="work_order_id"/>
+        <result property="stock_id" column="stock_id"/>
+        <result property="lot_qty" column="lot_qty"/>
+        <result property="lot_date" column="lot_date"/>
+    </resultMap>
+
+    <resultMap id="DefectMap" type="com.multi.y2k4.vo.production.Defect">
+        <id property="defect_code" column="defect_id"/>
+        <result property="lot_id" column="lot_id"/>
+        <result property="defect_qty" column="defect_qty"/>
+        <result property="defect_date" column="defect_date"/>
+        <result property="work_order_id" column="work_order_id"/>
+        <result property="stock_id" column="stock_id"/>
+    </resultMap>
+
+    <resultMap id="BOMMap" type="com.multi.y2k4.vo.production.BOM">
+        <id property="bom_id" column="bom_id"/>
+        <result property="parent_stock_id" column="parent_stock_id"/>
+        <result property="child_stock_id" column="child_stock_id"/>
+        <result property="required_qty" column="required_qty"/>
+    </resultMap>
+
+    <select id="getWorkOrderList" resultMap="WorkOrderMap">
+        SELECT * FROM work_order
+        <where>
+            <if test="order_status != null and order_status != ''">
+                AND order_status = #{order_status}
+            </if>
+            <if test="stock_id != null">
+                AND stock_id = #{stock_id}
+            </if>
+            <if test="start_date != null and start_date != ''">
+                AND start_date >= #{start_date}
+            </if>
+            <if test="due_date != null and due_date != ''">
+                AND due_date &lt;= #{due_date}
+            </if>
+        </where>
+    </select>
+
+    <select id="getWorkOrderDetail" resultMap="WorkOrderMap">
+        SELECT
+            work_order_id,
+            stock_id,
+            emp_id,
+            start_date,
+            due_date,
+            target_qty,
+            good_qty,
+            defect_qty,
+            request_date,
+            CASE
+                WHEN order_status = 0 THEN '대기'
+                WHEN order_status = 1 THEN '진행중'
+                WHEN order_status = 2 THEN '완료'
+                ELSE '알 수 없음'
+                END AS order_status
+        FROM work_order
+        WHERE work_order_id = #{work_order_id}
+    </select>
+
+    <select id="getWorkOrderLots" resultMap="LotMap">
+        SELECT * FROM lot WHERE work_order_id = #{work_order_id}
+    </select>
+
+    <select id="getWorkOrderDefects" resultMap="DefectMap">
+        SELECT d.defect_id, d.lot_id, d.defect_qty, d.defect_date,
+               l.work_order_id, l.stock_id
+        FROM defect d
+                 JOIN lot l ON d.lot_id = l.lot_id
+        WHERE l.work_order_id = #{work_order_id}
+    </select>
+
+    <select id="getBOMList" resultMap="BOMMap">
+        SELECT bom_id, parent_stock_id, child_stock_id, required_qty
+        FROM bom
+        <where>
+            <if test="parent_stock_id != null">
+                AND parent_stock_id = #{parent_stock_id}
+            </if>
+        </where>
+    </select>
+
+    <insert id="addWorkOrder" parameterType="com.multi.y2k4.vo.production.WorkOrder">
+        INSERT INTO work_order (
+            stock_id, emp_id, start_date, due_date,
+            target_qty, request_date,
+            good_qty, defect_qty, order_status
+        )
+        VALUES (
+                   #{stock_id}, #{emp_id}, #{start_date}, #{due_date},
+                   #{target_qty}, #{request_date},
+                   0, 0, '대기'
+               )
+    </insert>
+
+</mapper>
