@@ -9,6 +9,7 @@ const API_BASE_URL = '/api/finance';
 // 결재 문서 검색 폼
 export function documents_search_form() {
     const search_bar = `
+    <form data-file="finance" data-fn="documents_list">
         <div class="form-group">
             <label for="doc_status">상태</label>
             <select id="doc_status" name="status">
@@ -25,6 +26,7 @@ export function documents_search_form() {
         <button type="submit" data-action="search" data-file="finance" data-fn="documents_list" class="search_btn">
              <i class="fas fa-search"></i> 검색
         </button>
+    </form>
     `;
     return search_bar;
 }
@@ -118,6 +120,7 @@ async function documents_fetch_data(formData) {
 // 예산 계정 검색 폼
 export function budget_search_form() {
     const search_bar = `
+    <form data-file="finance" data-fn="budget_list">
         <div class="form-group">
             <label for="acctCode">계정 코드</label>
             <input type="text" id="acctCode" name="acctCode" placeholder="예산 계정 코드 (예: 401)" />
@@ -125,6 +128,7 @@ export function budget_search_form() {
         <button type="submit" data-action="search" data-file="finance" data-fn="budget_list" class="search_btn">
             <i class="fas fa-search"></i> 검색
         </button>
+    </form>
     `;
     return search_bar;
 }
@@ -184,6 +188,7 @@ export async function budget_list(formData) {
 // 회계 전표 검색 폼
 export function slips_search_form() {
     const search_bar = `
+    <form data-file="finance" data-fn="slips_list">
         <div class="form-group">
             <label for="slipId">전표 ID</label>
             <input type="number" id="slipId" name="slipId" placeholder="전표 ID 입력" />
@@ -191,6 +196,7 @@ export function slips_search_form() {
         <button type="submit" data-action="search" data-file="finance" data-fn="slips_list" class="search_btn">
             <i class="fas fa-search"></i> 검색
         </button>
+    </form>
     `;
     return search_bar;
 }

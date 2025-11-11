@@ -339,49 +339,63 @@ export async function purchase_list(formData){
 }
 
 export function  sale_search_form(){
-    return `<form data-file="transaction" data-fn="sale_list">
-                                <label> 담당자:
-                                    <input type="text" name="emp_id" value="" />
-                                </label>
-                                <label> 거래처:
-                                    <input type="text" name="client_id" value="" />
-                                </label>
-                                <label> 주문일:
-                                    <input type="date" name="order_date"  />
-                                </label>
-                                <label> 요청 납기일:
-                                    <input type="date" name="due_date"  />
-                                </label>
-                                 <label> 상태:
-                                    <button type="submit" class="search_btn" data-file="transaction" data-fn="sale_list">
-                                        <i class="fas fa-search">검색</i>
-                                    </button>
-                                </label>
-                                
-                                </form>`;
+    return `
+        <form data-file="transaction" data-fn="sale_list">
+            <div class="form-group">
+                <label> 담당자:
+                    <input type="text" name="emp_id" value="" />
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 거래처:
+                    <input type="text" name="client_id" value="" />
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 주문일:
+                    <input type="date" name="order_date"  />
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 요청 납기일:
+                    <input type="date" name="due_date"  />
+                </label>
+            </div>
+            <button type="submit" class="search_btn" data-file="transaction" data-fn="sale_list">
+                    <i class="fas fa-search">검색</i>
+            </button>                
+                </form>`;
 
 }
 
 export function  purchase_search_form(){
-    return `<form data-file="transaction" data-fn="purchase_list">
-                                <label> 담당자:
-                                    <input type="text" name="emp_id" value="" />
-                                </label>
-                                <label> 거래처:
-                                    <input type="text" name="client_id" value="" />
-                                </label>
-                                <label> 주문 수주일:
-                                    <input type="date" name="order_date"  />
-                                </label>
-                                <label> 납기일:
-                                    <input type="date" name="del_date"  />
-                                </label>
-                                <label> 상태:
-                                    <button type="submit" class="search_btn" data-file="transaction" data-fn="purchase_list">
-                                        <i class="fas fa-search">검색</i>
-                                    </button>                                
-                                </label>
-                                </form>`;
+    return `
+        <form data-file="transaction" data-fn="purchase_list">
+            <div class="form-group">
+                <label> 담당자:
+                    <input type="text" name="emp_id" value="" />
+                </label>
+            </div>
+            <div class="form-group">    
+                <label> 거래처:
+                    <input type="text" name="client_id" value="" />
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 주문 수주일:
+                    <input type="date" name="order_date"  />
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 납기일:
+                    <input type="date" name="del_date"  />
+                </label>
+            </div>
+            <button type="submit" class="search_btn" data-file="transaction" data-fn="purchase_list">
+                <i class="fas fa-search">검색</i>
+            </button>                                
+                </label>
+                </form>`;
 
 }
 
