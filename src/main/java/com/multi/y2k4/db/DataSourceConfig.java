@@ -145,7 +145,7 @@ public class DataSourceConfig {
         factoryBean.setDataSource(ds);
         factoryBean.setMapperLocations(
                 new PathMatchingResourcePatternResolver()
-                        .getResources("classpath:mapper/tenant/*.xml")
+                        .getResources("classpath:mapper/tenant/**/*.xml")
         );
         return factoryBean.getObject();
     }

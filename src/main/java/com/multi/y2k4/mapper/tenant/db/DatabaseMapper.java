@@ -1,4 +1,4 @@
-package com.multi.y2k4.mapper.tenant;
+package com.multi.y2k4.mapper.tenant.db;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

@@ -2,7 +2,8 @@ package com.multi.y2k4.controller;
 
 
 import com.multi.y2k4.mapper.management.UserMapper;
-import com.multi.y2k4.mapper.tenant.DatabaseMapper;
+import com.multi.y2k4.mapper.tenant.db.DatabaseMapper;
+import com.multi.y2k4.service.TenantSchemaService;
 import com.multi.y2k4.vo.user.UserVO;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,10 +14,12 @@ public class MainController {
 
     private final UserMapper userMapper;
     private final DatabaseMapper databaseMapper;
+    private final TenantSchemaService tenantSchemaService;
 
-    public MainController(UserMapper userMapper, DatabaseMapper databaseMapper) {
+    public MainController(UserMapper userMapper, DatabaseMapper databaseMapper, TenantSchemaService tenantSchemaService) {
         this.userMapper = userMapper;
         this.databaseMapper = databaseMapper;
+        this.tenantSchemaService = tenantSchemaService;
     }
 
     @GetMapping({"/"})
@@ -50,6 +53,7 @@ public class MainController {
         if (exists == 0) {
             // 4) DB 없으면 생성
             databaseMapper.createDatabase(dbName);
+            tenantSchemaService.migrate(dbName);
             sb.append("DB가 존재하지 않아 새로 생성했습니다.<br>");
         } else {
             sb.append("DB가 이미 존재합니다.<br>");

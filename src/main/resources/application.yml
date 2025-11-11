@@ -2,6 +2,9 @@ server:
   port: 8080
 
 spring:
+
+  flyway:
+    enabled: false
   # 1) 회원관리/관리용 DataSource (tenant_registry DB)
   datasource:
     management:

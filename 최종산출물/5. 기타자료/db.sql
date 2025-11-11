@@ -16,8 +16,8 @@ CREATE TABLE stock (
   qty          INT UNSIGNED NOT NULL DEFAULT 0,
   unit_price   DECIMAL(15,2) NOT NULL DEFAULT 0.00,
   location     INT,               
-  type         INT,               
-  comments     VARCHAR(200)
+  type         tinyint,               
+  comments     Text
 
 );
 
@@ -31,7 +31,7 @@ CREATE TABLE human_resource (
   hire_date    DATE,
   bank_name    VARCHAR(50),
   bank_account VARCHAR(50),
-  status       VARCHAR(10),      
+  status       tinyint,      
   phone_number VARCHAR(20),
   CONSTRAINT fk_hr_supervisor FOREIGN KEY (supervisor) REFERENCES human_resource(emp_id)
 );
@@ -45,7 +45,7 @@ CREATE TABLE work_order (
   target_qty    INT UNSIGNED,
   good_qty      INT UNSIGNED DEFAULT 0,
   defect_qty    INT UNSIGNED DEFAULT 0,
-  order_status  VARCHAR(20),  
+  order_status  tinyint,  
   request_date    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_wo_stock FOREIGN KEY (stock_id) REFERENCES stock(stock_id),
   CONSTRAINT fk_wo_emp   FOREIGN KEY (emp_id)   REFERENCES human_resource(emp_id)
@@ -71,7 +71,7 @@ CREATE TABLE inbound (
   CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
 );
 
-CREATE TABLE inbound_datails (
+CREATE TABLE inbound_details (
   id_id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   inbound_id      BIGINT UNSIGNED NOT NULL,
   stock_id        BIGINT UNSIGNED NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE outbound_details (
   stock_id         BIGINT UNSIGNED NOT NULL,
   qty              INT UNSIGNED NOT NULL,
   unit_price       DECIMAL(15,2) DEFAULT 0.00,
-  CONSTRAINT fk_od_doubound   FOREIGN KEY (outbound_id) REFERENCES outbound(outbound_id) ON DELETE CASCADE,
+  CONSTRAINT fk_od_outbound   FOREIGN KEY (outbound_id) REFERENCES outbound(outbound_id) ON DELETE CASCADE,
   CONSTRAINT fk_od_stock FOREIGN KEY (stock_id)    REFERENCES stock(stock_id)
 );
 
@@ -116,7 +116,7 @@ CREATE TABLE attendance (
   att_id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   emp_id        BIGINT UNSIGNED NOT NULL,
   att_date      DATETIME NOT NULL,
-  att_status    VARCHAR(50) NOT NULL, 
+  att_status    tinyint NOT NULL, 
   clock_out     DATETIME,
   CONSTRAINT fk_att_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id),
   CONSTRAINT uq_attendance UNIQUE (emp_id, att_date)
@@ -131,27 +131,12 @@ CREATE TABLE documents (
   content    TEXT,
   appr_id    BIGINT UNSIGNED,           
   appr_date  DATETIME,
-  status     VARCHAR(50),
-  comments   VARCHAR(255),
+  status     tinyint,
+  comments   Text,
   CONSTRAINT fk_doc_req  FOREIGN KEY (req_id)  REFERENCES human_resource(emp_id),
   CONSTRAINT fk_doc_appr FOREIGN KEY (appr_id) REFERENCES human_resource(emp_id)
 );
 
-
-
-CREATE TABLE human_resource (
-  emp_id       BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  emp_name     VARCHAR(50) NOT NULL,
-  supervisor   BIGINT UNSIGNED,
-  dept_name    VARCHAR(50),
-  position     VARCHAR(30),
-  hire_date    DATE,
-  bank_name    VARCHAR(50),
-  bank_account VARCHAR(50),
-  status       VARCHAR(10),      
-  phone_number VARCHAR(20),
-  CONSTRAINT fk_hr_supervisor FOREIGN KEY (supervisor) REFERENCES human_resource(emp_id)
-);
 
 CREATE TABLE purchase (
   purchase_id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -160,7 +145,7 @@ CREATE TABLE purchase (
   order_date  DATE,
   del_date    DATE,
   total_price DECIMAL(15,2) DEFAULT 0.00,
-  status      VARCHAR(20),
+  status     tinyint,
   CONSTRAINT fk_pur_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id),
   CONSTRAINT fk_pur_ac  FOREIGN KEY (ac_id) REFERENCES accounts(ac_id)
 );
@@ -185,7 +170,7 @@ CREATE TABLE sale (
   order_date  DATE,
   due_date    DATE,
   total_price DECIMAL(15,2) DEFAULT 0.00,  
-  status      VARCHAR(20),                 
+  status      tinyint,                 
   CONSTRAINT fk_sale_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id),
   CONSTRAINT fk_sale_ac  FOREIGN KEY (ac_id) REFERENCES accounts(ac_id)
 );
@@ -213,18 +198,18 @@ CREATE TABLE bom (
 
 CREATE TABLE profit (
   profit_id     BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  profit_code   INT,
+  profit_code   tinyint,
   profit        DECIMAL(15,2) NOT NULL,
   profit_date   DATETIME NOT NULL,
-  profit_comment VARCHAR(100)
+  profit_comment Text
 );
 
 CREATE TABLE spend (
   spend_id      BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  spend_code    INT,
+  spend_code    tinyint,
   spend         DECIMAL(15,2) NOT NULL,
   spend_date    DATETIME NOT NULL,
-  spend_comment VARCHAR(100)
+  spend_comment Text
 );
 
 
@@ -232,7 +217,7 @@ CREATE TABLE spend (
 CREATE TABLE defect (
   defect_id   BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   lot_id      BIGINT UNSIGNED NOT NULL,
-  defect_code INT,
+  defect_code tinyint,
   defect_qty  INT UNSIGNED NOT NULL,
   defect_date DATE,
   CONSTRAINT fk_defect_lot  FOREIGN KEY (lot_id)      REFERENCES lot(lot_id)
