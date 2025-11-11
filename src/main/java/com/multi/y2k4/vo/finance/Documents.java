@@ -16,7 +16,4 @@ public class Documents {
     private String status;          // 결재 상태 (예: PENDING, APPROVED, REJECTED)
     private LocalDate approvalDate; // 결재일
     private Long approverId;        // 결재자 ID
-
-    // 전표 목록을 담기 위한 속성
-    private List<Slips> slipsList;
 }

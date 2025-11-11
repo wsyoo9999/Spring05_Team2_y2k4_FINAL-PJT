@@ -362,15 +362,16 @@
 <div class="main-container">
     <div class="accordion-container">
         <div class="accordion-item">
-            <button class="accordion-header">
-                재무/회계 <i class="fas fa-chevron-right"></i>
-            </button>
+            <button class="accordion-header">재무/회계</button>
             <div class="accordion-content">
                 <button class="menu" data-file="finance" data-fn="documents_listAll" data-table="documents">결재 문서 관리</button>
-                <button class="menu" data-file="finance" data-fn="budget_listAll" data-table="budget">예산 관리</button>
-                <button class="menu" data-file="finance" data-fn="slips_listAll" data-table="slips">회계 전표 관리</button>
+
+                <button class="menu" data-file="finance" data-fn="profit_listAll" data-table="profit">회사 수익 관리</button>
+
+                <button class="menu" data-file="finance" data-fn="spend_listAll" data-table="spend">회사 지출 관리</button>
             </div>
         </div>
+<!--        documents는 유지하고, profit, spend로 변경 -->
         <div class="accordion-item">
             <button class="accordion-header">
                 판매/구매 <i class="fas fa-chevron-right"></i>
