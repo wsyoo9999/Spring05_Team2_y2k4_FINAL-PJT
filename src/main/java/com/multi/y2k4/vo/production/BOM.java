@@ -4,8 +4,7 @@ import lombok.Data;
 
 @Data
 public class BOM {
-    private Integer bom_id;                 // BOM ID
-    private String raw_materials_code;      // 원자재 코드
-    private Integer item_id;                // 물품번호
-    private Integer required_quantity;      // 소요량
+    private Long parent_stock_id;   // 완제품(상위) 품목 ID
+    private Long child_stock_id;    // 자재(하위) 품목 ID
+    private Integer required_qty;   // 필요 수량
 }

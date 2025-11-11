@@ -4,13 +4,10 @@ export async function work_order_listAll() {
                     <thead>
                         <tr>
                             <th>작업지시번호</th>
-                            <th>물품번호</th>
+                            <th>제품코드</th>
                             <th>시작일</th>
                             <th>완료일</th>
                             <th>목표수량</th>
-                            <th>양품수량</th>
-                            <th>불량수량</th>
-                            <th>상태</th>
                             <th>관리</th>
                         </tr>
                     </thead>`;
@@ -30,21 +27,18 @@ export async function work_order_listAll() {
             $.each(data, function(i, row) {
                 // const statusClass = getStatusClass(row.order_status); // (추후 CSS 구현 시)
 
-                tbody += `<tr data-order-id="${row.order_id}">
-                            <td><strong>${row.order_id}</strong></td>
-                            <td>${row.item_id}</td>
+                tbody += `<tr data-work-order-id="${row.work_order_id}">
+                            <td><strong>${row.work_order_id}</strong></td>
+                            <td>${row.stock_id ?? '-'}</td>
                             <td>${formatDate(row.start_date)}</td>
                             <td>${formatDate(row.due_date)}</td>
-                            <td>${numberFormat(row.target_quantity)}</td>
-                            <td class="good-qty">${numberFormat(row.good_quantity)}</td>
-                            <td class="defect-qty">${numberFormat(row.defect_quantity)}</td>
-                            <td>${row.order_status}</td>
+                            <td>${numberFormat(row.target_qty)}</td>
                             <td class="actions">
-                                <button class="btn-detail" 
-                                        data-action="detail" 
-                                        data-file="production" 
-                                        data-fn="work_order_detail_popup" 
-                                        data-order-id="${row.order_id}"
+                                <button class="btn-detail"
+                                        data-action="detail"
+                                        data-file="production"
+                                        data-fn="work_order_detail_popup"
+                                        data-work-order-id="${row.work_order_id}"
                                         title="상세 보기">
                                     <i class="fas fa-info-circle"></i>
                                 </button>
@@ -52,7 +46,7 @@ export async function work_order_listAll() {
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="9" style="text-align:center;">조회된 작업 지시서가 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="6" style="text-align:center;">조회된 작업 지시서가 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
@@ -70,7 +64,7 @@ export async function work_order_listAll() {
 
     } catch (error) {
         console.error('작업 지시서 목록 조회 실패:', error);
-        tbody = `<tbody><tr><td colspan="9" style="text-align:center; color:red;">데이터를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="6" style="text-align:center; color:red;">데이터를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -81,7 +75,6 @@ export async function work_order_listAll() {
 export function work_order_search_form() {
     // main.html의 .search-form 디자인에 맞게 수정
     const search_bar = `
-        <form data-file="production" data-fn="work_order_list">
         <div class="form-group">
             <label for="order_status">상태</label>
             <select id="order_status" name="order_status">
@@ -92,8 +85,8 @@ export function work_order_search_form() {
             </select>
         </div>
         <div class="form-group">
-            <label for="item_id">물품번호</label>
-            <input type="text" id="item_id" name="item_id" placeholder="물품번호 입력" />
+            <label for="stock_id">제품코드</label>
+            <input type="text" id="stock_id" name="stock_id" placeholder="제품코드 입력" />
         </div>
         <div class="form-group">
             <label for="start_date">시작일</label>
@@ -106,7 +99,6 @@ export function work_order_search_form() {
         <button type="submit" data-action="search" data-file="production" data-fn="work_order_list">
             <i class="fas fa-search"></i> 검색
         </button>
-        </form>
     `;
     return search_bar;
 }
@@ -115,7 +107,7 @@ export function work_order_search_form() {
 // 3. 작업 지시서 조건 검색
 export async function work_order_list(formData) {
     const order_status = formData.order_status || '';
-    const item_id = formData.item_id || '';
+    const stock_id = formData.stock_id || '';
     const start_date = formData.start_date || '';
     const due_date = formData.due_date || '';
 
@@ -123,13 +115,10 @@ export async function work_order_list(formData) {
                     <thead>
                         <tr>
                             <th>작업지시번호</th>
-                            <th>물품번호</th>
+                            <th>제품코드</th>
                             <th>시작일</th>
                             <th>완료일</th>
                             <th>목표수량</th>
-                            <th>양품수량</th>
-                            <th>불량수량</th>
-                            <th>상태</th>
                             <th>관리</th>
                         </tr>
                     </thead>`;
@@ -143,7 +132,7 @@ export async function work_order_list(formData) {
             dataType: 'json',
             data: {
                 order_status: order_status,
-                item_id: item_id,
+                stock_id: stock_id,
                 start_date: start_date,
                 due_date: due_date
             }
@@ -155,21 +144,18 @@ export async function work_order_list(formData) {
             $.each(data, function(i, row) {
                 // const statusClass = getStatusClass(row.order_status);
 
-                tbody += `<tr data-order-id="${row.order_id}">
-                            <td><strong>${row.order_id}</strong></td>
-                            <td>${row.item_id}</td>
+                tbody += `<tr data-work-order-id="${row.work_order_id}">
+                            <td><strong>${row.work_order_id}</strong></td>
+                            <td>${row.stock_id ?? '-'}</td>
                             <td>${formatDate(row.start_date)}</td>
                             <td>${formatDate(row.due_date)}</td>
-                            <td>${numberFormat(row.target_quantity)}</td>
-                            <td class="good-qty">${numberFormat(row.good_quantity)}</td>
-                            <td class="defect-qty">${numberFormat(row.defect_quantity)}</td>
-                            <td>${row.order_status}</td>
+                            <td>${numberFormat(row.target_qty)}</td>
                             <td class="actions">
                                 <button class="btn-detail"
                                         data-action="detail"
                                         data-file="production"
                                         data-fn="work_order_detail_popup"
-                                        data-order-id="${row.order_id}"
+                                        data-work-order-id="${row.work_order_id}"
                                         title="상세 보기">
                                     <i class="fas fa-info-circle"></i>
                                 </button>
@@ -177,7 +163,7 @@ export async function work_order_list(formData) {
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="9" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="6" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
@@ -194,7 +180,7 @@ export async function work_order_list(formData) {
 
     } catch (error) {
         console.error('작업 지시서 검색 실패:', error);
-        tbody = `<tbody><tr><td colspan="9" style="text-align:center; color:red;">검색에 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="6" style="text-align:center; color:red;">검색에 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -202,25 +188,25 @@ export async function work_order_list(formData) {
 
 
 // 4. 작업 지시서 상세 조회
-export async function work_order_detail(order_id) {
+export async function work_order_detail(work_order_id) {
     let detailHtml = '';
 
     try {
         const data = await $.ajax({
-            url: `/api/production/work_order/${order_id}`,
+            url: `/api/production/work_order/${work_order_id}`,
             method: 'GET',
             dataType: 'json'
         });
 
-        const progress = data.target_quantity > 0
-            ? Math.round((data.good_quantity / data.target_quantity) * 100)
+        const progress = data.target_qty > 0
+            ? Math.round((data.good_qty / data.target_qty) * 100)
             : 0;
 
         detailHtml = `
             <div class="work-order-detail-card">
                 <div class="detail-header">
                     <h3>📋 작업 지시서 상세 정보</h3>
-                    <span class="status-badge ${getStatusClass(data.order_status)}">${data.order_status}</span>
+                    <span class="status-badge ${getStatusClass(data.order_status)}">${data.order_status ?? '-'}</span>
                 </div>
                 
                 <div class="detail-body">
@@ -229,11 +215,15 @@ export async function work_order_detail(order_id) {
                         <div class="info-grid">
                             <div class="info-item">
                                 <span class="label">작업지시번호</span>
-                                <span class="value">${data.order_id}</span>
+                                <span class="value">${data.work_order_id}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">물품번호</span>
-                                <span class="value">${data.item_id}</span>
+                                <span class="label">품목번호</span>
+                                <span class="value">${data.stock_id ?? '-'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">담당자</span>
+                                <span class="value">${data.emp_id ?? '-'}</span>
                             </div>
                             <div class="info-item">
                                 <span class="label">시작일</span>
@@ -243,6 +233,10 @@ export async function work_order_detail(order_id) {
                                 <span class="label">완료일</span>
                                 <span class="value">${formatDate(data.due_date)}</span>
                             </div>
+                            <div class="info-item">
+                                <span class="label">요청일시</span>
+                                <span class="value">${formatDateTime(data.request_date)}</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -251,15 +245,15 @@ export async function work_order_detail(order_id) {
                         <div class="quantity-grid">
                             <div class="quantity-card target">
                                 <span class="quantity-label">목표수량</span>
-                                <span class="quantity-value">${numberFormat(data.target_quantity)}</span>
+                                <span class="quantity-value">${numberFormat(data.target_qty)}</span>
                             </div>
                             <div class="quantity-card good">
                                 <span class="quantity-label">양품수량</span>
-                                <span class="quantity-value">${numberFormat(data.good_quantity)}</span>
+                                <span class="quantity-value">${numberFormat(data.good_qty)}</span>
                             </div>
                             <div class="quantity-card defect">
                                 <span class="quantity-label">불량수량</span>
-                                <span class="quantity-value">${numberFormat(data.defect_quantity)}</span>
+                                <span class="quantity-value">${numberFormat(data.defect_qty)}</span>
                             </div>
                         </div>
                         
@@ -272,10 +266,10 @@ export async function work_order_detail(order_id) {
                     </div>
                     
                     <div class="action-buttons">
-                        <button class="btn-primary btn-register-result" data-order-id="${data.order_id}">생산 실적 등록</button>
-                        <button class="btn-warning btn-register-defect" data-order-id="${data.order_id}">불량 등록</button>
-                        <button class="btn-info btn-view-lots" data-order-id="${data.order_id}">Lot 조회</button>
-                        <button class="btn-secondary btn-view-bom" data-item-id="${data.item_id}">BOM 조회</button>
+                        <button class="btn-primary btn-register-result" data-work-order-id="${data.work_order_id}">생산 실적 등록</button>
+                        <button class="btn-warning btn-register-defect" data-work-order-id="${data.work_order_id}">불량 등록</button>
+                        <button class="btn-info btn-view-lots" data-work-order-id="${data.work_order_id}">Lot 조회</button>
+                        <button class="btn-secondary btn-view-bom" data-parent-stock-id="${data.stock_id}">BOM 조회</button>
                     </div>
                 </div>
             </div>
@@ -295,10 +289,11 @@ export async function bom_listAll() {
     let table = `<table>
                     <thead>
                         <tr>
-                            <th>BOM ID</th>
-                            <th>원자재 코드</th>
-                            <th>물품번호</th>
-                            <th>소요량</th>
+                            <th>BOM 코드</th>
+                            <th>목표 재고코드</th>
+                            <th>자재 재고코드</th>
+                            <th>필요량</th>
+                            <th>관리</th>
                         </tr>
                     </thead>`;
 
@@ -316,23 +311,23 @@ export async function bom_listAll() {
         if (data && data.length > 0) {
             $.each(data, function(i, row) {
                 tbody += `<tr>
-                            <td>${row.bom_id}</td>
-                            <td>${row.raw_materials_code}</td>
-                            <td>${row.item_id}</td>
-                            <td><strong>${numberFormat(row.required_quantity)}</strong></td>
+                            <td>${row.bom_id ?? '-'}</td>
+                            <td>${row.parent_stock_id ?? '-'}</td>
+                            <td>${row.child_stock_id ?? '-'}</td>
+                            <td><strong>${numberFormat(row.required_qty)}</strong></td>
+                            <td class="actions">-</td>
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="4" style="text-align:center;">BOM 정보가 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="5" style="text-align:center;">BOM 정보가 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
 //나중에 추가
 
-
     } catch (error) {
         console.error('BOM 조회 실패:', error);
-        tbody = `<tbody><tr><td colspan="4" style="text-align:center; color:red;">BOM 정보를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="5" style="text-align:center; color:red;">BOM 정보를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -343,16 +338,13 @@ export async function bom_listAll() {
 export function bom_search_form() {
     // main.html의 .search-form 디자인에 맞게 수정
     const search_bar = `
-    <form data-file="production" data-fn="bom_list">
-
         <div class="form-group">
-            <label for="bom_item_id">물품번호</label>
-            <input type="text" id="bom_item_id" name="item_id" placeholder="물품번호 입력" />
+            <label for="parent_stock_id">목표 재고코드</label>
+            <input type="text" id="parent_stock_id" name="parent_stock_id" placeholder="목표 재고코드 입력" />
         </div>
         <button type="submit" data-action="search" data-file="production" data-fn="bom_list">
             <i class="fas fa-search"></i> 검색
         </button>
-    </form>
     `;
     return search_bar;
 }
@@ -361,15 +353,16 @@ export function bom_search_form() {
 
 // 7. BOM 조건 검색 (물품별)
 export async function bom_list(formData) {
-    const item_id = formData.item_id || '';
+    const parent_stock_id = formData.parent_stock_id || '';
 
     let table = `<table>
                     <thead>
                         <tr>
-                            <th>BOM ID</th>
-                            <th>원자재 코드</th>
-                            <th>물품번호</th>
-                            <th>소요량</th>
+                            <th>BOM 코드</th>
+                            <th>목표 재고코드</th>
+                            <th>자재 재고코드</th>
+                            <th>필요량</th>
+                            <th>관리</th>
                         </tr>
                     </thead>`;
 
@@ -380,7 +373,7 @@ export async function bom_list(formData) {
             url: '/api/production/bom',
             method: 'GET',
             dataType: 'json',
-            data: { item_id: item_id }
+            data: { parent_stock_id: parent_stock_id }
         });
 
         tbody += `<tbody>`;
@@ -388,14 +381,15 @@ export async function bom_list(formData) {
         if (data && data.length > 0) {
             $.each(data, function(i, row) {
                 tbody += `<tr>
-                            <td>${row.bom_id}</td>
-                            <td>${row.raw_materials_code}</td>
-                            <td>${row.item_id}</td>
-                            <td><strong>${numberFormat(row.required_quantity)}</strong></td>
+                            <td>${row.bom_id ?? '-'}</td>
+                            <td>${row.parent_stock_id ?? '-'}</td>
+                            <td>${row.child_stock_id ?? '-'}</td>
+                            <td><strong>${numberFormat(row.required_qty)}</strong></td>
+                            <td class="actions">-</td>
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="4" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="5" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
@@ -403,7 +397,7 @@ export async function bom_list(formData) {
 
     } catch (error) {
         console.error('BOM 검색 실패:', error);
-        tbody = `<tbody><tr><td colspan="4" style="text-align:center; color:red;">검색에 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="5" style="text-align:center; color:red;">검색에 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -412,8 +406,8 @@ export async function bom_list(formData) {
 // 9. Lot 추적 검색 폼
 export function lot_tracking_search_form() {
     const search_bar = `<form data-file="production" data-fn="lot_tracking">
-                            <label>Lot 번호:
-                                <input type="text" name="lot_number" placeholder="Lot 번호 입력" required />
+                            <label>Lot ID:
+                                <input type="text" name="lot_id" placeholder="Lot ID 입력" required />
                             </label>
                             <button type="submit">추적</button>
                         </form>`;
@@ -425,10 +419,10 @@ export function lot_tracking_search_form() {
 
 // 10. Lot 번호 추적 (품질 관리)
 export async function lot_tracking(formData) {
-    const lot_number = formData.lot_number || '';
+    const lot_id = formData.lot_id || '';
 
-    if (!lot_number) {
-        return `<div class="error-message">Lot 번호를 입력해주세요.</div>`;
+    if (!lot_id) {
+        return `<div class="error-message">Lot ID를 입력해주세요.</div>`;
     }
 
     let trackingHtml = '';
@@ -438,7 +432,7 @@ export async function lot_tracking(formData) {
             url: '/api/production/lot_tracking',
             method: 'GET',
             dataType: 'json',
-            data: { lot_number: lot_number }
+            data: { lot_id: lot_id }
         });
 
         trackingHtml = `
@@ -449,20 +443,20 @@ export async function lot_tracking(formData) {
                     <h4>기본 정보</h4>
                     <div class="info-grid">
                         <div class="info-item">
-                            <span class="label">Lot 번호</span>
-                            <span class="value highlight">${data.lot_number}</span>
+                            <span class="label">Lot ID</span>
+                            <span class="value highlight">${data.lot_id}</span>
                         </div>
                         <div class="info-item">
-                            <span class="label">물품번호</span>
-                            <span class="value">${data.item_id}</span>
+                            <span class="label">품목번호</span>
+                            <span class="value">${data.stock_id ?? '-'}</span>
                         </div>
                         <div class="info-item">
-                            <span class="label">제조날짜</span>
-                            <span class="value">${formatDate(data.production_date)}</span>
+                            <span class="label">Lot 생성일</span>
+                            <span class="value">${formatDate(data.lot_date)}</span>
                         </div>
                         <div class="info-item">
-                            <span class="label">생산 수량</span>
-                            <span class="value">${numberFormat(data.lot_quantity)}</span>
+                            <span class="label">Lot 수량</span>
+                            <span class="value">${numberFormat(data.lot_qty)}</span>
                         </div>
                     </div>
                 </div>
@@ -473,18 +467,18 @@ export async function lot_tracking(formData) {
                         <div class="info-item">
                             <span class="label">지시서 번호</span>
                             <span class="value">
-                                <button class="link-button" data-file="production" data-fn="work_order_detail" data-order-id="${data.order_id}">
-                                    ${data.order_id}
+                                <button class="link-button" data-file="production" data-fn="work_order_detail" data-work-order-id="${data.work_order_id}">
+                                    ${data.work_order_id}
                                 </button>
                             </span>
                         </div>
                         <div class="info-item">
                             <span class="label">작업 상태</span>
-                            <span class="value">${data.order_status}</span>
+                            <span class="value">${data.order_status ?? '-'}</span>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="tracking-section">
                     <h4>원자재 BOM 정보</h4>
                     <div class="materials-list">`;
@@ -493,8 +487,8 @@ export async function lot_tracking(formData) {
             $.each(data.bom, function(i, material) {
                 trackingHtml += `
                     <div class="material-item">
-                        <span class="material-code">📦 ${material.raw_materials_code}</span>
-                        <span class="material-quantity">소요량: ${numberFormat(material.required_quantity)}</span>
+                        <span class="material-code">📦 상위:${material.parent_stock_id} → 하위:${material.child_stock_id}</span>
+                        <span class="material-quantity">소요량: ${numberFormat(material.required_qty)}</span>
                     </div>`;
             });
         } else {
@@ -513,8 +507,8 @@ export async function lot_tracking(formData) {
             $.each(data.defects, function(i, defect) {
                 trackingHtml += `
                     <div class="defect-item">
-                        <span class="defect-name">⚠️ ${defect.defect_name}</span>
-                        <span class="defect-qty">${numberFormat(defect.defect_quantity)}개</span>
+                        <span class="defect-name">⚠️ 코드 ${defect.defect_code}</span>
+                        <span class="defect-qty">${numberFormat(defect.defect_qty)}개</span>
                     </div>`;
             });
         } else {
@@ -537,9 +531,9 @@ export async function lot_tracking(formData) {
 
 // 11. 작업지시서별 Lot 목록 조회
 export async function work_order_lots(formData) {
-    const order_id = formData.order_id || '';
+    const work_order_id = formData.work_order_id || '';
 
-    if (!order_id) {
+    if (!work_order_id) {
         return `<div class="error-message">작업지시서 번호가 필요합니다.</div>`;
     }
 
@@ -547,10 +541,9 @@ export async function work_order_lots(formData) {
                     <thead>
                         <tr>
                             <th>Lot ID</th>
-                            <th>Lot번호</th>
-                            <th>물품번호</th>
-                            <th>제조날짜</th>
-                            <th>Lot수량</th>
+                            <th>품목번호</th>
+                            <th>Lot 생성일</th>
+                            <th>Lot 수량</th>
                             <th>추적</th>
                         </tr>
                     </thead>`;
@@ -559,7 +552,7 @@ export async function work_order_lots(formData) {
 
     try {
         const data = await $.ajax({
-            url: `/api/production/work_order/${order_id}/lots`,
+            url: `/api/production/work_order/${work_order_id}/lots`,
             method: 'GET',
             dataType: 'json'
         });
@@ -570,24 +563,23 @@ export async function work_order_lots(formData) {
             $.each(data, function(i, row) {
                 tbody += `<tr>
                             <td>${row.lot_id}</td>
-                            <td><strong>${row.lot_number}</strong></td>
-                            <td>${row.item_id}</td>
-                            <td>${formatDate(row.production_date)}</td>
-                            <td>${numberFormat(row.lot_quantity)}</td>
+                            <td>${row.stock_id ?? '-'}</td>
+                            <td>${formatDate(row.lot_date)}</td>
+                            <td>${numberFormat(row.lot_qty)}</td>
                             <td>
-                                <button class="btn-track" data-file="production" data-fn="lot_tracking" data-lot-number="${row.lot_number}">추적</button>
+                                <button class="btn-track" data-file="production" data-fn="lot_tracking" data-lot-id="${row.lot_id}">추적</button>
                             </td>
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="6" style="text-align:center;">등록된 Lot이 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="5" style="text-align:center;">등록된 Lot이 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
 
     } catch (error) {
         console.error('Lot 목록 조회 실패:', error);
-        tbody = `<tbody><tr><td colspan="6" style="text-align:center; color:red;">Lot 목록을 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="5" style="text-align:center; color:red;">Lot 목록을 불러오는데 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -596,9 +588,9 @@ export async function work_order_lots(formData) {
 
 // 12. 작업지시서별 불량 내역 조회
 export async function work_order_defects(formData) {
-    const order_id = formData.order_id || '';
+    const work_order_id = formData.work_order_id || '';
 
-    if (!order_id) {
+    if (!work_order_id) {
         return `<div class="error-message">작업지시서 번호가 필요합니다.</div>`;
     }
 
@@ -606,7 +598,8 @@ export async function work_order_defects(formData) {
                     <thead>
                         <tr>
                             <th>불량코드</th>
-                            <th>불량명</th>
+                            <th>Lot ID</th>
+                            <th>품목번호</th>
                             <th>불량 수량</th>
                             <th>등록일</th>
                         </tr>
@@ -616,7 +609,7 @@ export async function work_order_defects(formData) {
 
     try {
         const data = await $.ajax({
-            url: `/api/production/work_order/${order_id}/defects`,
+            url: `/api/production/work_order/${work_order_id}/defects`,
             method: 'GET',
             dataType: 'json'
         });
@@ -626,29 +619,30 @@ export async function work_order_defects(formData) {
         if (data && data.length > 0) {
             let totalDefect = 0;
             $.each(data, function(i, row) {
-                totalDefect += parseInt(row.defect_quantity) || 0;
+                totalDefect += parseInt(row.defect_qty) || 0;
                 tbody += `<tr>
-                            <td>${row.defect_id}</td>
-                            <td>${row.defect_name}</td>
-                            <td class="defect-qty">${numberFormat(row.defect_quantity)}</td>
-                            <td>${formatDate(row.detected_date)}</td>
+                            <td>${row.defect_code}</td>
+                            <td>${row.lot_id ?? '-'}</td>
+                            <td>${row.stock_id ?? '-'}</td>
+                            <td class="defect-qty">${numberFormat(row.defect_qty)}</td>
+                            <td>${formatDate(row.defect_date)}</td>
                           </tr>`;
             });
 
             tbody += `<tr class="total-row">
-                        <td colspan="2"><strong>합계</strong></td>
+                        <td colspan="3"><strong>합계</strong></td>
                         <td class="defect-qty"><strong>${numberFormat(totalDefect)}</strong></td>
                         <td></td>
                       </tr>`;
         } else {
-            tbody += `<tr><td colspan="4" style="text-align:center;">불량 내역이 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="5" style="text-align:center;">불량 내역이 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
 
     } catch (error) {
         console.error('불량 내역 조회 실패:', error);
-        tbody = `<tbody><tr><td colspan="4" style="text-align:center; color:red;">불량 내역을 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="5" style="text-align:center; color:red;">불량 내역을 불러오는데 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -665,6 +659,17 @@ function formatDate(dateString) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+function formatDateTime(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
 // 숫자 천단위 콤마
@@ -695,15 +700,15 @@ function getEquipmentStatusClass(status) {
 
 export async function work_order_detail_popup(e) {
 
-    const order_id = e.dataset.orderId;
+    const work_order_id = e.dataset.workOrderId;
 
-    if (!order_id) {
-        alert('상세 정보를 불러올 수 없습니다. (order_id 누락)');
+    if (!work_order_id) {
+        alert('상세 정보를 불러올 수 없습니다. (work_order_id 누락)');
         return;
     }
 
     // 2. 팝업 URL과 속성을 정의
-    const url = `./../popup/detailWorkOrder.html?order_id=${order_id}`;
+    const url = `./../popup/detailWorkOrder.html?work_order_id=${work_order_id}`;
     const features = 'width=700,height=600,resizable=yes,scrollbars=yes'; // 팝업 크기 조정
 
     // 3. 새 팝업 창
@@ -713,6 +718,6 @@ export async function work_order_detail_popup(e) {
 // 작업지시서 추가
 export function addWorkOrder(){
     const url='./../popup/addWorkOrder.html';
-    const features = 'width=600,height=480,resizable=no,scrollbars=yes';
+    const features = 'width=600,height=450,resizable=no,scrollbars=yes';
     window.open(url,'add_WorkOrder', features).focus();
 }
