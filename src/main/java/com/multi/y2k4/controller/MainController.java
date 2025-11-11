@@ -96,5 +96,6 @@ public class MainController {
     @GetMapping("/alerts")
     public String alerts(){
         return "alerts";
+
     }
 }
