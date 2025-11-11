@@ -1,10 +1,39 @@
-// finance.js
-// 재무/회계 (Finance/Accounting) API 연동 스크립트
-// ================================================================
+/**
+ * static/js/finance.js
+ * 재무/회계 API (결재 문서, 회사 수익, 회사 지출) 호출 및 HTML 생성
+ */
 
 const API_BASE_URL = '/api/finance';
 
-// 1. 결재 문서 목록
+// ================================================================
+// 0. 유틸리티 함수
+// ================================================================
+
+// Date 객체 또는 [년, 월, 일] 배열에서 'YYYY-MM-DD' 형식의 날짜 문자열을 반환
+function formatDateTime(dateString) {
+    if (!dateString) return '-';
+    // Spring의 LocalDateTime/LocalDate 처리
+    let date;
+    if (Array.isArray(dateString) && dateString.length >= 3) {
+        // [year, month, day, hour, minute, second] 형태 처리
+        date = new Date(dateString[0], dateString[1] - 1, dateString[2]);
+    } else {
+        try {
+            date = new Date(dateString);
+        } catch (e) {
+            return dateString; // 변환 실패 시 원본 반환
+        }
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+
+// ================================================================
+// 1. 결재 문서 관리 (Documents) - API 1~6번
+// ================================================================
 
 // 결재 문서 검색 폼
 export function documents_search_form() {
@@ -68,32 +97,34 @@ async function documents_fetch_data(formData) {
                     </thead>`;
     let tbody = '<tbody>';
 
+    const requestData = {};
+    if (requesterId) requestData.requesterId = requesterId;
+    if (status) requestData.status = status;
+
     try {
         const data = await $.ajax({
             url: `${API_BASE_URL}/documents`,
             method: 'GET',
             dataType: 'json',
-            data: {
-                requesterId: requesterId,
-                status: status
-            }
+            data: requestData
         });
 
         if (data && data.length > 0) {
             $.each(data, function (i, row) {
                 tbody += `<tr>
                             <td>${row.docId}</td>
-                            <td>${row.title || ''}</td>
+                            <td>
+                                <a href="#" data-action="detail" data-file="finance" data-fn="getDocument" data-id="${row.docId}">
+                                    <strong>${row.title || ''}</strong>
+                                </a>
+                            </td>
                             <td>${row.requesterId || ''}</td>
-                            <td>${formatDate(row.requestDate) || ''}</td>
+                            <td>${formatDateTime(row.requestDate) || ''}</td>
                             <td><strong>${row.status || ''}</strong></td>
                             <td>${row.approverId || '-'}</td>
                             <td class="actions">
                                 <button data-action="detail" data-file="finance" data-fn="getDocument" data-id="${row.docId}" title="상세">
                                     <i class="fas fa-info-circle"></i>
-                                </button>
-                                <button data-action="edit" data-file="finance" data-fn="updateDocument" data-id="${row.docId}" title="수정">
-                                    <i class="fas fa-edit"></i>
                                 </button>
                                 <button data-action="delete" data-file="finance" data-fn="deleteDocument" data-id="${row.docId}" title="삭제">
                                     <i class="fas fa-trash"></i>
@@ -110,211 +141,218 @@ async function documents_fetch_data(formData) {
 
     } catch (err) {
         console.error("documents_list 로딩 실패:", err);
-        return table + `<tbody><tr><td colspan="7" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
+        return actionRow + table + `<tbody><tr><td colspan="7" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
     }
 }
 
+// ================================================================
+// 2. 회사 수익 관리 (Profit) - API 7번
+// ================================================================
 
-// 2. 예산 계정 조회
-
-// 예산 계정 검색 폼
-export function budget_search_form() {
-    const search_bar = `
-    <form data-file="finance" data-fn="budget_list">
+// 수익 목록 검색 폼
+export function profit_search_form() {
+    return `
         <div class="form-group">
-            <label for="acctCode">계정 코드</label>
-            <input type="text" id="acctCode" name="acctCode" placeholder="예산 계정 코드 (예: 401)" />
+            <label for="profitCode">수익 코드</label>
+            <input type="number" id="profitCode" name="profitCode" placeholder="수익 원인 코드" />
         </div>
-        <button type="submit" data-action="search" data-file="finance" data-fn="budget_list" class="search_btn">
+        <div class="form-group">
+            <label for="searchComment">비고 검색</label>
+            <input type="text" id="searchComment" name="searchComment" placeholder="비고 검색 키워드" />
+        </div>
+        <button type="submit" data-action="search" data-file="finance" data-fn="profit_list" class="search_btn">
             <i class="fas fa-search"></i> 검색
         </button>
-    </form>
     `;
-    return search_bar;
 }
 
-// 예산 계정 전체/조건 조회 (API 7번 기반)
-export async function budget_listAll() {
-    return Promise.resolve("<h3>예산 관리</h3><p>전체 계정 목록 조회 기능은 API 구현이 필요합니다. 상세 검색을 이용해 주세요.</p>");
+// 수익 목록 전체 조회 (API 7번)
+export async function profit_listAll() {
+    return await profit_fetch_data({});
 }
 
-export async function budget_list(formData) {
-    const acctCode = formData.acctCode;
-    if (!acctCode) {
-        return budget_listAll();
-    }
+// 수익 목록 조건 검색
+export async function profit_list(formData) {
+    return await profit_fetch_data(formData);
+}
+
+// 수익 데이터 AJAX 호출 및 HTML 생성 공통 함수 (API 7번)
+async function profit_fetch_data(formData) {
+    const profitCode = formData.profitCode || null;
+    const searchComment = formData.searchComment || null;
 
     let table = `<table>
                     <thead>
                         <tr>
-                            <th>계정 코드</th>
-                            <th>계정 이름</th>
-                            <th>연간 예산</th>
-                            <th>잔액</th>
+                            <th>ID</th>
+                            <th>수익 코드</th>
+                            <th>수익 금액</th>
+                            <th>수익 일자</th>
+                            <th>비고</th>
                         </tr>
                     </thead>`;
     let tbody = '<tbody>';
 
+    const requestData = {};
+    if (profitCode) requestData.profitCode = profitCode;
+    if (searchComment) requestData.searchComment = searchComment;
+
     try {
-        // API 7번: 예산 계정 조회
-        const row = await $.ajax({
-            url: `${API_BASE_URL}/budget/accounts/${acctCode}`,
+        const data = await $.ajax({
+            url: `${API_BASE_URL}/profit`, // GET /api/finance/profit 호출
             method: 'GET',
-            dataType: 'json'
+            dataType: 'json',
+            data: requestData
         });
 
-        if (row && row.acctCode) {
-            tbody += `<tr>
-                        <td>${row.acctCode}</td>
-                        <td>${row.acctName || ''}</td>
-                        <td>${row.annualBudget ? row.annualBudget.toLocaleString() : '0'} 원</td>
-                        <td><strong>${row.remains ? row.remains.toLocaleString() : '0'} 원</strong></td>
-                      </tr>`;
+        if (data && data.length > 0) {
+            $.each(data, function (i, row) {
+                tbody += `<tr>
+                            <td>${row.profitId}</td>
+                            <td>${row.profitCode || '-'}</td>
+                            <td style="font-weight: bold; color: green;">${row.profit ? row.profit.toLocaleString() : '0'} 원</td>
+                            <td>${formatDateTime(row.profitDate)}</td>
+                            <td>${row.profitComment || '-'}</td>
+                          </tr>`;
+            });
         } else {
-            tbody += `<tr><td colspan="4" style="text-align:center;">계정 코드가 ${acctCode}인 데이터가 없습니다.</td></tr>`;
+            tbody += '<tr><td colspan="5" style="text-align:center;">수익 데이터가 없습니다.</td></tr>';
         }
         tbody += `</tbody></table>`;
         return table + tbody;
 
     } catch (err) {
-        console.error("budget_list 로딩 실패:", err);
-        return table + `<tbody><tr><td colspan="4" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
+        console.error("profit_list 로딩 실패:", err);
+        return table + `<tbody><tr><td colspan="5" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
     }
 }
 
 
-// 3. 회계 전표 상세 조회
+// ================================================================
+// 3. 회사 지출 관리 (Spend) - API 8번
+// ================================================================
 
-// 회계 전표 검색 폼
-export function slips_search_form() {
-    const search_bar = `
-    <form data-file="finance" data-fn="slips_list">
+// 지출 목록 검색 폼
+export function spend_search_form() {
+    return `
         <div class="form-group">
-            <label for="slipId">전표 ID</label>
-            <input type="number" id="slipId" name="slipId" placeholder="전표 ID 입력" />
+            <label for="spendCode">지출 코드</label>
+            <input type="number" id="spendCode" name="spendCode" placeholder="지출 원인 코드" />
         </div>
-        <button type="submit" data-action="search" data-file="finance" data-fn="slips_list" class="search_btn">
+        <div class="form-group">
+            <label for="searchComment">비고 검색</label>
+            <input type="text" id="searchComment" name="searchComment" placeholder="비고 검색 키워드" />
+        </div>
+        <button type="submit" data-action="search" data-file="finance" data-fn="spend_list" class="search_btn">
             <i class="fas fa-search"></i> 검색
         </button>
-    </form>
     `;
-    return search_bar;
 }
 
-// 회계 전표 전체/조건 조회 (API 11번 기반)
-export function slips_listAll() {
-    return Promise.resolve("<h3>회계 전표 상세 조회</h3><p>전표 목록 조회 기능은 API 구현이 필요합니다. 전표 ID를 입력하여 상세 조회해 주세요.</p>");
+// 지출 목록 전체 조회 (API 8번)
+export async function spend_listAll() {
+    return await spend_fetch_data({});
 }
 
-export async function slips_list(formData) {
-    const slipId = formData.slipId;
-    if (!slipId) {
-        return slips_listAll();
-    }
+// 지출 목록 조건 검색
+export async function spend_list(formData) {
+    return await spend_fetch_data(formData);
+}
+
+// 지출 데이터 AJAX 호출 및 HTML 생성 공통 함수 (API 8번)
+async function spend_fetch_data(formData) {
+    const spendCode = formData.spendCode || null;
+    const searchComment = formData.searchComment || null;
 
     let table = `<table>
                     <thead>
                         <tr>
-                            <th>전표 ID</th>
-                            <th>문서 ID</th>
-                            <th>계정 코드/이름</th>
-                            <th>차변 금액</th>
-                            <th>대변 금액</th>
-                            <th>전송 상태</th>
-                            <th style="text-align: center;">기능</th>
+                            <th>ID</th>
+                            <th>지출 코드</th>
+                            <th>지출 금액</th>
+                            <th>지출 일자</th>
+                            <th>비고</th>
                         </tr>
                     </thead>`;
     let tbody = '<tbody>';
 
+    const requestData = {};
+    if (spendCode) requestData.spendCode = spendCode;
+    if (searchComment) requestData.searchComment = searchComment;
+
     try {
-        // API 11번: 회계 전표 상세 조회
-        const row = await $.ajax({
-            url: `${API_BASE_URL}/slips/${slipId}`,
+        const data = await $.ajax({
+            url: `${API_BASE_URL}/spend`, // GET /api/finance/spend 호출
             method: 'GET',
-            dataType: 'json'
+            dataType: 'json',
+            data: requestData
         });
 
-        if (row && row.slipId) {
-            tbody += `<tr>
-                        <td>${row.slipId}</td>
-                        <td>${row.docId || '-'}</td>
-                        <td>${row.acctCode || '-'}/${row.acctName || '-'}</td>
-                        <td>${row.debitAmount ? row.debitAmount.toLocaleString() : '0'} 원</td>
-                        <td>${row.creditAmount ? row.creditAmount.toLocaleString() : '0'} 원</td>
-                        <td><strong>${row.transferStatus || '-'}</strong></td>
-                        <td class="actions">
-                            <button data-action="edit" data-file="finance" data-fn="updateTransferStatus" data-id="${row.slipId}" title="상태 업데이트">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </td>
-                      </tr>`;
+        if (data && data.length > 0) {
+            $.each(data, function (i, row) {
+                tbody += `<tr>
+                            <td>${row.spendId}</td>
+                            <td>${row.spendCode || '-'}</td>
+                            <td style="font-weight: bold; color: red;">${row.spend ? row.spend.toLocaleString() : '0'} 원</td>
+                            <td>${formatDateTime(row.spendDate)}</td>
+                            <td>${row.spendComment || '-'}</td>
+                          </tr>`;
+            });
         } else {
-            tbody += `<tr><td colspan="7" style="text-align:center;">전표 ID ${slipId}인 데이터가 없습니다.</td></tr>`;
+            tbody += '<tr><td colspan="5" style="text-align:center;">지출 데이터가 없습니다.</td></tr>';
         }
         tbody += `</tbody></table>`;
         return table + tbody;
 
     } catch (err) {
-        console.error("slips_list 로딩 실패:", err);
-        return table + `<tbody><tr><td colspan="7" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
+        console.error("spend_list 로딩 실패:", err);
+        return table + `<tbody><tr><td colspan="5" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
     }
 }
 
 
-// --- 4. 기타 CRUD 및 액션 함수 (tableClick에 연결) ---
+// ================================================================
+// 4. 기타 CRUD 및 액션 함수 (Documents 관련)
+// ================================================================
 
-// [수정] API 1. 결재 문서 등록 (팝업)
+// API 1. 결재 문서 등록 (팝업)
 export function registerDocument() {
-    const url = './../popup/addDocument.html';
-    // [수정] 팝업 크기 변경
-    const features = 'width=600,height=550,resizable=no,scrollbars=yes';
-    window.open(url, 'add_Document', features).focus();
+    const url = './../popup/documents_register.html';
+    const features = 'width=700,height=650,left=100,top=100';
+    window.open(url, 'RegisterDocument', features).focus();
 }
 
-// API 2. 결재 문서 수정 (더미)
-export function updateDocument(e) {
+// API 3. 결재 문서 삭제 (실제 API 호출)
+export async function deleteDocument(e) {
     const docId = e.dataset.id;
-    alert(`결재 문서 ID ${docId} 수정 폼 팝업을 띄우는 기능 구현 예정`);
-}
+    if (!confirm(`정말로 문서 ID ${docId}를 삭제하시겠습니까?`)) {
+        return;
+    }
 
-// API 3. 결재 문서 삭제 (더미)
-export function deleteDocument(e) {
-    const docId = e.dataset.id;
-    if(confirm(`정말로 문서 ID ${docId}를 삭제하시겠습니까?`)) {
-        // 실제 API 3번 호출 로직 추가 필요
-        // deleteDocument(docId).then(listClick).catch(error);
-        alert(`문서 ID ${docId} 삭제 API 호출 예정`);
+    try {
+        await $.ajax({
+            url: `${API_BASE_URL}/documents/${docId}`,
+            method: 'DELETE'
+        });
+        alert(`✅ 문서 ID ${docId} 삭제 완료.`);
+        // 삭제 후 목록 새로고침을 위해 부모 창의 리스트 새로고침 함수 호출
+        if (window.listClick) {
+            window.listClick({ dataset: { file: 'finance', fn: 'documents_listAll' } });
+        } else if (window.opener) {
+            window.opener.location.reload();
+        }
+    } catch (error) {
+        console.error('문서 삭제 실패:', error);
+        alert('❌ 문서 삭제에 실패했습니다. (권한 또는 서버 오류)');
     }
 }
 
-// API 4. 결재 문서 상세 조회 (더미)
+// API 4. 결재 문서 상세 조회 (팝업)
 export function getDocument(e) {
     const docId = e.dataset.id;
-    alert(`결재 문서 ID ${docId} 상세 정보를 조회하여 모달에 표시하는 기능 구현 예정`);
+    const url = `./../popup/documents_detail.html?docId=${docId}`;
+    const features = 'width=700,height=800,left=100,top=100';
+    window.open(url, 'DocumentDetail', features).focus();
 }
 
-// API 6. 결재 상태 변경 (승인/반려) (더미)
-// tableClick에서 호출 시 인자를 받아야 함 (예: {docId: 1, newStatus: 'APPROVED'})
-// export async function updateApprovalStatus(...) {...}
-
-// API 9. 예산 잔액 업데이트 (더미)
-// export async function updateBudgetRemains(...) {...}
-
-// API 10. 회계 전표 생성 (더미)
-// export async function createSlipsFromDocument(...) {...}
-
-// API 12. ERP 전송 상태 업데이트 (더미)
-export function updateTransferStatus(e) {
-    const slipId = e.dataset.id;
-    alert(`전표 ID ${slipId}의 ERP 전송 상태를 업데이트하는 팝업/기능 구현 예정`);
-}
-
-// 유틸리티
-function formatDate(dateString) {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
+// *주의: updateDocument는 getDocument 팝업 내에서 처리되므로 별도의 팝업 함수로서는 사용되지 않습니다.
