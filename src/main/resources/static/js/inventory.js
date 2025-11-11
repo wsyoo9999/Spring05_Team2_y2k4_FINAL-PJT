@@ -123,7 +123,7 @@ export async function stock_list(formData) {
 
 export function stock_search_form() {
     return `
-    <form data-file="stock" data-fn="items_list">
+    <form data-file="inventory" data-fn="items_list">
       <div class="form-group">
         <label for="stock_name">물품명</label>
         <input type="text" id="stock_name" name="stock_name" placeholder="예: 드릴" />
@@ -147,7 +147,7 @@ export function stock_search_form() {
       </div>
 
       <!-- 버튼은 submit 유지, 기존 search_btn 클래스 보존 + 스타일 클래스 추가 -->
-      <button type="submit" class="search_btn action-button btn-primary" data-file="item" data-fn="stock_list">
+      <button type="submit" class="search_btn" data-actoin="search" data-file="inventory" data-fn="stock_list">
         <i class="fas fa-search" aria-hidden="true"></i><span>검색</span>
       </button>
     </form>
@@ -356,7 +356,7 @@ export function inbound_search_form() {
             <label>소비기한</label>
             <input type="date" name="expand_date" />
         </div>
-            <button type="submit" class="search_btn" data-file="stock" data-fn="inbound_list">
+            <button type="submit" class="search_btn" data-action="search" data-file="stock" data-fn="inbound_list">
                 <i class="fas fa-search">검색</i>
             </button>
         </form>
@@ -535,7 +535,7 @@ export function outbound_search_form() {
                     <option value="stock_id">재고 코드</option>
                     <option value="outbound_location">출고처</option>
                 </select> 
-                
+               
             </div>
             <div class="form-group">
                 <input id="keyword" type="number" name="keyword" placeholder="예: 2001"/>
@@ -545,13 +545,12 @@ export function outbound_search_form() {
                 <input type="date" name="outbound_date" />
             </div>
             
-
             <div class="form-group">
                 <label>출고일</label>
                 <input type="date" name="outbound_date" />
             </div>
 
-            <button type="submit" class="search_btn" data-file="stock" data-fn="outbond_list">
+            <button type="submit" class="search_btn" data-action="search" data-file="stock" data-fn="outbond_list">
                 <i class="fas fa-search">검색</i>
             </button>
 <!--        </form>-->
