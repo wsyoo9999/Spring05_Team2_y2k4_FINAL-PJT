@@ -33,10 +33,12 @@ public class ItemController {
 
         Stock stock1 = new Stock();
         stock1.setStock_id(1);
+        stock1.setStock_name("덩기덕");
         stockList.add(stock1);
 
         Stock stock2 = new Stock();
         stock2.setStock_id(2);
+        stock2.setStock_name("쿵따");
         stockList.add(stock2);
 
         return stockList;
