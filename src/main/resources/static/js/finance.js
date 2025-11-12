@@ -152,6 +152,7 @@ async function documents_fetch_data(formData) {
 // 수익 목록 검색 폼
 export function profit_search_form() {
     return `
+    <form data-file="finance" data-fn="profit_list">
         <div class="form-group">
             <label for="profitCode">수익 코드</label>
             <input type="number" id="profitCode" name="profitCode" placeholder="수익 원인 코드" />
@@ -235,6 +236,7 @@ async function profit_fetch_data(formData) {
 // 지출 목록 검색 폼
 export function spend_search_form() {
     return `
+    <form data-file="finance" data-fn="spend_list">
         <div class="form-group">
             <label for="spendCode">지출 코드</label>
             <input type="number" id="spendCode" name="spendCode" placeholder="지출 원인 코드" />
