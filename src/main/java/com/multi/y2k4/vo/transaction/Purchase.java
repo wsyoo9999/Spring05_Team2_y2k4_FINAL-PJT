@@ -9,7 +9,9 @@ import java.time.LocalDate;
 public class Purchase {
     private int purchase_id;
     private int emp_id;
+    private String emp_name;
     private int ac_id;
+    private String ac_name;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) private LocalDate order_date;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) private LocalDate del_date;
     private double total_price;

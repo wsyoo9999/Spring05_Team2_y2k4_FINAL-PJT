@@ -5,7 +5,7 @@
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.transaction.SaleDetailsMapper">
     <select id="searchById" resultType="com.multi.y2k4.vo.transaction.SaleDetails">
-        select * from sale_details where sale_id = #{sale_id}
+        select sd.*,s.stock_name from sale_details sd LEFT JOIN stock s ON sd.stock_id = s.stock_id  where sale_id = #{sale_id}
     </select>
 
     <insert id="addSaleDetails" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="sale_id" keyColumn="sale_id">

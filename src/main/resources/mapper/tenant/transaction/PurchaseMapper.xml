@@ -5,26 +5,38 @@
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.transaction.PurchaseMapper">
     <select id="list_all" resultType="com.multi.y2k4.vo.transaction.Purchase">
-        select * from purchase
+        SELECT
+            p.*,
+            a.ac_name,
+            hr.emp_name
+        FROM purchase p
+        LEFT JOIN human_resource hr ON hr.emp_id = p.emp_id
+        LEFT JOIN accounts a ON a.ac_id   = p.ac_id
     </select>
 
     <select id="list" resultType="com.multi.y2k4.vo.transaction.Purchase">
-        select * from purchase
+        SELECT
+            p.*,
+            a.ac_name,
+            hr.emp_name
+        FROM purchase p
+        LEFT JOIN human_resource hr ON hr.emp_id = p.emp_id
+        LEFT JOIN accounts a ON a.ac_id   = p.ac_id
         <where>
             <if test="emp_id !=null">
-                emp_id = #{emp_id}
+                AND p.emp_id = #{emp_id}
             </if>
             <if test="ac_id !=null">
-                ac_id = #{ac_id}
+                AND p.ac_id = #{ac_id}
             </if>
             <if test="order_date !=null">
-                order_date = #{order_date}
+                AND p.order_date = #{order_date}
             </if>
             <if test="del_date !=null">
-                del_date = #{del_date}
+                AND p.del_date = #{del_date}
             </if>
             <if test="status!=null">
-                status = #{status}
+                AND p.status = #{status}
             </if>
         </where>
     </select>

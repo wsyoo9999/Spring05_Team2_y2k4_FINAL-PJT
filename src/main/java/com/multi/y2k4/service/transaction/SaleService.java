@@ -20,6 +20,6 @@ public class SaleService {
     public int addSale(Sale sale) {
         return saleMapper.addSale(sale);
     }
-    public List<Sale> list(Integer emp_id, Integer ac_id, LocalDate order_date, LocalDate due_date, Integer status)
-    {return saleMapper.list(emp_id,ac_id,order_date,due_date,status);}
+    public List<Sale> list(Integer sale_id,Integer emp_id, Integer ac_id, LocalDate order_date, LocalDate due_date, Integer status)
+    {return saleMapper.list(sale_id,emp_id,ac_id,order_date,due_date,status);}
 }

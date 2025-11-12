@@ -34,7 +34,7 @@ export async function sale_listAll(){
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.emp_id}
+                          ${row.emp_name}
                         </td>
                         <td class="ac-id"
                             data-value="${row.ac_id}"
@@ -42,7 +42,7 @@ export async function sale_listAll(){
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.ac_id}
+                          ${row.ac_name}
                         </td>
                         <td>
                             ${row.order_date}
@@ -67,7 +67,7 @@ export async function sale_listAll(){
                             </button>
                         </td> 
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                            <button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </td> 
@@ -134,7 +134,7 @@ export async function sale_list(formData){
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.emp_id}
+                          ${row.emp_name}
                         </td>
                         <td class="ac-id"
                             data-value="${row.ac_id}"
@@ -142,7 +142,7 @@ export async function sale_list(formData){
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';" 
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.ac_id}
+                          ${row.ac_name}
                         </td>
                         <td>
                             ${row.order_date}
@@ -162,12 +162,12 @@ export async function sale_list(formData){
                           상세 보기
                         </td>
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                            <button data-action = "edit" data-file="transaction" data-fn="">
                                 <i class="fas fa-gear"></i>
                             </button>
                         </td> 
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                            <button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </td>  
@@ -222,7 +222,7 @@ export async function purchase_listAll(){
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.emp_id}
+                          ${row.emp_name}
                         </td>
                         <td class="ac-id"
                             data-value="${row.ac_id}"
@@ -230,7 +230,7 @@ export async function purchase_listAll(){
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';" 
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.ac_id}
+                          ${row.ac_name}
                         </td>
                         <td>
                             ${row.order_date}
@@ -250,12 +250,12 @@ export async function purchase_listAll(){
                           상세 보기
                         </td>
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                            <button data-action = "edit" data-file="transaction" data-fn="">
                                 <i class="fas fa-gear"></i>
                             </button>
                         </td> 
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                            <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </td> 
@@ -321,7 +321,7 @@ export async function purchase_list(formData){
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.emp_id}
+                          ${row.emp_name}
                         </td>
                         <td class="ac-id"
                             data-value="${row.ac_id}"
@@ -329,7 +329,7 @@ export async function purchase_list(formData){
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';" 
                             data-action="detail" data-file="transaction" data-fn="addSale">
-                          ${row.ac_id}
+                          ${row.ac_name}
                         </td>
                         <td>
                             ${row.order_date}
@@ -349,12 +349,12 @@ export async function purchase_list(formData){
                           상세 보기
                         </td>
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                            <button data-action = "edit" data-file="transaction" data-fn="">
                                 <i class="fas fa-gear"></i>
                             </button>
                         </td> 
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                            <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </td> 
@@ -473,8 +473,12 @@ export function view_SaleDetails(id){
 
 }
 
-export async function editPurchase() {
-    return addPurchase();
+export async function editPurchase(id) {
+    const base = './../popup/transaction/editPurchase.html';
+    const url  = `${base}?purchase_id=${encodeURIComponent(id)}`;
+    const features = 'width=1000,height=700,resizable=no,scrollbars=yes';
+    const child = window.open(url, 'purchase_edit', features);
+    if (child) child.focus();
 }
 
 export async function editPurchaseStatus() {
@@ -482,8 +486,12 @@ export async function editPurchaseStatus() {
 }
 
 
-export async function editSale() {
-    return addSale();
+export function editSale(id) {
+    const base = './../popup/transaction/editSale.html';
+    const url  = `${base}?sale_id=${encodeURIComponent(id)}`;
+    const features = 'width=1000,height=700,resizable=no,scrollbars=yes';
+    const child = window.open(url, 'sale_edit', features);
+    if (child) child.focus();
 }
 
 export async function editSaleStatus() {

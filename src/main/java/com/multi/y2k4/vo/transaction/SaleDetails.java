@@ -7,6 +7,7 @@ public class SaleDetails {
     private int sd_id;
     private int sale_id;
     private int stock_id;
+    private String stock_name;
     private int qty;
     private double price_per_unit;
     private double total_price;

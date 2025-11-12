@@ -97,6 +97,18 @@
             margin:0 10px 12px 0;
         }
 
+        select{
+            width:100%;
+            height:36px;
+            padding:6px 10px;
+            font-size:14px;
+            color:var(--text-dark);
+            border:1px solid var(--border-color);
+            border-radius:4px;
+            outline:none;
+            background:#fff;
+        }
+
         /* 버튼들 */
         input[type="submit"]{
             width:100%;
@@ -158,71 +170,179 @@
 <body>
 <form method="POST" action="/api/transaction/sale/add" id="form">
     <label>담당자
-        <input type="text" name="emp_id" required>
+        <select id="emp_id" name="emp_id" required>
+            <option value="">로딩 중</option>
+        </select>
     </label>
     <label>거래처
-        <input type="text" name="ac_id" required>
+        <select id="ac_id" name="ac_id" required>
+            <option value="">로딩 중</option>
+        </select>
     </label><br>
-    <label>주문일
+    <label>주문 수주일
         <input type="date" name="order_date" required>
     </label>
-    <label>요청납기일
+    <label>납기일
         <input type="date" name="due_date" required>
     </label><br>
 
-    <div class="detail">
-        <label>제품명
-            <input type="text" name="stock_id[]" required>
-        </label><!--추후 이름으로 입력 되도록 변경-->
+    <div class = "detail">
+        <div class="stock_detail">
+            <label>제품명
+                <select id="stock_id" name="stock_id[]" class = "stock-select" required>
+                    <option value="">로딩 중</option>
+                </select>
+            </label>
+            <label>가격
+                <input type="number" class="price_display" placeholder="물품 가격" disabled>
+                <input type="hidden" name="price_per_unit[]" class="price_per_unit_hidden">
+            </label></div>
         <label>수량
             <input type="number" name="qty[]" min="1" required>
-        </label>
-        <label>가격
-            <input type="number" name="price_per_unit[]" min="0.00" step="0.01" required>
         </label>
         <br>
     </div>
 
     <input type="submit" value="입력 완료">
-    <input type="button" class="createForm" value="추가 입력">
+    <input type="button" class ="createForm" value="추가 입력">
 
 </form>
+
+
 </body>
 
 <script>
+
+
+
     const create = document.querySelector(".createForm");
     const detail = document.querySelector(".detail");
-    create.addEventListener("click", (e) => {
-        const addDataForm = document.createElement('div');
-        addDataForm.innerHTML = ` <hr>
-                                  <label>제품명
-                                    <input type="text" name="stock_id[]" required>
-                                  </label>
-                                  <label>수량
-                                    <input type="number" name="qty[]" min="1" required>
-                                  </label>
-                                  <label>가격
-                                    <input type="number" name="price_per_unit[]" min="0.00" step="0.01" required>
-                                  </label><br>`;
-        detail.appendChild(addDataForm);
-    });
 
-    const form = document.getElementById("form");
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const result = await $.ajax({
-            url: form.action,
-            method: 'POST',
-            dataType: 'json',
-            data: $(form).serialize()
-        });
-        if (result === true) {
-            alert('입력 성공');
-            window.close();
-        } else {
-            alert('입력 실패');
+
+    let emp_option= '<option value="">선택</option>';   //select의 옵션에 들어갈 값들
+    let ac_option= '<option value="">선택</option>';
+    let stock_option= '<option value="">선택</option>';
+
+    let optionLoaded = false;
+
+    async function loadSelectForm(){
+        try {
+            const [emp, ac, stock] = await Promise.all([
+                    $.ajax({    //담당자
+                        url: `/api/hr/employees`, // 새로운 API 엔드포인트 호출
+                        method: 'GET',
+                        dataType: 'json'
+                    }),
+
+                    $.ajax({    //거래처
+                        url: `/api/account/list`, // 새로운 API 엔드포인트 호출
+                        method: 'GET',
+                        dataType: 'json'
+                    }),
+                    $.ajax({    //물품 ID
+                        url: `/api/inventory/stock`, // 새로운 API 엔드포인트 호출
+                        method: 'GET',
+                        dataType: 'json'
+                    })
+
+                ]
+            )
+
+            $.each(emp, function (i, row) {
+                emp_option += `<option value="${row.emp_id}">${row.emp_name}</option>`;
+            })
+            $.each(ac, function (i, row) {
+                ac_option += `<option value="${row.ac_id}">${row.ac_name}</option>`;
+            })
+            $.each(stock, function (i, row) {
+                stock_option += `<option value="${row.stock_id}" data-price="${row.unit_price}">${row.stock_name}</option>`;
+            })
+
+            $('#emp_id').html(emp_option);
+            $('#ac_id').html(ac_option);
+            $('#stock_id').html(stock_option);
+            optionLoaded = true;
+        }catch(err){
+            alert('옵션 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+            // 실패 시 최소한의 표시
+            $('#emp_id').html('<option value="">불러오기 실패</option>');
+            $('#ac_id').html('<option value="">불러오기 실패</option>');
+            $('.stock-select').html('<option value="">불러오기 실패</option>');
         }
-    });
-</script>
+    }
 
+    $(async function(){
+        await loadSelectForm();
+
+        create.addEventListener("click", (e) => {
+            if(!optionLoaded){
+                alert('옵션을 불러오는 중입니다. 잠시만 기다려주세요.');
+                return;
+            }
+            const addDataForm = document.createElement('div');
+            addDataForm.innerHTML = ` <hr><label>제품명
+                                    <div class = "stock_detail">
+                                    <select  name="stock_id[]" class="stock-select" required>
+                                    `+stock_option+
+                `</select>
+                                    </label>
+                                    <label>가격
+                                    <input type="number" class="price_display" placeholder="물품 가격" disabled>
+                                    <input type="hidden" name="price_per_unit[]" class="price_per_unit_hidden">
+                                  </label></div>
+                                  <label>수량
+                                        <input type="number" name="qty[]" min="1" required>
+                                    </label><br>`;
+            detail.appendChild(addDataForm);
+        })
+
+        const form = document.getElementById("form");
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            if (!$('#emp_id').val() || !$('#ac_id').val() || $('.stock-select').toArray().some(sel => !sel.value)) {
+                alert('담당자/거래처/제품을 선택하세요.');
+                return;
+            }
+
+            const result = await $.ajax({
+                url: form.action,
+                method: 'POST',
+                dataType: 'json',
+                data: $(form).serialize()
+
+
+            });
+            if (result === true) {
+                alert('입력 성공');
+                // 부모 창에 갱신 신호 (선택)
+                window.close(); // 알림 확인 후 닫힘
+            } else {
+                alert('입력 실패');
+            }
+        })
+        $('.detail').on('change', '.stock-select', async function () {
+            const change_row =  $(this).closest('.stock_detail');
+            const display_price = change_row.find('.price_display');
+            const hidden = change_row.find('input[name="price_per_unit[]"]');
+            const stockId = $(this).val();
+            if (!stockId) {
+                display_price.val('');
+                hidden.val('');
+                return;
+            }
+            let price = $(this).find('option:selected').data('price');
+            if (price == null || price === '') {
+                price = 0.0;
+            }
+            console.log("price : "+price);
+            display_price.val(price);
+            hidden.val(price);
+
+
+        })
+
+
+    })
+</script>
 </html>

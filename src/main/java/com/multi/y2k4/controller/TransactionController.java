@@ -42,8 +42,8 @@ public class TransactionController {
 
         //테스트를 위한 수동 리스트 값 생성
 
-        System.out.println(saleService.list(emp_id,ac_id,order_date,due_date,status));
-        return saleService.list(emp_id,ac_id,order_date,due_date,status);
+        System.out.println(saleService.list(sale_id,emp_id,ac_id,order_date,due_date,status));
+        return saleService.list(sale_id,emp_id,ac_id,order_date,due_date,status);
     }
 
     @PostMapping("/sale/add")

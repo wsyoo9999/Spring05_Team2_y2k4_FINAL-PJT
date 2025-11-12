@@ -5,26 +5,41 @@
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.transaction.SaleMapper">
     <select id="list_all" resultType="com.multi.y2k4.vo.transaction.Sale">
-        select * from sale
+        SELECT
+            s.*,
+            a.ac_name,
+            hr.emp_name
+        FROM sale s
+        LEFT JOIN human_resource hr ON hr.emp_id = s.emp_id
+        LEFT JOIN accounts a ON a.ac_id   = s.ac_id
     </select>
 
     <select id="list" resultType="com.multi.y2k4.vo.transaction.Sale">
-        select * from sale
+        SELECT
+            s.*,
+            a.ac_name,
+            hr.emp_name
+        FROM sale s
+        LEFT JOIN human_resource hr ON hr.emp_id = s.emp_id
+        LEFT JOIN accounts a ON a.ac_id   = s.ac_id
         <where>
+            <if test="sale_id !=null">
+                AND s.sale_id = #{sale_id}
+            </if>
             <if test="emp_id !=null">
-                emp_id = #{emp_id}
+                AND s.emp_id = #{emp_id}
             </if>
             <if test="ac_id !=null">
-                ac_id = #{ac_id}
+                AND s.ac_id = #{ac_id}
             </if>
             <if test="order_date !=null">
-                order_date = #{order_date}
+                AND s.order_date = #{order_date}
             </if>
             <if test="due_date !=null">
-                del_date = #{del_date}
+                AND s.del_date = #{del_date}
             </if>
             <if test="status!=null">
-                status = #{status}
+                AND s.status = #{status}
             </if>
         </where>
     </select>

@@ -5,7 +5,7 @@
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.transaction.PurchaseDetailsMapper">
     <select id="searchById" resultType="com.multi.y2k4.vo.transaction.PurchaseDetails">
-        select * from purchase_details where purchase_id = #{purchase_id}
+        select pd.*, s.stock_name from purchase_details pd LEFT JOIN stock s ON pd.stock_id = s.stock_id where purchase_id = #{purchase_id}
     </select>
 
     <insert id="addPurchaseDetails" parameterType="java.util.List" useGeneratedKeys="true">

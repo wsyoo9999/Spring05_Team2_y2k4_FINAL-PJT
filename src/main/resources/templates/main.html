@@ -663,11 +663,12 @@
     async function editRecord(e) {
         const file_name = e.dataset.file;
         const fn_name = e.dataset.fn;
+        const value = e.dataset.value;
         if (!file_name || !fn_name) return;
         try{
             const module = await import(`./js/${file_name}.js`);
             const editFn = module[fn_name];
-            editFn(e); // e를 그대로 전달
+            editFn(value); // e를 그대로 전달
         }catch(err){
             console.error(err);
         }
