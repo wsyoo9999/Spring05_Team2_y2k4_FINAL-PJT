@@ -590,6 +590,7 @@
             const buildTable = module[fn_name];
 
 
+
             table.innerHTML = await buildTable(formData); // 테이블 + 버튼을 함께 업데이트
         }
         catch(err){
@@ -611,14 +612,19 @@
 
         // 'add' 케이스가 'table' 컨테이너에서 다시 처리됨
         switch(table_event.dataset.action){
-            case 'edit':
-                // (구현 필요)
-                break;
             case 'add':
                 await addRecord(table_event); // .js가 만든 '추가' 버튼 처리
                 break;
             case 'detail':
                 await viewDetail(table_event);
+                break;
+            // 수정 추가
+            case 'edit':
+                await editRecord(table_event);
+                break;
+            // 삭제 추가
+            case 'delete':
+                await deleteRecord(table_event);
                 break;
         }
     }
@@ -649,6 +655,38 @@
             const module = await import(`./js/${file_name}.js`);
             const viewDetail = module[fn_name];
             viewDetail(value);
+        }catch(err){
+            console.error(err);
+        }
+    }
+    // 수정 함수 추가
+    async function editRecord(e) {
+        const file_name = e.dataset.file;
+        const fn_name = e.dataset.fn;
+        if (!file_name || !fn_name) return;
+        try{
+            const module = await import(`./js/${file_name}.js`);
+            const editFn = module[fn_name];
+            editFn(e); // e를 그대로 전달
+        }catch(err){
+            console.error(err);
+        }
+    }
+
+    // 삭제 함수 추가
+    async function deleteRecord(e) {
+        const file_name = e.dataset.file;
+        const fn_name = e.dataset.fn;
+
+        if (!file_name || !fn_name) {
+            console.error('Delete button is missing data-file or data-fn');
+            return;
+        }
+
+        try{
+            const module = await import(`./js/${file_name}.js`);
+            const deleteFn = module[fn_name];
+            deleteFn(e); // e를 그대로 전달
         }catch(err){
             console.error(err);
         }

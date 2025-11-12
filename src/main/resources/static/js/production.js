@@ -25,8 +25,6 @@ export async function work_order_listAll() {
 
         if (data && data.length > 0) {
             $.each(data, function(i, row) {
-                // const statusClass = getStatusClass(row.order_status); // (추후 CSS 구현 시)
-
                 tbody += `<tr data-work-order-id="${row.work_order_id}">
                             <td><strong>${row.work_order_id}</strong></td>
                             <td>${row.stock_id ?? '-'}</td>
@@ -42,7 +40,16 @@ export async function work_order_listAll() {
                                         title="상세 보기">
                                     <i class="fas fa-info-circle"></i>
                                 </button>
-                            </td>
+                                
+                                <button class="btn-delete"
+                                        data-action="delete"
+                                        data-file="production"
+                                        data-fn="deleteWorkOrder"
+                                        data-work-order-id="${row.work_order_id}"
+                                        title="삭제">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                </td>
                           </tr>`;
             });
         } else {
@@ -144,8 +151,6 @@ export async function work_order_list(formData) {
 
         if (data && data.length > 0) {
             $.each(data, function(i, row) {
-                // const statusClass = getStatusClass(row.order_status);
-
                 tbody += `<tr data-work-order-id="${row.work_order_id}">
                             <td><strong>${row.work_order_id}</strong></td>
                             <td>${row.stock_id ?? '-'}</td>
@@ -161,7 +166,16 @@ export async function work_order_list(formData) {
                                         title="상세 보기">
                                     <i class="fas fa-info-circle"></i>
                                 </button>
-                            </td>
+                                
+                                <button class="btn-delete"
+                                        data-action="delete"
+                                        data-file="production"
+                                        data-fn="deleteWorkOrder"
+                                        data-work-order-id="${row.work_order_id}"
+                                        title="삭제">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                </td>
                           </tr>`;
             });
         } else {
@@ -288,6 +302,13 @@ export async function work_order_detail(work_order_id) {
 
 // 5. BOM(자재 명세서) 전체 조회
 export async function bom_listAll() {
+    const actionRow = `
+        <div class="table-actions-header">
+            <button class="action-button btn-primary" data-action="add" data-file="production" data-fn="addBOM">
+                <i class="fas fa-plus-circle"></i> 자재 명세서 추가
+            </button>
+        </div>
+    `;
     let table = `<table>
                     <thead>
                         <tr>
@@ -317,8 +338,24 @@ export async function bom_listAll() {
                             <td>${row.parent_stock_id ?? '-'}</td>
                             <td>${row.child_stock_id ?? '-'}</td>
                             <td><strong>${numberFormat(row.required_qty)}</strong></td>
-                            <td class="actions">-</td>
-                          </tr>`;
+                            
+                            <td class="actions">
+                                <button data-action="edit"
+                                        data-file="production"
+                                        data-fn="editBOM"
+                                        data-bom-id="${row.bom_id}"
+                                        title="수정">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button data-action="delete"
+                                        data-file="production"
+                                        data-fn="deleteBOM"
+                                        data-bom-id="${row.bom_id}"
+                                        title="삭제">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                            </tr>`;
             });
         } else {
             tbody += `<tr><td colspan="5" style="text-align:center;">BOM 정보가 없습니다.</td></tr>`;
@@ -332,18 +369,21 @@ export async function bom_listAll() {
         tbody = `<tbody><tr><td colspan="5" style="text-align:center; color:red;">BOM 정보를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
     }
 
-    return table + tbody;
+    return actionRow + table + tbody;
 }
 
 
 // 6. BOM 검색 폼
 export function bom_search_form() {
-    // main.html의 .search-form 디자인에 맞게 수정
     const search_bar = `
         <form data-file="production" data-fn="bom_list">
             <div class="form-group">
-                <label for="parent_stock_id">목표 재고코드</label>
-                <input type="text" id="parent_stock_id" name="parent_stock_id" placeholder="목표 재고코드 입력" />
+                <label for="parent_stock_id">목표 재고코드 (완제품)</label>
+                <input type="text" id="parent_stock_id" name="parent_stock_id" placeholder="완제품 코드 입력" />
+            </div>
+            <div class="form-group">
+                <label for="child_stock_id">자재 재고코드 (원자재)</label>
+                <input type="text" id="child_stock_id" name="child_stock_id" placeholder="원자재 코드 입력" />
             </div>
             <button type="submit" data-action="search" data-file="production" data-fn="bom_list">
                 <i class="fas fa-search"></i> 검색
@@ -358,6 +398,14 @@ export function bom_search_form() {
 // 7. BOM 조건 검색 (물품별)
 export async function bom_list(formData) {
     const parent_stock_id = formData.parent_stock_id || '';
+    const child_stock_id = formData.child_stock_id || '';
+    const actionRow = `
+        <div class="table-actions-header">
+            <button class="action-button btn-primary" data-action="add" data-file="production" data-fn="addBOM">
+                <i class="fas fa-plus-circle"></i> 자재 명세서 추가
+            </button>
+        </div>
+    `;
 
     let table = `<table>
                     <thead>
@@ -377,7 +425,10 @@ export async function bom_list(formData) {
             url: '/api/production/bom',
             method: 'GET',
             dataType: 'json',
-            data: { parent_stock_id: parent_stock_id }
+            data: {
+                parent_stock_id: parent_stock_id,
+                child_stock_id: child_stock_id
+            }
         });
 
         tbody += `<tbody>`;
@@ -389,8 +440,24 @@ export async function bom_list(formData) {
                             <td>${row.parent_stock_id ?? '-'}</td>
                             <td>${row.child_stock_id ?? '-'}</td>
                             <td><strong>${numberFormat(row.required_qty)}</strong></td>
-                            <td class="actions">-</td>
-                          </tr>`;
+                            
+                            <td class="actions">
+                                <button data-action="edit"
+                                        data-file="production"
+                                        data-fn="editBOM"
+                                        data-bom-id="${row.bom_id}"
+                                        title="수정">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button data-action="delete"
+                                        data-file="production"
+                                        data-fn="deleteBOM"
+                                        data-bom-id="${row.bom_id}"
+                                        title="삭제">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                            </tr>`;
             });
         } else {
             tbody += `<tr><td colspan="5" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
@@ -404,7 +471,13 @@ export async function bom_list(formData) {
         tbody = `<tbody><tr><td colspan="5" style="text-align:center; color:red;">검색에 실패했습니다.</td></tr></tbody></table>`;
     }
 
-    return table + tbody;
+    return actionRow + table + tbody;
+}
+
+export function addBOM(){
+    const url='./../popup/production/addBOM.html';
+    const features = 'width=600,height=450,resizable=no,scrollbars=yes';
+    window.open(url,'add_BOM', features).focus();
 }
 
 // 9. Lot 추적 검색 폼
@@ -712,7 +785,7 @@ export async function work_order_detail_popup(e) {
     }
 
     // 2. 팝업 URL과 속성을 정의
-    const url = `./../popup/detailWorkOrder.html?work_order_id=${work_order_id}`;
+    const url = `./../popup/production/detailWorkOrder.html?work_order_id=${work_order_id}`;
     const features = 'width=700,height=600,resizable=yes,scrollbars=yes'; // 팝업 크기 조정
 
     // 3. 새 팝업 창
@@ -721,7 +794,89 @@ export async function work_order_detail_popup(e) {
 
 // 작업지시서 추가
 export function addWorkOrder(){
-    const url='./../popup/addWorkOrder.html';
+    const url='./../popup/production/addWorkOrder.html';
     const features = 'width=600,height=450,resizable=no,scrollbars=yes';
     window.open(url,'add_WorkOrder', features).focus();
+}
+
+export async function deleteWorkOrder(e) {
+    const work_order_id = e.dataset.workOrderId;
+
+    if (!work_order_id) {
+        alert('삭제할 작업지시서 ID를 찾을 수 없습니다.');
+        return;
+    }
+
+    // 사용자에게 삭제 확인
+    if (confirm(`정말로 작업지시서 ${work_order_id}번을 삭제하시겠습니까?`)) {
+        try {
+            const result = await $.ajax({
+                url: `/api/production/work_order/${work_order_id}`,
+                method: 'DELETE',
+                dataType: 'json'
+            });
+
+            if (result === true) {
+                alert('✅ 삭제되었습니다.');
+                // 삭제 성공 시, 현재 목록을 새로고침
+                const currentMenu = window.document.querySelector('.menu[data-fn="work_order_listAll"].selected');
+                if (currentMenu) {
+                    currentMenu.click(); // 현재 메뉴를 다시 클릭하여 목록 갱신
+                } else {
+                    window.location.reload(); // 비상시 페이지 새로고침
+                }
+            } else {
+                alert('❌ 삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('삭제 중 오류 발생:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        }
+    }
+}
+
+export function editBOM(e) {
+    const bom_id = e.dataset.bomId;
+    if (!bom_id) {
+        alert('수정할 BOM ID를 찾을 수 없습니다.');
+        return;
+    }
+    const url = `./../popup/production/editBOM.html?bom_id=${bom_id}`;
+    const features = 'width=600,height=450,resizable=no,scrollbars=yes';
+    window.open(url, 'edit_BOM', features).focus();
+}
+
+export async function deleteBOM(e) {
+    const bom_id = e.dataset.bomId;
+
+    if (!bom_id) {
+        alert('삭제할 BOM ID를 찾을 수 없습니다.');
+        return;
+    }
+
+    if (confirm(`정말로 BOM ${bom_id}번 항목을 삭제하시겠습니까?`)) {
+        try {
+            const result = await $.ajax({
+                url: `/api/production/bom/${bom_id}`,
+                method: 'DELETE',
+                dataType: 'json'
+            });
+
+            if (result === true) {
+                alert('✅ 삭제되었습니다.');
+                // 현재 메뉴 다시 클릭하여 목록 갱신
+                const currentMenu = window.document.querySelector('.menu[data-fn="bom_listAll"].selected');
+                if (currentMenu) {
+                    currentMenu.click();
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                alert('❌ 삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('삭제 중 오류 발생:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        }
+    }
 }
