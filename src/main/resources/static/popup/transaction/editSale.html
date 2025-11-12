@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>판매 수정</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        :root{
+            --primary-color:#4A90E2;
+            --bg-light:#F8F9FA;
+            --text-dark:#333333;
+            --border-color:#E0E0E0;
+            --card-bg:#FFFFFF;
+        }
+        html,body{height:100%}
+        body{
+            margin:0; background:var(--bg-light); color:var(--text-dark);
+            font-family:'Noto Sans KR', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            padding:24px; display:flex; align-items:flex-start; justify-content:center; box-sizing:border-box;
+        }
+        .wrap{ width:min(1080px, 100%); }
+        .title{ font-weight:700; font-size:20px; margin-bottom:14px; color:#2c3e50; }
+
+        /* 2컬럼 레이아웃 */
+        .grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+        @media (max-width: 960px){ .grid{ grid-template-columns:1fr; } }
+
+        /* 카드 공통 */
+        .card{
+            background:var(--card-bg);
+            border:1px solid var(--border-color);
+            border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,.06);
+            padding:18px 20px;
+        }
+
+        /* 좌측 읽기 전용 패널 스타일 (이전 디자인 톤) */
+        .readonly h3{ margin:2px 0 12px; font-size:16px; color:#4b5563; }
+        .ro-grid{ display:grid; grid-template-columns:140px 1fr; gap:10px 12px; }
+        .ro-grid label{ font-size:13px; font-weight:700; color:#6b7280; display:flex; align-items:center; }
+        .ro-grid input[disabled]{
+            background:#fbfcff; border:1px dashed #dbe6ff; border-radius:8px;
+            padding:10px 12px; font-size:14px; min-height:38px; color:#374151;
+        }
+
+        .ro-table{ margin-top:12px; border:1px solid var(--border-color); border-radius:8px; overflow:hidden; }
+        table{ width:100%; border-collapse:collapse; }
+        th, td{ border-bottom:1px solid var(--border-color); padding:10px 12px; font-size:14px; text-align:left; }
+        th{ background:#f4f6f8; font-weight:700; color:#374151; }
+        tr:last-child td{ border-bottom:none; }
+
+        /* 우측 수정 폼: 기존 입력폼 디자인 유지/정렬 보완 */
+        /* 상단 2열 */
+        .row-2{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+        .row-2 > label{ flex:1 1 0; min-width:220px; }
+
+        /* 공통 라벨/컨트롤 */
+        form#editForm label{ font-size:14px; color:#555; font-weight:600; display:block; }
+        form#editForm input[type="text"],
+        form#editForm input[type="date"],
+        form#editForm input[type="number"],
+        form#editForm select{
+            display:block; width:100%; margin-top:6px; padding:10px 12px; font-size:15px;
+            color:var(--text-dark); border:1px solid var(--border-color); border-radius:6px; background:#fff;
+            outline:none; transition:border-color .15s, box-shadow .15s; box-sizing:border-box;
+        }
+        form#editForm input:focus, form#editForm select:focus{
+            border-color:var(--primary-color); box-shadow:0 0 0 3px rgba(74,144,226,.15);
+        }
+
+        /* 품목 상세 박스 */
+        .detail{
+            margin-top:8px; padding:14px 12px; background:#fbfcff; border:1px dashed #dbe6ff; border-radius:8px;
+        }
+        .stock_detail{ display:flex; gap:10px; flex-wrap:wrap; }
+        .stock_detail > label{ flex:1 1 0; min-width:220px; }
+        .detail > label{ display:inline-block; width:calc(50% - 10px); margin:10px 10px 0 0; }
+        @media (max-width:640px){
+            .detail > label, .stock_detail > label{ width:100%; min-width:0; }
+        }
+
+        /* 버튼 라인 */
+        .btn-bar{ display:flex; gap:8px; margin-top:10px; }
+        .createForm{
+            padding:10px 14px; border:1px solid #cfe0ff; border-radius:8px; background:#e9f1ff;
+            color:#1f4d8a; font-weight:600; cursor:pointer; transition:background .15s, border-color .15s;
+        }
+        .createForm:hover{ background:#dfeaff; border-color:#bcd2ff; }
+
+        .submit-btn{
+            margin-top:10px; width:100%; padding:12px 18px; border:none; border-radius:8px;
+            background:var(--primary-color); color:#fff; font-size:16px; font-weight:700; cursor:pointer;
+        }
+        .submit-btn:hover{ filter:brightness(.95); }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="title">판매 수정</div>
+
+    <div class="grid">
+        <!-- 좌측: 기존 데이터 (읽기 전용) -->
+        <section class="card readonly" id="readonlyPanel">
+            <h3>기본 정보</h3>
+            <div class="ro-grid">
+                <label>판매 번호
+                    <input type="text" id="ro-sale-id" placeholder="-" disabled>
+                </label>
+                <label>담당자
+                    <input type="text" id="ro-emp" placeholder="-" disabled>
+                </label>
+                <label>거래처
+                    <input type="text" id="ro-account" placeholder="-" disabled>
+                </label>
+                <label>주문일
+                    <input type="text" id="ro-order-date" placeholder="-" disabled>
+                </label>
+                <label>납기일
+                    <input type="text" id="ro-due-date" placeholder="-" disabled>
+                </label>
+                <label>총 금액
+                    <input type="text" id="ro-total" placeholder="-" disabled>
+                </label>
+            </div>
+
+            <h3 style="margin-top:16px;">세부 품목</h3>
+            <div class="ro-table">
+                <table id="ro-lines">
+                    <thead>
+                    <tr>
+                        <th>제품명</th>
+                        <th>개당 가격</th>
+                        <th>수량</th>
+                        <th>금액</th>
+                    </tr>
+                    </thead>
+                    <tbody class = "tbody-details">
+                    <tr><td colspan="4" style="text-align:center;color:#6b7280;">로딩 중...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 우측: 수정 입력 폼 -->
+        <section class="card">
+            <form method="POST" action="/api/transaction/sale/editSale" id="editForm">
+                <input type="hidden" id="sale_id" name="sale_id">
+                <label>담당자
+                    <select id="emp_id" name="emp_id" required>
+                        <option value="">로딩 중</option>
+                    </select>
+                </label>
+                <label>거래처
+                    <select id="ac_id" name="ac_id" required>
+                        <option value="">로딩 중</option>
+                    </select>
+                </label><br>
+                <label>주문 수주일
+                    <input type="date" name="order_date" required>
+                </label>
+                <label>납기일
+                    <input type="date" name="due_date" required>
+                </label><br>
+
+                <div class = "detail">
+                    <div class="stock_detail">
+                        <label>제품명
+                            <select id="stock_id" name="stock_id[]" class = "stock-select" required>
+                                <option value="">로딩 중</option>
+                            </select>
+                        </label>
+                        <label>가격
+                            <input type="number" class="price_display" placeholder="물품 가격" disabled>
+                            <input type="hidden" name="price_per_unit[]" class="price_per_unit_hidden">
+                        </label></div>
+                    <label>수량
+                        <input type="number" name="qty[]" min="1" required>
+                    </label>
+                    <br>
+                </div>
+
+                <div class="btn-bar">
+                    <button type="button" class="createForm" id="addLineBtn">+ 품목 추가</button>
+                </div>
+
+                <button type="submit" class="submit-btn">수정 내용 저장</button>
+            </form>
+        </section>
+    </div>
+</div>
+
+<script>
+    // ===== 공통 유틸 =====
+    function qs(sel, root=document){ return root.querySelector(sel); }
+    function qsa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
+    const fmt = n => (n==null||n==='')?'0':Number(n).toLocaleString('ko-KR');
+
+    // ===== 옵션 캐시 =====
+    let emp_option = '<option value="">선택</option>';
+    let ac_option  = '<option value="">선택</option>';
+    let stock_option = '<option value="">선택</option>';
+    let optionLoaded = false;
+
+    async function loadEditForm(){
+        try {
+            const [emp, ac, stock] = await Promise.all([
+                    $.ajax({    //담당자
+                        url: `/api/hr/employees`, // 새로운 API 엔드포인트 호출
+                        method: 'GET',
+                        dataType: 'json'
+                    }),
+
+                    $.ajax({    //거래처
+                        url: `/api/account/list`, // 새로운 API 엔드포인트 호출
+                        method: 'GET',
+                        dataType: 'json'
+                    }),
+                    $.ajax({    //물품 ID
+                        url: `/api/inventory/stock`, // 새로운 API 엔드포인트 호출
+                        method: 'GET',
+                        dataType: 'json'
+                    })
+
+                ]
+            )
+
+            $.each(emp, function (i, row) {
+                emp_option += `<option value="${row.emp_id}">${row.emp_name}</option>`;
+            })
+            $.each(ac, function (i, row) {
+                ac_option += `<option value="${row.ac_id}">${row.ac_name}</option>`;
+            })
+            $.each(stock, function (i, row) {
+                stock_option += `<option value="${row.stock_id}" data-price="${row.unit_price}">${row.stock_name}</option>`;
+            })
+
+            $('#emp_id').html(emp_option);
+            $('#ac_id').html(ac_option);
+            $('#stock_id').html(stock_option);
+            optionLoaded = true;
+        }catch(err){
+            alert('옵션 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+            // 실패 시 최소한의 표시
+            $('#emp_id').html('<option value="">불러오기 실패</option>');
+            $('#ac_id').html('<option value="">불러오기 실패</option>');
+            $('.stock-select').html('<option value="">불러오기 실패</option>');
+        }
+    }
+
+
+
+
+
+    async function loadReadonly(sale_id){
+
+        const before = await $.ajax({ url:'/api/transaction/sale/list',method: 'GET', data:{ sale_id: sale_id }, dataType:'json' });
+
+        console.log(before);
+        // 좌측 채우기
+        $('#ro-sale-id').val(before[0].sale_id ?? '-');
+        $('#ro-emp').val(before[0].emp_name ?? '-');
+        $('#ro-account').val(before[0].ac_name ?? '-');
+        $('#ro-order-date').val(before[0].order_date ?? '-');
+        $('#ro-due-date').val(before[0].due_date ?? '-');
+        $('#ro-total').val(fmt(before[0].total_price) + ' 원');
+        $('#ro-status').val(before[0].status ?? '-');
+
+        const before_details = await $.ajax({ url:'/api/transaction/sale/viewSaleDetails', data:{ sale_id: sale_id }, dataType:'json' });
+        let tbody='';
+        $.each(before_details, function (i, data){
+            tbody +=`<tr>
+                        <td>
+                          ${data.stock_name}
+                        </td>
+                        <td>
+                            ${data.qty}
+                        </td>
+                        <td>
+                            ${data.price_per_unit}
+                        </td>
+                        <td>
+                            ${data.total_price}
+                        </td>
+
+                        </tr>`;
+        })
+
+
+        $(".tbody-details").html(tbody);
+    }
+
+    // ===== 우측 폼 라인 빌더 =====
+
+
+    // ===== 페이지 로드 =====
+    $(async function(){
+        const sale_id = new URLSearchParams(location.search).get('sale_id');
+        if(!sale_id){ alert('sale_id가 필요합니다.'); window.close?.(); return; }
+        $('#sale_id').val(sale_id);
+
+        await loadEditForm();
+
+        // 좌측 로드 + 우측 프리필
+        const data = await loadReadonly(sale_id);
+
+        // 우측 상단 셀렉트/일자 세팅
+
+
+        // 라인 추가 버튼
+        document.querySelector(".createForm").addEventListener("click", (e) => {
+            if(!optionLoaded){
+                alert('옵션을 불러오는 중입니다. 잠시만 기다려주세요.');
+                return;
+            }
+            const addDataForm = document.createElement('div');
+            addDataForm.innerHTML = ` <hr><label>제품명
+                                    <div class = "stock_detail">
+                                    <select  name="stock_id[]" class="stock-select" required>
+                                    `+stock_option+
+                `</select>
+                                    </label>
+                                    <label>가격
+                                    <input type="number" class="price_display" placeholder="물품 가격" disabled>
+                                    <input type="hidden" name="price_per_unit[]" class="price_per_unit_hidden">
+                                  </label></div>
+                                  <label>수량
+                                        <input type="number" name="qty[]" min="1" required>
+                                    </label><br>`;
+            document.querySelector(".detail").appendChild(addDataForm);
+        })
+
+
+
+        // 제출
+        $('#editForm').on('submit', async function(e){
+            e.preventDefault();
+            if (!$('#emp_id').val() || !$('#ac_id').val() || $('.stock-select').toArray().some(sel => !sel.value)) {
+                alert('담당자/거래처/제품을 선택하세요.');
+                return;
+            }
+            try{
+                const result = await $.ajax({
+                    url: this.action, method: 'PUT', dataType:'json',
+                    data: $(this).serialize()
+                });
+                if(result === true || result?.success){
+                    alert('수정 완료');
+                    window.close?.();
+                }else{
+                    alert('수정 실패');
+                }
+            }catch(err){
+                console.error(err);
+                alert('수정 중 오류가 발생했습니다.');
+            }
+        });
+        $('.detail').on('change', '.stock-select', async function () {
+            const change_row =  $(this).closest('.stock_detail');
+            const display_price = change_row.find('.price_display');
+            const hidden = change_row.find('input[name="price_per_unit[]"]');
+            const stockId = $(this).val();
+            if (!stockId) {
+                display_price.val('');
+                hidden.val('');
+                return;
+            }
+            let price = $(this).find('option:selected').data('price');
+            if (price == null || price === '') {
+                price = 0.0;
+            }
+            console.log("price : "+price);
+            display_price.val(price);
+            hidden.val(price);
+
+
+        })
+    });
+</script>
+</body>
+</html>

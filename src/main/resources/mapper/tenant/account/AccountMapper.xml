@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.multi.y2k4.mapper.tenant.account.AccountMapper">
+    <select id="list_all" resultType="com.multi.y2k4.vo.account.Account">
+        select * from accounts
+    </select>
+
+    <select id="searchById" resultType="com.multi.y2k4.vo.account.Account">
+        select * from accounts where ac_id = #{ac_id}
+    </select>
+
+
+
+</mapper>
