@@ -9,6 +9,7 @@ export async function sale_listAll(){
                             <th>주문일</th>
                             <th>요청 납기일</th>
                             <th>현 상태</th>
+                            <th>상세 보기</th>
                             <th>상태 변경</th>
                             <th>판매 수정</th>
                             </tr>
@@ -36,7 +37,7 @@ export async function sale_listAll(){
                           ${row.emp_id}
                         </td>
                         <td class="ac-id"
-                            data-value="${row.emp_id}"
+                            data-value="${row.ac_id}"
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
@@ -51,6 +52,14 @@ export async function sale_listAll(){
                         </td>
                         <td>
                             ${row.status}
+                        </td>
+                        <td class="ac-id"
+                            data-value="${row.sale_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';" 
+                            data-action="detail" data-file="transaction" data-fn="view_SaleDetails">
+                          상세 보기
                         </td>
                          <td  class = "actions">
                             <button data-action = "edit" data-file="transaction" data-fn="editSale">
@@ -94,6 +103,7 @@ export async function sale_list(formData){
                             <th>주문일</th>
                             <th>요청 납기일</th>
                             <th>현 상태</th>
+                            <th>상세 보기</th>
                             <th>상태 변경</th>
                             <th>판매 수정</th>
                             </tr>
@@ -143,6 +153,14 @@ export async function sale_list(formData){
                         <td>
                             ${row.status}
                         </td>
+                        <td class="ac-id"
+                            data-value="${row.sale_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';" 
+                            data-action="detail" data-file="transaction" data-fn="view_SaleDetails">
+                          상세 보기
+                        </td>
                          <td  class = "actions">
                             <button data-action = "edit" data-file="transaction" data-fn="editSale">
                                 <i class="fas fa-gear"></i>
@@ -179,6 +197,7 @@ export async function purchase_listAll(){
                             <th>주문 수주일</th>
                             <th>납기일</th>
                             <th>현 상태</th>
+                            <th>상세 보기</th>
                             <th>상태 변경</th>
                             <th>구매 수정</th>
                             </tr>
@@ -222,6 +241,14 @@ export async function purchase_listAll(){
                         <td>
                             ${row.status}
                         </td>
+                        <td class="ac-id"
+                            data-value="${row.purchase_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';" 
+                            data-action="detail" data-file="transaction" data-fn="view_PurchaseDetails">
+                          상세 보기
+                        </td>
                          <td  class = "actions">
                             <button data-action = "edit" data-file="transaction" data-fn="editSale">
                                 <i class="fas fa-gear"></i>
@@ -263,6 +290,7 @@ export async function purchase_list(formData){
                             <th>주문 수주일</th>
                             <th>납기일</th>
                             <th>현 상태</th>
+                            <th>상세 보기</th>
                             <th>상태 변경</th>
                             <th>구매 수정</th>
                             </tr>
@@ -312,6 +340,14 @@ export async function purchase_list(formData){
                         <td>
                             ${row.status}
                         </td>
+                        <td class="ac-id"
+                            data-value="${row.purchase_id}"
+                            style="cursor:pointer"
+                            onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';" 
+                            data-action="detail" data-file="transaction" data-fn="view_PurchaseDetails">
+                          상세 보기
+                        </td>
                          <td  class = "actions">
                             <button data-action = "edit" data-file="transaction" data-fn="editSale">
                                 <i class="fas fa-gear"></i>
@@ -343,12 +379,12 @@ export function  sale_search_form(){
         <form data-file="transaction" data-fn="sale_list">
             <div class="form-group">
                 <label> 담당자:
-                    <input type="text" name="emp_id" value="" />
+                    <input type="number" name="emp_id" value="" />
                 </label>
             </div>
             <div class="form-group">
                 <label> 거래처:
-                    <input type="text" name="ac_id" value="" />
+                    <input type="number" name="ac_id" value="" />
                 </label>
             </div>
             <div class="form-group">
@@ -361,7 +397,12 @@ export function  sale_search_form(){
                     <input type="date" name="due_date"  />
                 </label>
             </div>
-            <button type="submit" class="search_btn" data-file="transaction" data-fn="sale_list">
+            <div class="form-group">
+                <label> 상태:
+                    <input type="number" name="status"  />
+                </label>
+            </div>
+            <button type="button" data-action="search" class="search_btn" data-file="transaction" data-fn="sale_list">
                     <i class="fas fa-search">검색</i>
             </button>                
                 </form>`;
@@ -391,7 +432,12 @@ export function  purchase_search_form(){
                     <input type="date" name="del_date"  />
                 </label>
             </div>
-            <button type="submit" class="search_btn" data-action="search" data-file="transaction" data-fn="purchase_list">
+            <div class="form-group">
+                <label> 상태:
+                    <input type="number" name="status"  />
+                </label>
+            </div>
+            <button type="button" data-action="search" data-file="transaction" data-fn="purchase_list">
                 <i class="fas fa-search">검색</i>
             </button>                                
                 </label>
@@ -403,14 +449,28 @@ export function addSale(){
     const url='./../popup/addSale.html';
     const features = 'width=570,height=700,resizable=no,scrollbars=yes';
     window.open(url,'add_Sale',features).focus();
-
-
 }
 
 export function addPurchase() {
     const url = './../popup/addPurchase.html';
     const features = 'width=570,height=700,resizable=no,scrollbars=yes';
     window.open(url, 'add_Sale', features).focus();
+}
+export function view_PurchaseDetails(id){
+    const base = './../popup/transaction/viewPurchaseDetails.html';
+    const url  = `${base}?purchase_id=${encodeURIComponent(id)}`;
+    const features = 'width=570,height=700,resizable=no,scrollbars=yes';
+    const child = window.open(url, 'purchase_details', features);
+    if (child) child.focus();
+}
+
+export function view_SaleDetails(id){
+    const base = './../popup/transaction/viewSaleDetails.html';
+    const url  = `${base}?sale_id=${encodeURIComponent(id)}`;
+    const features = 'width=570,height=700,resizable=no,scrollbars=yes';
+    const child = window.open(url, 'sale_details', features);
+    if (child) child.focus();
+
 }
 
 export async function editPurchase() {

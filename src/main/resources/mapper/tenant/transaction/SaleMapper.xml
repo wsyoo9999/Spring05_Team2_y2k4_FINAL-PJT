@@ -8,6 +8,27 @@
         select * from sale
     </select>
 
+    <select id="list" resultType="com.multi.y2k4.vo.transaction.Sale">
+        select * from sale
+        <where>
+            <if test="emp_id !=null">
+                emp_id = #{emp_id}
+            </if>
+            <if test="ac_id !=null">
+                ac_id = #{ac_id}
+            </if>
+            <if test="order_date !=null">
+                order_date = #{order_date}
+            </if>
+            <if test="due_date !=null">
+                del_date = #{del_date}
+            </if>
+            <if test="status!=null">
+                status = #{status}
+            </if>
+        </where>
+    </select>
+
     <insert id="addSale" parameterType="com.multi.y2k4.vo.transaction.Sale" useGeneratedKeys="true" keyProperty="sale_id" keyColumn="sale_id">
         insert into sale (emp_id, ac_id, order_date, due_date, total_price, status)
         values (#{emp_id}, #{ac_id}, #{order_date}, #{due_date}, #{total_price}, #{status})

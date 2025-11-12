@@ -37,13 +37,13 @@ public class TransactionController {
                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
                        @RequestParam(required = false) Double total_price,
-                       @RequestParam(required = false) String status,
+                       @RequestParam(required = false) Integer status,
                        Model model) {
 
         //테스트를 위한 수동 리스트 값 생성
 
-
-        return saleService.list_all();
+        System.out.println(saleService.list(emp_id,ac_id,order_date,due_date,status));
+        return saleService.list(emp_id,ac_id,order_date,due_date,status);
     }
 
     @PostMapping("/sale/add")
@@ -83,6 +83,13 @@ public class TransactionController {
         }
         saleDetailsService.addSaleDetails(saleDetails);
         return true;
+    }
+
+    @GetMapping("/sale/viewSaleDetails")
+    public List<SaleDetails> saleDetailsList(@RequestParam Integer sale_id){
+        System.out.println(sale_id);
+        System.out.println(saleDetailsService.searchById(sale_id));
+        return saleDetailsService.searchById(sale_id);
     }
 
     @GetMapping("/purchase/list")
@@ -136,6 +143,12 @@ public class TransactionController {
         purchaseDetailsService.addPurchaseDetails(purchaseDetails);
         return true;
 
+    }
+
+    @GetMapping("/purchase/viewPurchaseDetails")
+    public List<PurchaseDetails> purchaseDetailsList(@RequestParam Integer purchase_id){
+        System.out.println(purchaseDetailsService.searchById(purchase_id));
+        return purchaseDetailsService.searchById(purchase_id);
     }
 
 }

@@ -307,6 +307,19 @@
             transition: background-color 0.2s;
             align-self: flex-end;
         }
+
+        .search-form > form button[type="button"] {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            align-self: flex-end;
+        }
         .search-form > form button[type="submit"]:hover {
             background-color: #3A7BD5;
         }
@@ -441,8 +454,8 @@
         /*]]>*/
 
     </script>
-</body>
-</html>
+</div>
+
 
 <script>
     // 아코디언 동작
@@ -505,6 +518,7 @@
     const table = document.getElementById('table'); // table 컨테이너
 
     searchContainer.addEventListener('click', searchClick);
+    searchContainer.addEventListener('submit', handleSearchSubmit);
     table.addEventListener('click', tableClick); // table 컨테이너가 add 버튼 클릭도 감지
 
     // 왼쪽 메뉴(file) 클릭 시 활성화할 상단 탭(topnav) 지도
@@ -563,19 +577,30 @@
         const search_btn = e.target.closest('[data-action="search"]');
         if (!search_btn) return;
         e.preventDefault();
+        e.stopPropagation();
 
         try{
+            const form = search_btn.closest('form');
+            const formData = Object.fromEntries(new FormData(form).entries());
+
             const file_name = search_btn.dataset.file;
             const fn_name = search_btn.dataset.fn;
+
             const module = await import(`./js/${file_name}.js`);
             const buildTable = module[fn_name];
-            const form = search_btn.closest('.search-form');
-            const formData = Object.fromEntries(new FormData(form).entries());
+
+
             table.innerHTML = await buildTable(formData); // 테이블 + 버튼을 함께 업데이트
         }
         catch(err){
             console.error(err);
         }
+    }
+
+    async function handleSearchSubmit(e){
+        e.preventDefault();
+        e.stopPropagation();
+
     }
 
     async function tableClick(e){
@@ -619,10 +644,11 @@
     async function viewDetail(e){
         const file_name = e.dataset.file;
         const fn_name = e.dataset.fn;
+        const value = e.dataset.value;
         try{
             const module = await import(`./js/${file_name}.js`);
-            const addMenu = module[fn_name];
-            addMenu(e);
+            const viewDetail = module[fn_name];
+            viewDetail(value);
         }catch(err){
             console.error(err);
         }
@@ -684,3 +710,5 @@
         });
     })();
 </script>
+</body>
+</html>

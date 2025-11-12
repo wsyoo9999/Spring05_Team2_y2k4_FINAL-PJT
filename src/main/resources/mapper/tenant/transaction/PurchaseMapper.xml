@@ -8,6 +8,27 @@
         select * from purchase
     </select>
 
+    <select id="list" resultType="com.multi.y2k4.vo.transaction.Purchase">
+        select * from purchase
+        <where>
+            <if test="emp_id !=null">
+                emp_id = #{emp_id}
+            </if>
+            <if test="ac_id !=null">
+                ac_id = #{ac_id}
+            </if>
+            <if test="order_date !=null">
+                order_date = #{order_date}
+            </if>
+            <if test="del_date !=null">
+                del_date = #{del_date}
+            </if>
+            <if test="status!=null">
+                status = #{status}
+            </if>
+        </where>
+    </select>
+
     <insert id="addPurchase" parameterType="com.multi.y2k4.vo.transaction.Purchase" useGeneratedKeys="true" keyProperty="purchase_id" keyColumn="purchase_id">
         insert into purchase (emp_id, ac_id, order_date, del_date, total_price, status)
         values (#{emp_id}, #{ac_id}, #{order_date}, #{del_date}, #{total_price}, #{status})

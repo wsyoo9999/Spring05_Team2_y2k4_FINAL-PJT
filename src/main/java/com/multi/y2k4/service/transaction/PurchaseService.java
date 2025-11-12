@@ -6,6 +6,7 @@ import com.multi.y2k4.vo.transaction.Purchase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -18,4 +19,6 @@ public class PurchaseService {
     public List<Purchase> list_all(){
         return purchaseMapper.list_all();
     }
+    public List<Purchase> list(Integer emp_id, Integer ac_id, LocalDate order_date, LocalDate del_date, Integer status)
+        {return purchaseMapper.list(emp_id,ac_id,order_date,del_date,status);}
 }
