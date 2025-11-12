@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>작업지시서 추가</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --bg-light: #F8F9FA;
+            --text-dark: #333333;
+            --border-color: #E0E0E0;
+            --card-bg: #FFFFFF;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding: 20px;
+            margin: 0;
+        }
+        .form-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 20px 30px;
+        }
+        h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 15px;
+            color: var(--text-dark);
+            transition: border-color 0.2s;
+            box-sizing: border-box; /* 패딩 포함 크기 계산 */
+        }
+        .form-group input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        /* 폼 그룹을 2열로 배치하기 위한 그리드 */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .submit-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .submit-button:hover {
+            background-color: #3A7BD5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-card">
+    <h2><i class="fas fa-plus-circle"></i> 작업지시서 추가</h2>
+
+    <form method="POST" action="/api/production/work_order/add" id="form">
+        <div class="form-group">
+            <label for="stock_id">제품코드</label>
+            <input type="text" id="stock_id" name="stock_id" required>
+        </div>
+
+        <div class="form-group">
+            <label for="emp_id">담당자 ID</label>
+            <input type="text" id="emp_id" name="emp_id" required>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="start_date">시작일</label>
+                <input type="date" id="start_date" name="start_date" required>
+            </div>
+            <div class="form-group">
+                <label for="target_qty">목표수량</label>
+                <input type="number" id="target_qty" name="target_qty" min="1" required>
+            </div>
+        </div>
+        <br>
+        <button type="submit" class="submit-button">
+            <i class="fas fa-check"></i> 입력 완료
+        </button>
+    </form>
+</div>
+
+<script>
+    const form = document.getElementById("form");
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        try {
+            const result = await $.ajax({
+                url: form.action,
+                method: 'POST',
+                dataType: 'json',
+                data: $(form).serialize()
+            });
+
+            if (result === true) {
+                alert('✅ 작업지시서가 성공적으로 등록되었습니다.');
+                // 부모 창 새로고침
+                if (window.opener && !window.opener.closed) {
+                    const productionMenu = window.opener.document.querySelector('.menu[data-file="production"][data-fn="work_order_listAll"]');
+                    if(productionMenu) {
+                        productionMenu.click();
+                    } else {
+                        window.opener.location.reload();
+                    }
+                }
+                window.close(); // 알림 확인 후 닫힘
+            } else {
+                alert('❌ 입력에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('등록 실패:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        }
+    })
+</script>
+</body>
+</html>

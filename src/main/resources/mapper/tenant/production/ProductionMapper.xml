@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.multi.y2k4.mapper.tenant.ProductionMapper">
+<mapper namespace="com.multi.y2k4.mapper.tenant.production.ProductionMapper">
 
     <resultMap id="WorkOrderMap" type="com.multi.y2k4.vo.production.WorkOrder">
         <id property="work_order_id" column="work_order_id"/>
@@ -43,10 +43,30 @@
     </resultMap>
 
     <select id="getWorkOrderList" resultMap="WorkOrderMap">
-        SELECT * FROM work_order
+        SELECT
+        work_order_id,
+        stock_id,
+        emp_id,
+        start_date,
+        due_date,
+        target_qty,
+        good_qty,
+        defect_qty,
+        request_date,
+        CASE
+        WHEN order_status = 0 THEN '대기'
+        WHEN order_status = 1 THEN '진행중'
+        WHEN order_status = 2 THEN '완료'
+        ELSE '알 수 없음'
+        END AS order_status
+        FROM work_order
         <where>
             <if test="order_status != null and order_status != ''">
-                AND order_status = #{order_status}
+                <choose>
+                    <when test="order_status == '대기'"> AND order_status = 0 </when>
+                    <when test="order_status == '진행중'"> AND order_status = 1 </when>
+                    <when test="order_status == '완료'"> AND order_status = 2 </when>
+                </choose>
             </if>
             <if test="stock_id != null">
                 AND stock_id = #{stock_id}
@@ -100,6 +120,9 @@
             <if test="parent_stock_id != null">
                 AND parent_stock_id = #{parent_stock_id}
             </if>
+            <if test="child_stock_id != null">
+                AND child_stock_id = #{child_stock_id}
+            </if>
         </where>
     </select>
 
@@ -112,8 +135,33 @@
         VALUES (
                    #{stock_id}, #{emp_id}, #{start_date}, #{due_date},
                    #{target_qty}, #{request_date},
-                   0, 0, '대기'
+                   0, 0, 0
                )
     </insert>
+
+    <insert id="addBOM" parameterType="com.multi.y2k4.vo.production.BOM">
+        INSERT INTO bom (parent_stock_id, child_stock_id, required_qty)
+        VALUES (#{parent_stock_id}, #{child_stock_id}, #{required_qty})
+    </insert>
+    <delete id="deleteWorkOrder">
+        DELETE FROM work_order
+        WHERE work_order_id = #{work_order_id}
+    </delete>
+    <select id="getBOMById" resultMap="BOMMap">
+        SELECT bom_id, parent_stock_id, child_stock_id, required_qty
+        FROM bom
+        WHERE bom_id = #{bom_id}
+    </select>
+
+    <update id="updateBOM" parameterType="com.multi.y2k4.vo.production.BOM">
+        UPDATE bom
+        SET required_qty = #{required_qty}
+        WHERE bom_id = #{bom_id}
+    </update>
+
+    <delete id="deleteBOM">
+        DELETE FROM bom
+        WHERE bom_id = #{bom_id}
+    </delete>
 
 </mapper>
