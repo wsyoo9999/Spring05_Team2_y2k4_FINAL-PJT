@@ -76,7 +76,6 @@
             <button type="button" data-action="delete-doc" id="delete-doc-btn" class="delete-btn">삭제</button>
             <button type="button" data-action="approve" id="approve-btn" class="approve-btn" style="display:none;">승인</button>
             <button type="button" data-action="reject" id="reject-btn" class="reject-btn" style="display:none;">반려</button>
-            <button type="button" data-action="aggregate-slips" id="aggregate-slips-btn" style="display:none;">전표 생성</button>
         </div>
     </div>
 </div>
@@ -130,10 +129,7 @@
                 if (data.status === 'PENDING') {
                     document.getElementById('approve-btn').style.display = 'inline-block';
                     document.getElementById('reject-btn').style.display = 'inline-block';
-                } else if (data.status === 'APPROVED') {
-                    document.getElementById('aggregate-slips-btn').style.display = 'inline-block'; // 전표 생성 버튼
                 }
-
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('document-detail-content').style.display = 'block';
 
@@ -180,7 +176,7 @@
         }
     });
 
-    // 3. 액션 버튼 이벤트 리스너 (수정 모드, 삭제, 승인, 반려, 전표 생성)
+    // 3. 액션 버튼 이벤트 리스너 (수정 모드, 삭제, 승인, 반려)
     document.getElementById('action-buttons').addEventListener('click', async function(e) {
         const action = e.target.dataset.action;
         const docId = currentDocId;
@@ -208,14 +204,6 @@
                         data: { newStatus: newStatus, approverId: CURRENT_APPROVER_ID }
                     });
                     alert(`✅ 결재 상태가 ${newStatus}로 변경되었습니다.`);
-                    if (window.opener) window.opener.location.reload();
-                    window.close();
-                }
-            }
-            else if (action === 'aggregate-slips') { // API 10번
-                if (confirm(`승인된 문서 ID ${docId}를 기반으로 회계 전표를 생성하시겠습니까?`)) {
-                    const slips = await $.ajax({ url: `${API_BASE_URL}/${docId}/aggregate`, method: 'POST' });
-                    alert(`✅ 전표 생성 완료. 총 ${slips.length}개의 전표가 생성되었습니다.`);
                     if (window.opener) window.opener.location.reload();
                     window.close();
                 }
