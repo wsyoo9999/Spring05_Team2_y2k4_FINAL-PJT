@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>지출 등록</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f8f8f8; }
+        .detail-card { background: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 30px; max-width: 500px; margin: auto; }
+        h2 { border-bottom: 3px solid #DC3545; padding-bottom: 10px; margin-bottom: 25px; color: #DC3545; }
+        form label { display: block; margin-top: 15px; font-weight: bold; color: #333; }
+        form input[type="text"], form input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        form button { background-color: #DC3545; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 25px; display: block; width: 100%; }
+        form button:hover { background-color: #C82333; }
+    </style>
+</head>
+<body>
+
+<div class="detail-card">
+    <h2>➖ 지출 정보 등록</h2>
+
+    <form id="registerForm">
+        <label for="spendCode">지출 코드 (예: 201)</label>
+        <input type="number" id="spendCode" name="spendCode" required>
+
+        <label for="spendAmount">지출 액수 (원)</label>
+        <input type="number" id="spendAmount" name="spend" required step="0.01">
+
+        <label for="spendComment">비고</label>
+        <input type="text" id="spendComment" name="spendComment" maxlength="100">
+
+        <button type="submit">지출 등록 완료</button>
+    </form>
+</div>
+
+<script>
+    const API_BASE_URL = '/api/finance/spend';
+
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const spendData = {
+            spendCode: parseInt(document.getElementById('spendCode').value),
+            spend: parseFloat(document.getElementById('spendAmount').value),
+            spendComment: document.getElementById('spendComment').value
+            // spendDate는 서버에서 자동 생성됨
+        };
+
+        try {
+            const result = await $.ajax({
+                url: API_BASE_URL,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(spendData)
+            });
+
+            if (result && result.spendId) {
+                alert(`✅ 지출 정보가 성공적으로 등록되었습니다. (ID: ${result.spendId})`);
+                if (window.opener && !window.opener.closed) {
+                    // 부모 창의 목록 새로고침
+                    window.opener.document.querySelector('.menu[data-fn="spend_listAll"]').click();
+                }
+                window.close();
+            } else {
+                alert('❌ 지출 등록에 실패했습니다.');
+            }
+
+        } catch (error) {
+            console.error('지출 등록 실패:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        }
+    });
+</script>
+</html>

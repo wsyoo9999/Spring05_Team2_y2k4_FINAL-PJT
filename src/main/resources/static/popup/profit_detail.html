@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>수익 상세 및 수정</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f8f8f8; }
+        .detail-card { background: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 30px; max-width: 500px; margin: auto; }
+        h2 { border-bottom: 3px solid #50B86C; padding-bottom: 10px; margin-bottom: 25px; color: #50B86C; }
+        .info-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 15px; margin-bottom: 20px;}
+        .info-label { font-weight: bold; color: #555; }
+        .info-value { border-bottom: 1px dashed #ddd; padding-bottom: 5px; }
+
+        /* 폼 스타일 */
+        #updateForm label { display: block; margin-top: 15px; font-weight: bold; color: #333; }
+        #updateForm input[type="text"], #updateForm input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+
+        /* 액션 버튼 그룹 스타일 */
+        .form-actions-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+        }
+        .form-actions-group button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        /* 수정 완료 버튼 */
+        .submit-btn {
+            background-color: #4A90E2;
+            color: white;
+        }
+        .submit-btn:hover { background-color: #3A7BD5; }
+
+        /* 삭제 버튼 스타일 */
+        .delete-btn {
+            background-color: #dc3545; /* 붉은색 */
+            color: white;
+        }
+        .delete-btn:hover { background-color: #C82333; }
+    </style>
+</head>
+<body>
+
+<div class="detail-card">
+    <h2>💰 수익 상세 및 수정</h2>
+
+    <div id="loading" style="text-align: center;">데이터를 로드하는 중...</div>
+
+    <div id="profit-detail-content" style="display: none;">
+        <div class="info-grid">
+            <div class="info-label">수익 ID</div><div class="info-value" id="profitIdValue"></div>
+            <div class="info-label">수익 일자</div><div class="info-value" id="profitDateValue"></div>
+        </div>
+
+        <h3>수정 항목</h3>
+        <form id="updateForm">
+            <input type="hidden" id="currentProfitId">
+
+            <label for="new_profitCode">수익 코드</label>
+            <input type="number" id="new_profitCode" name="profitCode" required>
+
+            <label for="new_profitAmount">수익 액수 (원)</label>
+            <input type="number" id="new_profitAmount" name="profit" required step="0.01">
+
+            <label for="new_profitComment">비고</label>
+            <input type="text" id="new_profitComment" name="profitComment" maxlength="100">
+
+            <div class="form-actions-group">
+                <button type="submit" class="submit-btn">수익 수정 완료</button>
+                <button type="button" id="delete-btn" class="delete-btn">
+                    <i class="fas fa-trash"></i> 삭제
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_BASE_URL = '/api/finance/profit';
+    let currentProfitId = null;
+
+    function getProfitIdFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('profitId');
+    }
+
+    function formatNumber(num) {
+        return num ? new Intl.NumberFormat('ko-KR').format(num) + ' 원' : '0 원';
+    }
+
+    // 1. 상세 데이터 로드 (API 7-3번)
+    async function loadProfitDetail() {
+        const profitId = getProfitIdFromUrl();
+        currentProfitId = profitId;
+        document.getElementById('currentProfitId').value = profitId;
+
+        if (!profitId) { document.getElementById('loading').innerHTML = '<p style="color: red;">🚨 오류: 수익 ID가 전달되지 않았습니다.</p>'; return; }
+
+        try {
+            const data = await $.ajax({
+                url: `${API_BASE_URL}/${profitId}`,
+                method: 'GET',
+                dataType: 'json'
+            });
+
+            if (data && data.profitId) {
+                // 기본 정보 채우기
+                document.getElementById('profitIdValue').textContent = data.profitId;
+                document.getElementById('profitDateValue').textContent = data.profitDate ? data.profitDate.substring(0, 10) : '-';
+
+                // 폼 초기값 설정 (수정 폼)
+                document.getElementById('new_profitCode').value = data.profitCode;
+                document.getElementById('new_profitAmount').value = data.profit;
+                document.getElementById('new_profitComment').value = data.profitComment;
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('profit-detail-content').style.display = 'block';
+
+            } else {
+                document.getElementById('loading').innerHTML = `<p class="error-message">수익 ID ${profitId}에 대한 정보를 찾을 수 없습니다.</p>`;
+            }
+
+        } catch (err) {
+            console.error("수익 상세 로딩 실패:", err);
+            document.getElementById('loading').innerHTML = '<p style="color: red;">🚨 데이터 로딩 중 오류가 발생했습니다.</p>';
+        }
+    }
+
+    // 2. 폼 제출 (수정) 이벤트 처리 (API 7-4번)
+    document.getElementById('updateForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const profitId = document.getElementById('currentProfitId').value;
+
+        try {
+            const result = await $.ajax({
+                url: `${API_BASE_URL}/${profitId}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    profitId: profitId,
+                    profitCode: parseInt(document.getElementById('new_profitCode').value),
+                    profit: parseFloat(document.getElementById('new_profitAmount').value),
+                    profitComment: document.getElementById('new_profitComment').value
+                })
+            });
+
+            if (result && result.profitId) {
+                alert('✅ 수익 정보가 성공적으로 수정되었습니다.');
+                if (window.opener && !window.opener.closed) {
+                    // 부모 창의 목록 새로고침
+                    window.opener.document.querySelector('.menu[data-fn="profit_listAll"]').click();
+                }
+                window.close();
+            } else {
+                alert('❌ 정보 수정에 실패했습니다.');
+            }
+
+        } catch (error) {
+            console.error('정보 수정 실패:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        }
+    });
+
+    // 3. 삭제 이벤트 처리 (API 7-5번)
+    document.getElementById('delete-btn').addEventListener('click', async function() {
+        if (!confirm(`수익 ID ${currentProfitId}를 정말로 삭제하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            await $.ajax({
+                url: `${API_BASE_URL}/${currentProfitId}`,
+                method: 'DELETE'
+            });
+
+            alert(`✅ 수익 ID ${currentProfitId} 삭제 완료.`);
+            // 부모 창 목록 새로고침
+            if (window.opener && !window.opener.closed) {
+                window.opener.document.querySelector('.menu[data-fn="profit_listAll"]').click();
+            }
+            window.close();
+        } catch (error) {
+            console.error('수익 삭제 실패:', error);
+            alert('❌ 수익 삭제에 실패했습니다.');
+        }
+    });
+
+    $(document).ready(loadProfitDetail);
+</script>
+</html>
