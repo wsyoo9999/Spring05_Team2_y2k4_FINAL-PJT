@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.multi.y2k4.mapper.tenant.hr.AttendanceMapper">
+
+    <resultMap id="AttendanceMap" type="com.multi.y2k4.vo.hr.Attendance">
+        <id property="attendance_id" column="att_id"/>
+        <result property="emp_id" column="emp_id"/>
+        <result property="emp_name" column="emp_name"/>
+        <result property="work_date" column="work_date"/>
+        <result property="check_in" column="check_in_time"/>
+        <result property="check_out" column="check_out_time"/>
+        <result property="attendance_status" column="status_text"/>
+    </resultMap>
+
+    <sql id="attendanceSelect">
+        SELECT
+            a.att_id,
+            a.emp_id,
+            hr.emp_name,
+            DATE(a.att_date) AS work_date,
+            a.att_date       AS check_in_time,  a.clock_out      AS check_out_time, CASE a.att_status  WHEN 0 THEN '정상'
+            WHEN 1 THEN '지각'
+            WHEN 2 THEN '조퇴'
+            WHEN 3 THEN '결근'
+            ELSE '기타'
+        END AS status_text
+        FROM attendance a
+        LEFT JOIN human_resource hr ON a.emp_id = hr.emp_id
+    </sql>
+
+    <select id="getAttendanceList" resultMap="AttendanceMap">
+        <include refid="attendanceSelect"/>
+        <where>
+            <if test="search_keyword != null and search_keyword != ''">
+                AND (hr.emp_name LIKE CONCAT('%', #{search_keyword}, '%')
+                OR a.att_status = CASE
+                WHEN '정상' LIKE CONCAT('%', #{search_keyword}, '%') THEN 0
+                WHEN '지각' LIKE CONCAT('%', #{search_keyword}, '%') THEN 1
+                WHEN '조퇴' LIKE CONCAT('%', #{search_keyword}, '%') THEN 2
+                WHEN '결근' LIKE CONCAT('%', #{search_keyword}, '%') THEN 3
+                ELSE -1 END)
+            </if>
+            <if test="start_date != null">
+                AND DATE(a.att_date) <![CDATA[>=]]> #{start_date}
+            </if>
+            <if test="end_date != null">
+                AND DATE(a.att_date) <![CDATA[<=]]> #{end_date}
+            </if>
+        </where>
+        ORDER BY work_date DESC, a.emp_id ASC
+    </select>
+
+    <select id="getAttendanceDetail" resultMap="AttendanceMap">
+        <include refid="attendanceSelect"/>
+        WHERE a.att_id = #{attendanceId}
+    </select>
+
+    <update id="updateAttendanceStatus" parameterType="com.multi.y2k4.vo.hr.Attendance">
+        UPDATE attendance
+        SET
+            att_status = CASE #{attendance_status}
+                             WHEN '정상' THEN 0
+                             WHEN '지각' THEN 1
+                             WHEN '조퇴' THEN 2
+                             WHEN '결근' THEN 3
+                             ELSE att_status END
+        WHERE
+            att_id = #{attendance_id}
+    </update>
+
+</mapper>

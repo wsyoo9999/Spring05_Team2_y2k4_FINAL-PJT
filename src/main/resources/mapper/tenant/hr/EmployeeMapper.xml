@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.multi.y2k4.mapper.tenant.hr.EmployeeMapper">
+
+    <select id="getEmployeeList" resultType="com.multi.y2k4.vo.hr.Employee">
+        SELECT
+        emp_id,
+        emp_name,
+        dept_name,
+        position,
+        hire_date,
+        CASE status
+        WHEN 0 THEN '재직'
+        WHEN 1 THEN '휴직'
+        WHEN 2 THEN '퇴사'
+        ELSE '알 수 없음'
+        END AS status,
+        phone_number
+        FROM
+        human_resource
+        <where>
+            <if test="search_name != null and search_name != ''">
+                AND emp_name LIKE CONCAT('%', #{search_name}, '%')
+            </if>
+            <if test="search_dept != null and search_dept != ''">
+                AND dept_name LIKE CONCAT('%', #{search_dept}, '%')
+            </if>
+            <if test="search_position != null and search_position != ''">
+                AND position LIKE CONCAT('%', #{search_position}, '%')
+            </if>
+        </where>
+        ORDER BY
+        <choose>
+            <when test="sort == 'emp_id,desc'">emp_id DESC</when>
+            <when test="sort == 'emp_name,asc'">emp_name ASC</when>
+            <otherwise>emp_id ASC</otherwise>
+        </choose>
+    </select>
+
+    <select id="getEmployeeDetail" resultType="com.multi.y2k4.vo.hr.Employee">
+        SELECT
+            emp_id,
+            emp_name,
+            dept_name,
+            position,
+            hire_date,
+            CASE status
+                WHEN 0 THEN '재직'
+                WHEN 1 THEN '휴직'
+                WHEN 2 THEN '퇴사'
+                ELSE '알 수 없음'
+                END AS status,
+            phone_number
+        FROM human_resource
+        WHERE emp_id = #{empId}
+    </select>
+
+    <update id="updateEmployee" parameterType="com.multi.y2k4.vo.hr.Employee">
+        UPDATE human_resource
+        SET
+            dept_name = #{dept_name},
+            position = #{position},
+            status = CASE #{status}
+                         WHEN '재직' THEN 0
+                         WHEN '휴직' THEN 1
+                         WHEN '퇴사' THEN 2
+                         ELSE status
+                END
+        WHERE
+            emp_id = #{emp_id}
+    </update>
+
+</mapper>
