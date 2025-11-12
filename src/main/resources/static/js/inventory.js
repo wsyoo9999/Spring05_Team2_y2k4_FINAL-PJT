@@ -120,7 +120,7 @@ export function stock_search_form() {
       <div class="form-group">
         <label for="stock_name">물품명</label>
         <input type="text" id="stock_name" name="stock_name" placeholder="예: 드릴" />
-      </div>
+      </div> 
 
       <div class="form-group">
         <label for="storage_location">보관위치</label>
