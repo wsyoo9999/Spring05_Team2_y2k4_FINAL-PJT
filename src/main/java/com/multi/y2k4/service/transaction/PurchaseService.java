@@ -19,6 +19,6 @@ public class PurchaseService {
     public List<Purchase> list_all(){
         return purchaseMapper.list_all();
     }
-    public List<Purchase> list(Integer emp_id, Integer ac_id, LocalDate order_date, LocalDate del_date, Integer status)
-        {return purchaseMapper.list(emp_id,ac_id,order_date,del_date,status);}
+    public List<Purchase> list(Integer purchase_id,Integer emp_id, Integer ac_id, LocalDate order_date, LocalDate del_date, Integer status)
+        {return purchaseMapper.list(purchase_id,emp_id,ac_id,order_date,del_date,status);}
 }

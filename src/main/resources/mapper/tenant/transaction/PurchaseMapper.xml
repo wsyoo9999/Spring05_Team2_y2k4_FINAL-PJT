@@ -23,6 +23,9 @@
         LEFT JOIN human_resource hr ON hr.emp_id = p.emp_id
         LEFT JOIN accounts a ON a.ac_id   = p.ac_id
         <where>
+            <if test="purchase_id !=null">
+                AND p.purchase_id = #{purchase_id}
+            </if>
             <if test="emp_id !=null">
                 AND p.emp_id = #{emp_id}
             </if>

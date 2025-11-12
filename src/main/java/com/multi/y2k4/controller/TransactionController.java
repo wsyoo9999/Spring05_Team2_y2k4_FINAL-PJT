@@ -93,16 +93,18 @@ public class TransactionController {
     }
 
     @GetMapping("/purchase/list")
-    public List<Purchase> purchaseList(@RequestParam(required = false) Integer emp_id,
-                                       @RequestParam(required = false) Integer client_id,
-                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
-                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate del_date,
-                                       @RequestParam(required = false) String status,
+    public List<Purchase> purchaseList( @RequestParam(required = false) Integer purchase_id,
+                                        @RequestParam(required = false) Integer emp_id,
+                                        @RequestParam(required = false) Integer ac_id,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate del_date,
+                                        @RequestParam(required = false) Integer status,
                                        Model model) {
 
         //테스트를 위한 수동 리스트 값 생성
 
-        return purchaseService.list_all();
+        System.out.println(purchaseService.list(purchase_id,emp_id,ac_id,order_date,del_date,status));
+        return purchaseService.list(purchase_id,emp_id,ac_id,order_date,del_date,status);
     }
 
     @PostMapping("/purchase/add")
