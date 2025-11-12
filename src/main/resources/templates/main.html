@@ -433,6 +433,16 @@
         </div>
     </div>
 </div>
+<div th:if="${main_alert}">
+    <script th:inline="javascript">
+
+        /*<![CDATA[*/
+        alert([[${main_alert}]]);
+        /*]]>*/
+
+    </script>
+</body>
+</html>
 
 <script>
     // 아코디언 동작
