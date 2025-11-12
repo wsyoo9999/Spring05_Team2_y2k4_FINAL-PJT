@@ -586,9 +586,6 @@
 
         // 'add' 케이스가 'table' 컨테이너에서 다시 처리됨
         switch(table_event.dataset.action){
-            case 'edit':
-                // (구현 필요)
-                break;
             case 'add':
                 await addRecord(table_event); // .js가 만든 '추가' 버튼 처리
                 break;
