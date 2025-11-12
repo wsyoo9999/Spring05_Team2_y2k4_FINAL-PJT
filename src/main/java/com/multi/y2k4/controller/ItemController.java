@@ -32,28 +32,13 @@ public class ItemController {
         List<Stock> stockList = new ArrayList<>();
 
         Stock stock1 = new Stock();
-        stock1.setStock_id(1001);
-        stock1.setStock_name("고속절단기");
-        stock1.setStock_qty(5);
-        stock1.setUnit_price(120000);
-        stock1.setItem_status(0); // 정상
-        stock1.setStorage_location("A-01-03"); // 창고 구역 코드
-        stock1.setExpiration_date("6개월");
-        stock1.setGubun(1);
+        stock1.setStock_id(1);
+        stock1.setStock_name("덩기덕");
         stockList.add(stock1);
 
-
-//        System.out.println("총금액 테스트: " + item1.getTotal_price());
-
         Stock stock2 = new Stock();
-        stock2.setStock_id(1002);
-        stock2.setStock_name("산업용 드릴");
-        stock2.setStock_qty(2);
-        stock2.setUnit_price(350000);
-        stock2.setItem_status(1); // 불량
-        stock2.setStorage_location("B-02-05");
-        stock2.setExpiration_date("-");
-        stock2.setGubun(0);
+        stock2.setStock_id(2);
+        stock2.setStock_name("쿵따");
         stockList.add(stock2);
 
         return stockList;
@@ -75,29 +60,11 @@ public class ItemController {
         List<Inbound> inboundList = new ArrayList<>();
 
         Inbound inbound1 = new Inbound();
-        inbound1.setInbound_order(1);
-        inbound1.setStock_id(1001);
-        inbound1.setInbound_date(LocalDateTime.now().minusDays(2));  // 2일 전 입고
-        inbound1.setStock_name("고속절단기");
-        inbound1.setInbound_qty(5);
-        inbound1.setUnit_price(120000);
-        inbound1.getTotal_price();
-        inbound1.setSupplier("삼성상사");
-        inbound1.setManager("홍길동");
-        inbound1.setRemark("비고비고");
+        inbound1.setStock_id(1);
         inboundList.add(inbound1);
 
         Inbound inbound2 = new Inbound();
-        inbound2.setInbound_order(2);
-        inbound2.setStock_id(1002);
-        inbound2.setInbound_date(LocalDateTime.now().minusDays(1));  // 1일 전 입고
-        inbound2.setStock_name("산업용 드릴");
-        inbound2.setInbound_qty(2);
-        inbound2.setUnit_price(350000);
-        inbound2.getTotal_price();
-        inbound2.setSupplier("LG트레이딩");
-        inbound2.setManager("동길홍");
-        inbound2.setRemark("일이삼사오육칠팔구십일이삼사오육칠팔구십");
+        inbound2.setStock_id(2);
         inboundList.add(inbound2);
 
         return inboundList;
@@ -115,33 +82,14 @@ public class ItemController {
         List<Outbound> outboundList = new ArrayList<>();
 
         Outbound outbound1 = new Outbound();
-        outbound1.setOutbound_id(2001);
-        outbound1.setStock_id(1001);
-        outbound1.setOutbound_date(LocalDateTime.now().minusDays(1)); // 1일 전 출고
-        outbound1.setOutbound_qty(3);
-        outbound1.setOutbound_location("서울창고");
-        outbound1.setManager("길홍동");
-        outbound1.setRemark("-");
+        outbound1.setStock_id(1);
         outboundList.add(outbound1);
 
         Outbound outbound2 = new Outbound();
-        outbound2.setOutbound_id(2002);
-        outbound2.setStock_id(1002);
-        outbound2.setOutbound_date(LocalDateTime.now().minusDays(2)); // 2일 전 출고
-        outbound2.setOutbound_qty(5);
-        outbound2.setOutbound_location("부산물류센터");
-        outbound2.setManager("홍동길");
-        outbound2.setRemark("1");
+        outbound2.setStock_id(2);
         outboundList.add(outbound2);
 
         Outbound outbound3 = new Outbound();
-        outbound3.setOutbound_id(2003);
-        outbound3.setStock_id(1003);
-        outbound3.setOutbound_date(LocalDateTime.now()); // 오늘 출고
-        outbound3.setOutbound_qty(1);
-        outbound3.setOutbound_location("대전지점");
-        outbound3.setManager("길동홍");
-        outbound3.setRemark("1");
         outboundList.add(outbound3);
 
         return outboundList;
