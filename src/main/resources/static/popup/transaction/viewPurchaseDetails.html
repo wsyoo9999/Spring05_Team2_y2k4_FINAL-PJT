@@ -89,10 +89,10 @@
     // API 호출하여 상세 데이터 로드
     async function loadPurchaseDetail() {
         const purchase_id = new URLSearchParams(location.search).get('purchase_id');
-        let contentDiv;
+        const contentDiv = document.getElementById('purchase-detail-content');
 
         if (!purchase_id) {
-            contentDiv+=  '<p style="color: red;">🚨 오류: 구매 ID가 전달되지 않았습니다.</p>';
+            contentDiv.innerHTML = '<p style="color: red;">🚨 오류: 구매 ID가 전달되지 않았습니다.</p>';
             return;
         }
 
@@ -119,7 +119,7 @@
                 },
                 dataType: 'json'
             });
-            let html='';
+
             $.each(datas, function (i, data){
                 tbody +=`<tr>
                         <td >
@@ -144,14 +144,14 @@
                         </tr>`;
             })
             tbody += `</tbody></table>`;
-            contentDiv+=  table+tbody;
+            contentDiv.innerHTML =  table+tbody;
 
 
 
 
         } catch (err) {
             console.error("급여 상세 로딩 실패:", err);
-            contentDiv += '<p style="color: red;">🚨 데이터 로딩 중 오류가 발생했습니다.</p>';
+            contentDiv.innerHTML = '<p style="color: red;">🚨 데이터 로딩 중 오류가 발생했습니다.</p>';
         }
     }
 

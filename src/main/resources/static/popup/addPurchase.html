@@ -158,10 +158,14 @@
 <body>
 <form method="POST" action="/api/transaction/purchase/add" id="form">
     <label>담당자
-        <input type="text" name="emp_id" required>
+        <select id="emp_id" name="emp_id" required>
+            <option value="">로딩 중</option>
+        </select>
     </label>
     <label>거래처
-        <input type="text" name="ac_id" required>
+        <select id="ac_id" name="ac_id" required>
+            <option value="">로딩 중</option>
+        </select>
     </label><br>
     <label>주문 수주일
         <input type="date" name="order_date" required>
@@ -169,13 +173,16 @@
     <label>납기일
         <input type="date" name="del_date" required>
     </label><br>
+
     <div class = "detail">
         <label>제품명
             <input type="text" name="stock_id[]" required>
 
         </label><!--추후 이름으로 입력 되도록 변경-->
         <label>수량
-            <input type="text" name="qty[]" min="1" required>
+            <select id="stock_id" name="stock_id[]" required>
+                <option value="">로딩 중</option>
+            </select>
         </label>
         <label>가격
         <input type="number" name="price_per_unit[]" min="0.00" step="0.01" required>
@@ -231,5 +238,28 @@
 
 
     })
+
+    async function loadSelectForm(){
+        Promise.all([
+            $.ajax({    //담당자
+                url: `/api/hr/employees`, // 새로운 API 엔드포인트 호출
+                method: 'GET',
+                dataType: 'json'
+            }),
+
+            $.ajax({    //거래처
+                url: `/api/transaction/sale/viewSaleDetails`, // 새로운 API 엔드포인트 호출
+                method: 'GET',
+                dataType: 'json'
+            }),
+            $.ajax({    //물품 ID
+                url: `/api/inventory/stock`, // 새로운 API 엔드포인트 호출
+                method: 'GET',
+                dataType: 'json'
+            })
+
+            ]
+        ).then(response => {})
+    }
 </script>
 </html>
