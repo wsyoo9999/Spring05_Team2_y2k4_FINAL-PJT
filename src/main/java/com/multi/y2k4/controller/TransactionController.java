@@ -135,6 +135,16 @@ public class TransactionController {
 
     }
 
+    @PostMapping("/sale/editSaleStatus")
+    public boolean editSaleStatus(  @RequestParam Integer sale_id,
+                                    @RequestParam Integer status) {
+        Sale sale = new Sale();
+        sale.setSale_id(sale_id);
+        sale.setStatus(status);
+        saleService.editSaleStatus(sale);
+    return true;
+    }
+
     @GetMapping("/purchase/list")
     public List<Purchase> purchaseList( @RequestParam(required = false) Integer purchase_id,
                                         @RequestParam(required = false) Integer emp_id,
@@ -237,6 +247,22 @@ public class TransactionController {
         purchaseService.editPurchase(edit_purchase);
         purchaseDetailsService.deletePurchaseDetails(purchase_id);
         purchaseDetailsService.addPurchaseDetails(edit_purchaseDetail);
+        return true;
+    }
+    @PostMapping("/purchase/editPurchaseStatus")
+    @Transactional
+    public boolean editPurchaseStatus(  @RequestParam Integer purchase_id,
+                                        @RequestParam Integer[] pd_id,
+                                        @RequestParam Integer[] qty) {
+        Double total_price = 0.0;
+        for(int i = 0; i < pd_id.length; i++){
+            total_price+=(purchaseDetailsService.searchById(purchase_id).get(0).getPrice_per_unit())*qty[i];   //실제 수량을 통한 가격 계산, 추후를 위해 생성
+            purchaseDetailsService.editPurchaseDetailsQTY(pd_id[i],qty[i]);
+        }
+        Purchase p = new Purchase();
+        p.setStatus(1);
+        p.setPurchase_id(purchase_id);
+        purchaseService.editPurchaseStatus(p);
         return true;
     }
 }

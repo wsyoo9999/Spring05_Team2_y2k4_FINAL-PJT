@@ -27,7 +27,24 @@ export async function sale_listAll(){
     tbody= `<tbody>`;
     console.log(data);
     $.each(data, function (i, row){
-        tbody  +=`<tr>
+        let edit;
+        let editStatus;
+        if(row.status==1){
+            edit = `<button type="button"
+                                  onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
+                        <i class="fas fa-gear"></i>
+                        </button>`;
+            editStatus = `<button type="button"
+                                  onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
+                                <i class="fas fa-edit"></i>
+                            </button>`
+        }else{
+            edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSaleStatus">
+                                <i class="fas fa-gear"></i></button>`;
+            editStatus = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
+                                <i class="fas fa-edit"></i></button>`
+        }
+        tbody += `<tr>
                         <td class="emp-id"
                             data-value="${row.emp_id}"
                             style="cursor:pointer"
@@ -62,14 +79,10 @@ export async function sale_listAll(){
                           상세 보기
                         </td>
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="">
-                                <i class="fas fa-gear"></i>
-                            </button>
+                            `+edit+`
                         </td> 
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
-                                <i class="fas fa-edit"></i>
-                            </button>
+                            `+editStatus+`
                         </td> 
                         </tr>`;
         })
@@ -127,7 +140,24 @@ export async function sale_list(formData){
     tbody= `<tbody>`;
     console.log(data);
     $.each(data, function (i, row){
-        tbody +=`<tr>
+        let edit;
+        let editStatus;
+        if(row.status==1){
+            editStatus = `<button type="button"
+                                  onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
+                        <i class="fas fa-gear"></i>
+                        </button>`;
+            edit = `<button type="button"
+                                  onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
+                                <i class="fas fa-edit"></i>
+                            </button>`
+        }else{
+            editStatus = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSaleStatus">
+                                <i class="fas fa-gear"></i></button>`;
+            edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
+                                <i class="fas fa-edit"></i></button>`
+        }
+        tbody += `<tr>
                         <td class="emp-id"
                             data-value="${row.emp_id}"
                             style="cursor:pointer"
@@ -140,7 +170,7 @@ export async function sale_list(formData){
                             data-value="${row.ac_id}"
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
-                            onmouseout="this.style.color=''; this.style.fontWeight='';" 
+                            onmouseout="this.style.color=''; this.style.fontWeight='';"
                             data-action="detail" data-file="transaction" data-fn="addSale">
                           ${row.ac_name}
                         </td>
@@ -162,15 +192,11 @@ export async function sale_list(formData){
                           상세 보기
                         </td>
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="">
-                                <i class="fas fa-gear"></i>
-                            </button>
+                            `+editStatus+`
                         </td> 
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </td>  
+                            `+edit+`
+                        </td> 
                         </tr>`;
     })
     tbody += `</tbody></table>`;
@@ -215,6 +241,25 @@ export async function purchase_listAll(){
     tbody= `<tbody>`;
     console.log(data);
     $.each(data, function (i, row){
+        let edit;
+        let editStatus;
+        if(row.status==1){
+            editStatus = `<button type="button"
+                                  onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
+                        <i class="fas fa-gear"></i>
+                        </button>`;
+            edit = `<button type="button"
+                                  onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
+                                <i class="fas fa-edit"></i>
+                            </button>`
+        }else{
+            editStatus = ` <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchaseStatus">
+                                <i class="fas fa-gear"></i>
+                            </button>`;
+            edit= `<button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
+                                <i class="fas fa-edit"></i>
+                            </button>`
+        }
         tbody += `<tr>
                         <td class="emp-id"
                             data-value="${row.emp_id}"
@@ -250,14 +295,10 @@ export async function purchase_listAll(){
                           상세 보기
                         </td>
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="">
-                                <i class="fas fa-gear"></i>
-                            </button>
+                            `+editStatus+`
                         </td> 
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
-                                <i class="fas fa-edit"></i>
-                            </button>
+                            `+edit+`
                         </td> 
                         </tr>`;
     })
@@ -314,6 +355,25 @@ export async function purchase_list(formData){
     tbody= `<tbody>`;
     console.log(data);
     $.each(data, function (i, row){
+        let edit;
+        let editStatus;
+        if(row.status==1){
+            editStatus = `<button type="button"
+                                  onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
+                        <i class="fas fa-gear"></i>
+                        </button>`;
+            edit = `<button type="button"
+                                  onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
+                                <i class="fas fa-edit"></i>
+                            </button>`
+        }else{
+            editStatus = ` <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchaseStatus">
+                                <i class="fas fa-gear"></i>
+                            </button>`;
+            edit= `<button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
+                                <i class="fas fa-edit"></i>
+                            </button>`
+        }
         tbody += `<tr>
                         <td class="emp-id"
                             data-value="${row.emp_id}"
@@ -349,14 +409,10 @@ export async function purchase_list(formData){
                           상세 보기
                         </td>
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="">
-                                <i class="fas fa-gear"></i>
-                            </button>
+                            `+editStatus+`
                         </td> 
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
-                                <i class="fas fa-edit"></i>
-                            </button>
+                            `+edit+`
                         </td> 
                         </tr>`;
     })
@@ -481,8 +537,12 @@ export async function editPurchase(id) {
     if (child) child.focus();
 }
 
-export async function editPurchaseStatus() {
-    return addPurchase();
+export async function editPurchaseStatus(id) {
+    const base = './../popup/transaction/editPurchaseStatus.html';
+    const url  = `${base}?purchase_id=${encodeURIComponent(id)}`;
+    const features = 'width=1000,height=700,resizable=no,scrollbars=yes';
+    const child = window.open(url, 'ps_edit', features);
+    if (child) child.focus();
 }
 
 
@@ -494,6 +554,10 @@ export function editSale(id) {
     if (child) child.focus();
 }
 
-export async function editSaleStatus() {
-    return addSale();
+export async function editSaleStatus(id) {
+    const base = './../popup/transaction/editSaleStatus.html';
+    const url  = `${base}?sale_id=${encodeURIComponent(id)}`;
+    const features = 'width=1000,height=700,resizable=no,scrollbars=yes';
+    const child = window.open(url, 'ss_edit', features);
+    if (child) child.focus();
 }
