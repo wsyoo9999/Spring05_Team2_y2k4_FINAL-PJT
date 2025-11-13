@@ -37,6 +37,7 @@ export async function work_order_listAll() {
                                         data-file="production"
                                         data-fn="work_order_detail_popup"
                                         data-work-order-id="${row.work_order_id}"
+                                        data-value="${row.work_order_id}"
                                         title="상세 보기">
                                     <i class="fas fa-info-circle"></i>
                                 </button>
@@ -163,6 +164,7 @@ export async function work_order_list(formData) {
                                         data-file="production"
                                         data-fn="work_order_detail_popup"
                                         data-work-order-id="${row.work_order_id}"
+                                        data-value="${row.work_order_id}"
                                         title="상세 보기">
                                     <i class="fas fa-info-circle"></i>
                                 </button>
@@ -775,9 +777,9 @@ function getEquipmentStatusClass(status) {
     }
 }
 
-export async function work_order_detail_popup(e) {
+export async function work_order_detail_popup(work_order_id) {
 
-    const work_order_id = e.dataset.workOrderId;
+    // const work_order_id = e.dataset.workOrderId;
 
     if (!work_order_id) {
         alert('상세 정보를 불러올 수 없습니다. (work_order_id 누락)');
