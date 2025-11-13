@@ -331,9 +331,6 @@ export function inbound_search_form() {
             </button>
         </form>
     `;
-    <script>
-        const ac_
-    </script>
 }
 
 

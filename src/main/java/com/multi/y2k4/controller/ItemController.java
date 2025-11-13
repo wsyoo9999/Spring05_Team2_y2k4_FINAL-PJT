@@ -31,7 +31,7 @@ public class ItemController {
     public List<Stock> list(@RequestParam(required = false) String  stock_name,
                             @RequestParam(required = false) Integer qty,
                             @RequestParam(required = false) Integer unit_price,
-                            @RequestParam(required = false) String  location,
+                            @RequestParam(required = false) Integer  location,
                             @RequestParam(required = false) Integer type,
                             Model model) {
         // 서비스에 동일 시그니처가 있다고 가정
@@ -45,7 +45,7 @@ public class ItemController {
     public boolean addStock(@RequestParam String  stock_name,
                             @RequestParam Integer qty,
                             @RequestParam Integer unit_price,
-                            @RequestParam String  location,
+                            @RequestParam Integer  location,
                             @RequestParam Integer type) {
 
         Stock stock = new Stock();

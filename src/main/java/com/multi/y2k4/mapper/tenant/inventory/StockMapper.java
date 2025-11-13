@@ -12,7 +12,7 @@ public interface StockMapper {
     public List<Stock> list( @Param("stock_name")String stock_name,
                              @Param("qty")Integer qty,
                              @Param("unit_price")Integer unit_price,
-                             @Param("location")String location,
+                             @Param("location")Integer location,
                              @Param("type")Integer type);
     public int addStock(Stock stock);
     public int updateStock(Stock stock);
