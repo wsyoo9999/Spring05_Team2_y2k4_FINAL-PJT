@@ -117,6 +117,7 @@ public class TransactionController {
         double total_price = 0;
         for(int i = 0; i < stock_id.length; i++){
             SaleDetails saleDetail = new SaleDetails();
+            saleDetail.setSale_id(sale_id);
             saleDetail.setStock_id(stock_id[i]);
             saleDetail.setQty(qty[i]);
             saleDetail.setPrice_per_unit(price_per_unit[i]);
@@ -165,7 +166,7 @@ public class TransactionController {
         for(int i = 0; i < stock_id.length; i++){
             PurchaseDetails purchaseDetail = new PurchaseDetails();
             purchaseDetail.setStock_id(stock_id[i]);
-            purchaseDetail.setQty(qty[i]);
+            purchaseDetail.setPurchase_qty(qty[i]);
             purchaseDetail.setPrice_per_unit(price_per_unit[i]);
             purchaseDetail.setTotal_price(price_per_unit[i]*qty[i]);
             purchaseDetails.add(purchaseDetail);
@@ -177,6 +178,7 @@ public class TransactionController {
         purchase.setEmp_id(emp_id); //담당자
         purchase.setOrder_date(order_date);
         purchase.setDel_date(del_date);
+        purchase.setTotal_price(total_price);
         purchase.setStatus(0);
         purchaseService.addPurchase(purchase);
         int id = purchase.getPurchase_id();
@@ -196,6 +198,7 @@ public class TransactionController {
     }
 
     @PostMapping("/purchase/editPurchase")
+    @Transactional
     public boolean editPurchase(@RequestParam Integer purchase_id,
                                 @RequestParam Integer emp_id,
                                 @RequestParam Integer ac_id,
@@ -220,8 +223,9 @@ public class TransactionController {
         double total_price = 0;
         for(int i = 0; i < stock_id.length; i++){
             PurchaseDetails purchaseDetail = new PurchaseDetails();
+            purchaseDetail.setPurchase_id(purchase_id);
             purchaseDetail.setStock_id(stock_id[i]);
-            purchaseDetail.setQty(qty[i]);
+            purchaseDetail.setPurchase_qty(qty[i]);
             purchaseDetail.setPrice_per_unit(price_per_unit[i]);
             purchaseDetail.setTotal_price(price_per_unit[i]*qty[i]);
             edit_purchaseDetail.add(purchaseDetail);

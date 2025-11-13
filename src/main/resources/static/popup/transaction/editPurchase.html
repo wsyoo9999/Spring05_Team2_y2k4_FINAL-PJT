@@ -339,7 +339,7 @@
             }
             try{
                 const result = await $.ajax({
-                    url: this.action, method: 'PUT', dataType:'json',
+                    url: this.action, method: 'POST', dataType:'json',
                     data: $(this).serialize()
                 });
                 if(result === true || result?.success){

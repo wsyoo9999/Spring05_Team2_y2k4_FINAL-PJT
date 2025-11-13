@@ -36,7 +36,7 @@
                 AND s.order_date = #{order_date}
             </if>
             <if test="due_date !=null">
-                AND s.del_date = #{del_date}
+                AND s.due_date = #{due_date}
             </if>
             <if test="status!=null">
                 AND s.status = #{status}
@@ -50,13 +50,14 @@
     </insert>
 
     <update id="editSale" parameterType="com.multi.y2k4.vo.transaction.Sale">
-        UPDATE purchase
-        SET emp_id = #{emp_id}, ac_id = #{ac_id}, order_date = #{order_date}, del_date = #{del_date}, total_price = #{total_price}
+        UPDATE sale
+        SET emp_id = #{emp_id}, ac_id = #{ac_id}, order_date = #{order_date}, due_date
+            = #{due_date}, total_price = #{total_price}
         WHERE sale_id = #{sale_id}
     </update>
 
     <update id="editSaleStatus" parameterType="com.multi.y2k4.vo.transaction.Sale">
-        UPDATE purchase
+        UPDATE sale
         SET  status = #{status}
         WHERE sale_id = #{sale_id}
 

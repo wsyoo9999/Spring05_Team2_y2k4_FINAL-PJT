@@ -126,13 +126,13 @@
                           ${data.purchase_id}
                         </td>
                         <td>
-                          ${data.stock_id}
+                          ${data.stock_name}
                         </td>
                         <td>
                             ${data.purchase_qty}
                         </td>
                         <td>
-                            ${data.qty}
+                            ${data.qty == null ? '미정' : data.qty}
                         </td>
                         <td>
                             ${data.price_per_unit}

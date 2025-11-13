@@ -154,7 +154,7 @@ CREATE TABLE purchase_details (
                                   purchase_id    BIGINT UNSIGNED NOT NULL,
                                   stock_id       BIGINT UNSIGNED NOT NULL,
                                   purchase_qty            INT UNSIGNED NOT NULL,
-                                  qty            INT UNSIGNED NOT NULL,
+                                  qty            INT UNSIGNED,
                                   price_per_unit DECIMAL(15,2) NOT NULL,
                                   total_price    DECIMAL(15,2),
                                   CONSTRAINT fk_pl_purchase FOREIGN KEY (purchase_id) REFERENCES purchase(purchase_id) ON DELETE CASCADE,
