@@ -19,4 +19,6 @@ public class SaleDetailsService {
     public int addSaleDetails(List<SaleDetails> saleDetails) {
         return saleDetailsMapper.addSaleDetails(saleDetails);
     }
+
+    public int deleteSaleDetails(int sale_id) {return saleDetailsMapper.deleteSaleDetails(sale_id);}
 }

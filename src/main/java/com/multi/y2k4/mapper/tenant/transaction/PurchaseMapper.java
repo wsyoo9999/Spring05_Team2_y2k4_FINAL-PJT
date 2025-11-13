@@ -18,4 +18,6 @@ public interface PurchaseMapper {
                             @Param("order_date") LocalDate order_date,
                             @Param("del_date") LocalDate del_date,
                             @Param("status") Integer status);
+    public int editPurchase(Purchase purchase);
+    public int editPurchaseStatus(Purchase purchase);
 }

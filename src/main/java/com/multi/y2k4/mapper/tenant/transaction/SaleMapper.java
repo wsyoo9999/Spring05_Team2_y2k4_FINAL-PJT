@@ -18,4 +18,7 @@ public interface SaleMapper {
                             @Param("order_date") LocalDate order_date,
                             @Param("due_date") LocalDate due_date,
                             @Param("status") Integer status);
+
+    public int editSale(Sale sale);
+    public int editSaleStatus(Sale sale);
 }

@@ -21,4 +21,10 @@ public class PurchaseService {
     }
     public List<Purchase> list(Integer purchase_id,Integer emp_id, Integer ac_id, LocalDate order_date, LocalDate del_date, Integer status)
         {return purchaseMapper.list(purchase_id,emp_id,ac_id,order_date,del_date,status);}
+
+    public int editPurchase(Purchase purchase){
+        return purchaseMapper.editPurchase(purchase);
+    }
+    public int editPurchaseStatus(Purchase purchase){
+        return purchaseMapper.editPurchaseStatus(purchase);}
 }

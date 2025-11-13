@@ -15,4 +15,8 @@
         </foreach>
     </insert>
 
+    <delete id="deleteSaleDetails">
+        DELETE FROM sale_details WHERE sale_id = #{sale_id}
+    </delete>
+
 </mapper>

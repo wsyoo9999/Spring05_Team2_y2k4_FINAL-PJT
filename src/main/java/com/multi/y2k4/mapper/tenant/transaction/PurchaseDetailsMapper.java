@@ -11,4 +11,5 @@ import java.util.List;
 public interface PurchaseDetailsMapper {
     public List<PurchaseDetails> searchById(@Param("purchase_id") int purchase_id);
     public int addPurchaseDetails(@Param("purchaseDetails") List<PurchaseDetails> purchaseDetails);
+    public int deletePurchaseDetails(@Param("purchase_id") int purchase_id);
 }

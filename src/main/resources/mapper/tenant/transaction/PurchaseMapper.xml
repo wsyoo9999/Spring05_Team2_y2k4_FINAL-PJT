@@ -49,4 +49,17 @@
         values (#{emp_id}, #{ac_id}, #{order_date}, #{del_date}, #{total_price}, #{status})
     </insert>
 
+    <update id="editPurchase" parameterType="com.multi.y2k4.vo.transaction.Purchase">
+        UPDATE purchase
+        SET emp_id = #{emp_id}, ac_id = #{ac_id}, order_date = #{order_date}, del_date = #{del_date}, total_price = #{total_price}
+        WHERE purchase_id = #{purchase_id}
+    </update>
+
+    <update id="editPurchaseStatus" parameterType="com.multi.y2k4.vo.transaction.Purchase">
+        UPDATE purchase
+        SET  status = #{status}
+        WHERE purchase_id = #{purchase_id}
+
+    </update>
+
 </mapper>

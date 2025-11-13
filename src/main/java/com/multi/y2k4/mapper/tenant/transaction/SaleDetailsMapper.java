@@ -10,10 +10,10 @@ import java.util.List;
 @Mapper
 public interface SaleDetailsMapper {
 
-    List<SaleDetails> searchById(@Param("sale_id") int sale_id);
+    public List<SaleDetails> searchById(@Param("sale_id") int sale_id);
 
     public int addSaleDetails(@Param("saleDetails") List<SaleDetails> saleDetails);
 
-
+    public int deleteSaleDetails(@Param("sale_id") int sale_id);
 
 }

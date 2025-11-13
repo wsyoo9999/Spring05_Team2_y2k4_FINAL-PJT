@@ -20,4 +20,8 @@ public class PurchaseDetailsService {
     public int addPurchaseDetails(List<PurchaseDetails> purchaseDetails){
         return purchaseDetailsMapper.addPurchaseDetails(purchaseDetails);
     }
+
+    public int deletePurchaseDetails(int purchase_id){
+        return purchaseDetailsMapper.deletePurchaseDetails(purchase_id);
+    }
 }
