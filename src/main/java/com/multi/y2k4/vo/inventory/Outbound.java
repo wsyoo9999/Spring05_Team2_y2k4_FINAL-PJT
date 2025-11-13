@@ -18,4 +18,5 @@ public class Outbound {
     private int emp_id;  // 사원id(FK)
     private String emp_name; // 조인으로 받아오기
     private String remark;
+    private int approval;   // 결재승인상태 (0:대기, 1:승인, 2:반려)
 }

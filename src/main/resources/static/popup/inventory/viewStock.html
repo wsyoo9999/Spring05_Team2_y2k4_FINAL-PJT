@@ -107,48 +107,36 @@
 
         <div class="form-grid">
             <div class="form-group">
-                <label for="stock_qty">수량</label>
-                <input id="stock_qty" name="stock_qty" type="number" />
+                <label for="qty">수량(개)</label>
+                <input id="qty" name="qty" type="number" />
             </div>
             <div class="form-group">
-                <label for="unit_price">판매 단가</label>
+                <label for="unit_price">단가(원)</label>
                 <input id="unit_price" name="unit_price" type="number" />
             </div>
         </div>
 
         <div class="form-grid">
             <div class="form-group">
-                <label>물품상태</label>
-                <select name="stock_status">
-                    <option value="0">정상</option>
-                    <option value="1">불량</option>
-                    <option value="2">폐기</option>
-                    <option value="3">반납</option>
-                    <option value="4">보류</option>
-                </select>
+                <label for="location">보관 위치</label>
+                <input id="location" name="location" type="text" />
             </div>
             <div class="form-group">
-                <label for="storage_location">보관 위치</label>
-                <input id="storage_location" name="storage_location" type="text" />
-            </div>
-        </div>
-
-        <div class="form-grid">
-            <div class="form-group">
-                <label for="expiration_date">유통기한</label>
-                <input id="expiration_date" name="expiration_date" type="date" />
-            </div>
-            <div class="form-group">
-                <label>구분</label>
-                <select name="gubun">
+                <label for="type">구분</label>
+                <select name="type" id="type">
                     <option value="0">원자재</option>
                     <option value="1">판매상품</option>
                 </select>
             </div>
         </div>
 
+        <div>
+            <label for="comment">비고</label>
+            <input id="comment" name="comment" type="text" style="width:100%; height:39px; box-sizing:border-box;">
+        </div>
+
         <div class="submit-row">
-            <button type="submit" id="edit" class="submit-button">
+            <button type="button" id="edit" class="submit-button">
                 <i class="fas fa-check"></i> 수정
             </button>
         </div>
@@ -183,18 +171,6 @@
             if (el) el.value = (v ?? '');
         }
 
-        // 날짜가 'YYYY-MM-DD'가 아니어도 안전하게 변환
-        function toYmd(value){
-            if (!value) return '';
-            if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-            const d = new Date(value);
-            if (isNaN(d)) return '';
-            const y = d.getFullYear();
-            const m = String(d.getMonth()+1).padStart(2,'0');
-            const day = String(d.getDate()).padStart(2,'0');
-            return `${y}-${m}-${day}`;
-        }
-
         // 3) 로드 & 폼 채우기 (조회만)
         async function loadStock(id) {
             const urls = [
@@ -217,16 +193,14 @@
         function fillForm(s) {
             setById('stock_id',         s.stock_id);
             setById('stock_name',       s.stock_name);
-            setById('stock_qty',        s.stock_qty);
+            setById('qty',              s.qty);
             setById('unit_price',       s.unit_price);
-            setById('storage_location', s.storage_location);
-            setById('expiration_date',  toYmd(s.expiration_date)); // 안전 변환
+            setById('location',         s.location);
+            setById('type',             s.type);
             // 서버 키 호환: stock_status 없으면 item_status 사용
-            const statusEl = document.querySelector('select[name="stock_status"]');
-            if (statusEl) statusEl.value = String(s.stock_status ?? s.item_status ?? '');
 
-            const gubunEl = document.querySelector('select[name="gubun"]');
-            if (gubunEl) gubunEl.value = String(s.gubun ?? '');
+            const typeEl = document.querySelector('select[name="type"]');
+            if (typeEl) typeEl.value = String(s.type ?? '');
 
             // PK는 보통 수정 금지
             const pk = document.getElementById('stock_id');
@@ -235,7 +209,50 @@
 
         // 초기 로드 (조회만 수행)
         loadStock(stockId);
-    })();
+
+
+
+    })()
+    // 수정 버튼 클릭 → PUT /api/inventory/stock/{stock_id}
+    $('#edit').on('click', async function () {
+        const id = $('#stock_id').val();
+        if (!id) { alert('재고번호가 없습니다.'); return; }
+
+        const payload = {
+            stock_name: $('#stock_name').val(),
+            qty:        Number($('#qty').val()),
+            unit_price: Number($('#unit_price').val()),
+            location:   $('#location').val(),
+            type:       Number($('select[name="type"]').val())
+            // comment는 VO/DB에 없으면 전송하지 마세요(무시됨)
+        };
+
+        try {
+            await $.ajax({
+                url: `/api/inventory/stock/${encodeURIComponent(id)}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(payload)
+            });
+
+            alert('✅ 수정 완료');
+            if (window.opener && !window.opener.closed) {
+                try {
+                    if (typeof window.opener.reloadStockList === 'function') {
+                        window.opener.reloadStockList();
+                    } else {
+                        window.opener.location.reload();
+                    }
+                } catch(_) {}
+            }
+            window.close();
+        } catch (err) {
+            const status = err?.status;
+            const text   = err?.responseText;
+            console.error('수정 실패:', status, text, err);
+            alert(`❌ 수정 실패 (status=${status})\n${text ?? ''}`);
+        }
+    });;
 </script>
 </body>
 </html>

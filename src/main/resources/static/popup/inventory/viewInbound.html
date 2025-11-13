@@ -87,16 +87,12 @@
     <h2><i class="fas fa-box-open"></i> 입고 보기/수정</h2>
 
     <form id="inboundForm" autocomplete="off">
-        <div class="grid-2">
-            <div>
-                <label for="inbound_order">입고번호</label>
-                <input id="inbound_order" name="inbound_order" type="number" />
-            </div>
-            <div>
-                <label for="stock_id">재고코드</label>
-                <input id="stock_id" name="stock_id" type="number" />
-            </div>
+
+        <div>
+            <label for="inbound_id">입고번호</label>
+            <input id="inbound_id" name="inbound_id" type="number" />
         </div>
+
 
         <div class="grid-2">
             <div>
@@ -104,8 +100,8 @@
                 <input id="inbound_date" name="inbound_date" type="date" />
             </div>
             <div>
-                <label for="stock_name">재고명</label>
-                <input id="stock_name" name="stock_name" type="text" />
+                <label for="stock_id">재고코드</label>
+                <input id="stock_id" name="stock_id" type="text" />
             </div>
         </div>
 
@@ -122,12 +118,12 @@
 
         <div class="grid-2">
             <div>
-                <label for="supplier">공급업체</label>
-                <input id="supplier" name="supplier" type="text" />
+                <label for="ac_name">공급업체</label>
+                <input id="ac_name" name="ac_name" type="text" />
             </div>
             <div>
-                <label for="manager">담당자</label>
-                <input id="manager" name="manager" type="text" />
+                <label for="emp_name">담당자</label>
+                <input id="emp_name" name="emp_name" type="text" />
             </div>
         </div>
 
@@ -150,9 +146,9 @@
     (function () {
         const API_BASE = '/api/inventory/inbound';
 
-        // 1) URL에서 inbound_order 읽기 (예: ?inbound_order=10001)
+        // 1) URL에서 inbound_id 읽기 (예: ?inbound_id=10001)
         const params = new URLSearchParams(location.search);
-        const inboundOrder = params.get('inbound_order');
+        const inboundOrder = params.get('inbound_id');
 
         // 2) 응답 정규화 (rows / data / content / 배열 / 단건 모두 흡수)
         function normalize(data) {
@@ -188,7 +184,7 @@
         async function loadInbound(orderNo) {
             const urls = [
                 `${API_BASE}/${encodeURIComponent(orderNo)}`,
-                `${API_BASE}?inbound_order=${encodeURIComponent(orderNo)}`
+                `${API_BASE}?inbound_id=${encodeURIComponent(orderNo)}`
             ];
 
             for (const url of urls) {
@@ -204,18 +200,18 @@
         }
 
         function fillForm(r) {
-            setById('inbound_order', r.inbound_order);
-            setById('stock_id',      r.stock_id);
+            setById('inbound_id', r.inbound_id);
             setById('inbound_date',  toYmd(r.inbound_date)); // 안전 변환
+            setById('stock_id',      r.stock_id);
             setById('stock_name',    r.stock_name);
             setById('inbound_qty',   r.inbound_qty);
             setById('unit_price',    r.unit_price);
-            setById('supplier',      r.supplier);
-            setById('manager',       r.manager);
+            setById('ac_name',      r.ac_name);
+            setById('emp_name',       r.emp_name);
             setById('remark',        r.remark);
 
             // PK는 보통 수정 금지
-            const pk = document.getElementById('inbound_order');
+            const pk = document.getElementById('inbound_id');
             if (pk) pk.readOnly = true;
         }
 
