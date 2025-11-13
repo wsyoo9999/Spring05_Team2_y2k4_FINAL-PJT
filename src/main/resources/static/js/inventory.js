@@ -118,17 +118,28 @@ export function stock_search_form() {
     return `
     <form data-file="inventory" data-fn="items_list">
       <div class="form-group">
-        <label for="stock_name">물품명</label>
-        <input type="text" id="stock_name" name="stock_name" placeholder="예: 드릴" />
+        <label for="stock_name">물품명
+        <input type="text" id="stock_name" name="stock_name" placeholder="검색" />
+        </label>
       </div> 
 
       <div class="form-group">
-        <label for="storage_location">보관위치</label>
-        <input type="text" id="storage_location" name="storage_location" placeholder="예: A-01-03" />
+        <label for="location">보관위치
+        <input type="text" id="location" name="location" placeholder="검색" />
+        </label>
       </div>
+      
+      <div class="form-group">
+            <label>구분
+            <select>
+                <option value="">전체</option>
+                <option value="0">원자재</option>
+                <option value="1">판매상품</option>
+            </select>
+            </label>
+        </div>
 
-      <!-- 버튼은 submit 유지, 기존 search_btn 클래스 보존 + 스타일 클래스 추가 -->
-      <button type="submit" class="search_btn" data-actoin="search" data-file="inventory" data-fn="stock_list">
+      <button type="button" class="search_btn" data-actoin="search" data-file="inventory" data-fn="stock_list">
         <i class="fas fa-search" aria-hidden="true"></i><span>검색</span>
       </button>
     </form>
@@ -220,7 +231,7 @@ export async function inbound_listAll() {
                 <td>${row.ac_name}</td>  <!--조인하기-->
                 <td>${row.emp_name}</td>  <!--조인하기-->
                 <td class="actions">
-                    <button id="inbound_edit" data-value="${row.inbound_order}">
+                    <button id="inbound_edit" data-value="${row.inbound_id}">
                         <i class="fas fa-edit"></i>
                      </button>
                 </td>
@@ -285,7 +296,7 @@ export async function inbound_list(formData) {
                 <td>${row.ac_name}</td>  <!--조인하기-->
                 <td>${row.emp_name}</td>  <!--조인하기-->
                 <td class="actions">
-                    <button id="inbound_edit" data-value="${row.inbound_order}">
+                    <button id="inbound_edit" data-value="${row.inbound_id}">
                         <i class="fas fa-edit"></i>
                      </button>
                 </td>
@@ -315,11 +326,14 @@ export function inbound_search_form() {
             <label>입고일</label>
             <input type="date" name="inbound_date" />
         </div>
-            <button type="submit" class="search_btn" data-action="search" data-file="stock" data-fn="inbound_list">
+            <button type="button" class="search_btn" data-action="search" data-file="stock" data-fn="inbound_list">
                 <i class="fas fa-search">검색</i>
             </button>
         </form>
     `;
+    <script>
+        const ac_
+    </script>
 }
 
 
@@ -339,7 +353,7 @@ $(document).on('click', '#inbound_edit', function() {
 // 입고 조회 팝업 호출
 export function editInbound(value){
     console.log('클릭된 값:', value);
-    const url = `./../popup/inventory/viewInbound.html?inbound_order=${value}`;
+    const url = `./../popup/inventory/viewInbound.html?inbound_id=${value}`;
     const features = 'width=570,height=620,resizable=no,scrollbars=yes';
     window.open(url, 'view_inbound', features).focus();
 }
@@ -485,7 +499,7 @@ export function outbound_search_form() {
                 <input type="date" name="outbound_date" />
             </div>
 
-            <button type="submit" class="search_btn" data-action="search" data-file="stock" data-fn="outbond_list">
+            <button type="button" class="search_btn" data-action="search" data-file="stock" data-fn="outbond_list">
                 <i class="fas fa-search">검색</i>
             </button>
 <!--        </form>-->

@@ -9,7 +9,7 @@ import java.util.Objects;
 
 @Data
 public class Inbound {
-    private int inbound_order;         // 입고번호 (PK)
+    private int inbound_id;         // 입고번호 (PK)
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private LocalDateTime inbound_date;   // 입고시간
     private int stock_id;   // 재고 코드(FK)
@@ -20,6 +20,7 @@ public class Inbound {
     private int emp_id;  // 사원id(FK)
     private String emp_name; // 조인으로 받아오기
     private String remark;          // 비고
+    private int approval;   // 결재승인상태 (0:대기, 1:승인, 2:반려)
 
     public int getTotal_price() {
         return inbound_qty * unit_price;
