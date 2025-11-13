@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.multi.y2k4.mapper.finance.ProfitMapper">
+
+    <select id="listProfits" resultType="com.multi.y2k4.vo.finance.Profit">
+        SELECT
+        profit_id,
+        profit_code,
+        profit,
+        profit_date,
+        profit_comment
+        FROM
+        profit
+        <where>
+            <if test="profitCode != null">
+                AND profit_code = #{profitCode}
+            </if>
+            <if test="searchComment != null and searchComment != ''">
+                AND profit_comment LIKE CONCAT('%', #{searchComment}, '%')
+            </if>
+        </where>
+        ORDER BY profit_date DESC
+    </select>
+
+</mapper>
