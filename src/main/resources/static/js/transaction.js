@@ -62,7 +62,7 @@ export async function sale_listAll(){
                           상세 보기
                         </td>
                          <td  class = "actions">
-                            <button data-action = "edit" data-file="transaction" data-fn="editSale">
+                            <button data-action = "edit" data-file="transaction" data-fn="">
                                 <i class="fas fa-gear"></i>
                             </button>
                         </td> 
