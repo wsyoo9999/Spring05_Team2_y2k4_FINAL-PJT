@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -11,7 +12,7 @@ import java.util.Objects;
 public class Inbound {
     private int inbound_id;         // 입고번호 (PK)
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
-    private LocalDateTime inbound_date;   // 입고시간
+    private LocalDate inbound_date;   // 입고시간
     private int stock_id;   // 재고 코드(FK)
     private int inbound_qty;        // 입고수량
     private int unit_price;         // 단가

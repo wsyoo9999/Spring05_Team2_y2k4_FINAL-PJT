@@ -108,12 +108,12 @@
 
         <div class="form-grid">
             <div class="form-group">
-                <label for="outbound_location">출고처</label>
-                <input type="text" id="outbound_location" name="outbound_location" required>
+                <label for="ac_id">공급업체</label>
+                <input type="number" id="ac_id" name="ac_id" required>
             </div>
             <div class="form-group">
-                <label for="manager">담당자</label>
-                <input type="text" id="manager" name="manager" required>
+                <label for="emp_id">담당자</label>
+                <input type="number" id="emp_id" name="emp_id" required>
             </div>
         </div>
 
@@ -153,7 +153,7 @@
             // 서버가 true 또는 {success:true} 등을 반환해도 모두 성공 처리
             const ok = (result === true) || (result && (result.success === true || result.result === true));
             if (ok) {
-                alert('✅ 출고가 성공적으로 등록되었습니다.');
+                alert('출고가 성공적으로 등록되었습니다.');
                 // 부모창 새로고침(출고 리스트 메뉴가 있다면 클릭 트리거)
                 if (window.opener && !window.opener.closed) {
                     const menu = window.opener.document.querySelector('.menu[data-file="inventory"][data-fn="outbound_listAll"]');
@@ -162,11 +162,11 @@
                 }
                 window.close();
             } else {
-                alert('❌ 입력에 실패했습니다.');
+                alert('입력에 실패했습니다.');
             }
         } catch (error) {
             console.error('등록 실패:', error);
-            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+            alert('서버 통신 중 오류가 발생했습니다.');
         }
     });
 </script>

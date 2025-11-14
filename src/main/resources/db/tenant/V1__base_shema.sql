@@ -14,10 +14,8 @@ CREATE TABLE stock (
                        stock_name   VARCHAR(100) NOT NULL,
                        qty          INT UNSIGNED NOT NULL DEFAULT 0,
                        unit_price   DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-                       location     INT,
+                       location     VARCHAR(30),
                        type         tinyint,
-                       comments     Text
-
 );
 
 
@@ -63,41 +61,29 @@ CREATE TABLE lot (
 
 CREATE TABLE inbound (
                          inbound_id  BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                         emp_id      BIGINT UNSIGNED NOT NULL,
+                         inbound_date DATETIME NOT NULL,
+                         stock_id        BIGINT UNSIGNED NOT NULL,
+                         inbound_qty             INT UNSIGNED NOT NULL,
+                         unit_price      DECIMAL(15,2) DEFAULT 0.00,
                          ac_id       BIGINT UNSIGNED,
-                         inbound_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                         emp_id      BIGINT UNSIGNED NOT NULL,
+                         remark      varchar(200),
+                         approval tinyint NOT NULL
+                             CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
                          CONSTRAINT fk_inb_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id),
-                         CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
-);
-
-CREATE TABLE inbound_details (
-                                 id_id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                                 inbound_id      BIGINT UNSIGNED NOT NULL,
-                                 stock_id        BIGINT UNSIGNED NOT NULL,
-                                 qty             INT UNSIGNED NOT NULL,
-                                 unit_price      DECIMAL(15,2) DEFAULT 0.00,
-                                 CONSTRAINT fk_id_inbound   FOREIGN KEY (inbound_id) REFERENCES inbound(inbound_id) ON DELETE CASCADE,
-                                 CONSTRAINT fk_id_stock FOREIGN KEY (stock_id)    REFERENCES stock(stock_id)
 );
 
 CREATE TABLE outbound (
                           outbound_id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                          emp_id      BIGINT UNSIGNED NOT NULL,
+                          outbound_date DATETIME NOT NULL,
+                          stock_id         BIGINT UNSIGNED NOT NULL,
+                          outbound_qty              INT UNSIGNED NOT NULL,
                           ac_id       BIGINT UNSIGNED,
-                          outbound_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                          outbound_code INT,
+                          emp_id      BIGINT UNSIGNED NOT NULL,
+                          remark varchar(200),
+                          approval tinyint NOT NULL default 0
+                              CONSTRAINT fk_out_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
                           CONSTRAINT fk_out_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id),
-                          CONSTRAINT fk_out_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
-);
-
-CREATE TABLE outbound_details (
-                                  od_id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                                  outbound_id      BIGINT UNSIGNED NOT NULL,
-                                  stock_id         BIGINT UNSIGNED NOT NULL,
-                                  qty              INT UNSIGNED NOT NULL,
-                                  unit_price       DECIMAL(15,2) DEFAULT 0.00,
-                                  CONSTRAINT fk_od_outbound   FOREIGN KEY (outbound_id) REFERENCES outbound(outbound_id) ON DELETE CASCADE,
-                                  CONSTRAINT fk_od_stock FOREIGN KEY (stock_id)    REFERENCES stock(stock_id)
 );
 
 CREATE TABLE salary (

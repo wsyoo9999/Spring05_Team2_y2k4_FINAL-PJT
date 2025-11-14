@@ -4,48 +4,61 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.inventory.InboundMapper">
+
     <select id="list_all" resultType="com.multi.y2k4.vo.inventory.Inbound">
-        select * from inbound
+        SELECT *
+        FROM inbound
     </select>
 
     <select id="list" resultType="com.multi.y2k4.vo.inventory.Inbound">
-        select * from inbound
+        SELECT *
+        FROM inbound
         <where>
-            <if test="inbound_date !=null">
-                inbound_date = #{inbound_date}
+            <!-- inbound_date를 LocalDate로 받는다면 DATE()로 매칭 -->
+            <if test="inbound_date != null">
+                AND DATE(inbound_date) = #{inbound_date}
             </if>
-            <if test="stock_id !=null">
-                stock_id = #{stock_id}
+
+            <if test="stock_id != null">
+                AND stock_id = #{stock_id}
             </if>
-            <if test="ac_id!=null">
-                ac_id = #{ac_id}
+
+            <if test="ac_id != null">
+                AND ac_id = #{ac_id}
             </if>
-            <if test="emp_id!=null">
-                emp_id = #{emp_id}
+
+            <if test="emp_id != null">
+                AND emp_id = #{emp_id}
             </if>
-            <if test="approval">
-                approval = #{approval}
+
+            <if test="approval != null">
+                AND approval = #{approval}
             </if>
         </where>
     </select>
 
-    <insert id="addInbound" parameterType="com.multi.y2k4.vo.inventory.Inbound" useGeneratedKeys="true" keyProperty="inbound_id" keyColumn="inbound_id">
-        insert into inbound (inbound_date, stock_id, inbound_qty, unit_price, ac_id, emp_id, remark, approval)
-        values (#{inbound_date}, #{stock_id}, #{inbound_qty}, #{unit_price}, #{ac_id}, #{remark}, #{approval})
+    <insert id="addInbound"
+            parameterType="com.multi.y2k4.vo.inventory.Inbound"
+            useGeneratedKeys="true" keyProperty="inbound_id" keyColumn="inbound_id">
+        INSERT INTO inbound
+        (inbound_date, stock_id, inbound_qty, unit_price, ac_id, emp_id, remark, approval)
+        VALUES
+            (#{inbound_date}, #{stock_id}, #{inbound_qty}, #{unit_price}, #{ac_id}, #{emp_id}, #{remark}, #{approval})
     </insert>
 
     <update id="updateInbound" parameterType="com.multi.y2k4.vo.inventory.Inbound">
         UPDATE inbound
         <set>
-            <if test="inbound_date  != null"> inbound_date  = #{inbound_date},  </if>
-            <if test="stock_id        != null"> stock_id         = #{stock_id},        </if>
+            <if test="inbound_date != null"> inbound_date = #{inbound_date}, </if>
+            <if test="stock_id     != null"> stock_id     = #{stock_id},     </if>
             <if test="inbound_qty  != null"> inbound_qty  = #{inbound_qty},  </if>
-            <if test="unit_price   != null"> unit_price    = #{unit_price},   </if>
-            <if test="ac_id       != null"> ac_id        = #{ac_id},       </if>
-            <if test="emp_id       != null"> emp_id        = #{emp_id},       </if>
-            remark        = #{remark}
-            <if test="approval       != null"> approval        = #{approval},       </if>
+            <if test="unit_price   != null"> unit_price   = #{unit_price},   </if>
+            <if test="ac_id        != null"> ac_id        = #{ac_id},        </if>
+            <if test="emp_id       != null"> emp_id       = #{emp_id},       </if>
+            remark = #{remark},
+            <if test="approval     != null"> approval     = #{approval},     </if>
         </set>
         WHERE inbound_id = #{inbound_id}
     </update>
+
 </mapper>
