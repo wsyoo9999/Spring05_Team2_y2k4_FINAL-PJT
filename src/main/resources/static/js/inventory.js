@@ -172,7 +172,7 @@ $(document).on('click', '#stock_edit', function() {
 export function editStock(value){
     console.log('클릭된 값:', value);
     const url = `./../popup/inventory/viewStock.html?stock_id=${value}`;
-    const features = 'width=570,height=520,resizable=no,scrollbars=yes';
+    const features = 'width=570,height=400,resizable=no,scrollbars=yes';
     window.open(url, 'view_stock', features).focus();
 }
 

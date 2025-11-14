@@ -14,5 +14,6 @@ public interface InboundMapper {
                               @Param("emp_id")Integer emp_id,
                               @Param("approval")Integer approval);
     public int addInbound(Inbound inbound);
+    public Inbound selectInboundById(int inbound_id);
     public int updateInbound(Inbound inbound);
 }

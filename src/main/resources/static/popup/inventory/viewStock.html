@@ -130,11 +130,6 @@
             </div>
         </div>
 
-        <div>
-            <label for="comment">비고</label>
-            <input id="comment" name="comment" type="text" style="width:100%; height:39px; box-sizing:border-box;">
-        </div>
-
         <div class="submit-row">
             <button type="button" id="edit" class="submit-button">
                 <i class="fas fa-check"></i> 수정
@@ -173,20 +168,16 @@
 
         // 3) 로드 & 폼 채우기 (조회만)
         async function loadStock(id) {
-            const urls = [
-                `${API_BASE}/${encodeURIComponent(id)}`,
-                `${API_BASE}?stock_id=${encodeURIComponent(id)}`
-            ];
+            const url = `${API_BASE}/${encodeURIComponent(id)}`;  // 첫 번째만 사용
 
-            for (const url of urls) {
-                try {
-                    const data = await $.ajax({ url, method:'GET', dataType:'json' });
-                    const s = normalize(data);
-                    if (s) { fillForm(s); return; }
-                } catch (e) {
-                    // 다음 URL 시도
-                }
+            try {
+                const data = await $.ajax({ url, method:'GET', dataType:'json' });
+                const s = normalize(data);
+                if (s) { fillForm(s); return; }
+            } catch (e) {
+                console.error('로드 실패:', e);
             }
+
             alert('데이터를 불러오지 못했습니다.');
         }
 
@@ -235,7 +226,7 @@
                 data: JSON.stringify(payload)
             });
 
-            alert('✅ 수정 완료');
+            alert('수정 완료');
             if (window.opener && !window.opener.closed) {
                 try {
                     if (typeof window.opener.reloadStockList === 'function') {
@@ -250,9 +241,9 @@
             const status = err?.status;
             const text   = err?.responseText;
             console.error('수정 실패:', status, text, err);
-            alert(`❌ 수정 실패 (status=${status})\n${text ?? ''}`);
+            alert(`수정 실패 (status=${status})\n${text ?? ''}`);
         }
-    });;
+    });
 </script>
 </body>
 </html>

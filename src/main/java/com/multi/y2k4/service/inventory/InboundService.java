@@ -2,6 +2,7 @@ package com.multi.y2k4.service.inventory;
 
 import com.multi.y2k4.mapper.tenant.inventory.InboundMapper;
 import com.multi.y2k4.vo.inventory.Inbound;
+import com.multi.y2k4.vo.inventory.Stock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ public class InboundService {
         return inboundMapper.addInbound(inbound);
     }
 
+    public Inbound selectInboundById(Integer inbound_id) { return inboundMapper.selectInboundById(inbound_id);  }
     public int updateInbound(Inbound inbound) {
         return inboundMapper.updateInbound(inbound);
     }
