@@ -7,6 +7,7 @@ import com.multi.y2k4.service.hr.EmployeeService; // ✨ 1. EmployeeService만 �
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+import com.multi.y2k4.service.hr.AttendanceService;
 
 import java.time.LocalDate;
 import java.util.Collections; // ✨ 2. Collections 임포트 (빈 목록 반환용)
@@ -20,6 +21,7 @@ public class HRController {
 
     // 5. EmployeeService만 주입
     private final EmployeeService employeeService;
+    private final AttendanceService attendanceService;
 
 
     // ================================================================
@@ -59,39 +61,72 @@ public class HRController {
         return employeeService.updateEmployee(updatedEmp);
     }
 
-    // ================================================================
-    // 2. 근태 관리 ( 임시로 빈 값 반환 - 추후 연동)
+    /**
+     * [추가] 신규 직원 등록 (addEmployee.html 팝업에서 호출)
+     */
+    @PostMapping("/employees/add")
+    public boolean addEmployee(
+            @RequestParam String emp_name,
+            @RequestParam String position,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hire_date,
+            @RequestParam String status,
+            @RequestParam(required = false) String dept_name,
+            @RequestParam(required = false) String phone_number
+    ) {
+        try {
+            Employee newEmployee = new Employee();
+            newEmployee.setEmp_name(emp_name);
+            newEmployee.setPosition(position);
+            newEmployee.setHire_date(hire_date);
+            newEmployee.setStatus(status);
+            newEmployee.setDept_name(dept_name);
+            newEmployee.setPhone_number(phone_number);
+
+            return employeeService.addEmployee(newEmployee) > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+// ================================================================
+    // 2. 근태 관리 ( [수정] Service와 연결 )
     // ================================================================
 
     /**
-     * 근태 현황 조회
+     * [추가] 일일 근태 기록 일괄 생성 API
      */
+    @PostMapping("/attendance/generate")
+    public boolean generateDailyAttendance() {
+        try {
+            return attendanceService.generateDailyAttendance();
+        } catch (Exception e) {
+            // (예: 중복 키 오류 등)
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     @GetMapping("/attendance")
     public List<Attendance> getAttendanceList(
             @RequestParam(required = false) String search_keyword,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start_date,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end_date) {
 
-        // ✨ 7. 서비스 없이 빈 목록 반환
-        return Collections.emptyList();
+        // [수정] 실제 서비스 호출
+        return attendanceService.getAttendanceList(search_keyword, start_date, end_date);
     }
 
-    /**
-     * 근태 기록 상세 조회
-     */
     @GetMapping("/attendance/{attendanceId}")
     public Attendance getAttendanceDetail(@PathVariable Integer attendanceId) {
-        // ✨ 7. 서비스 없이 null 반환
-        return null;
+        // [수정] 실제 서비스 호출
+        return attendanceService.getAttendanceDetail(attendanceId);
     }
 
-    /**
-     * 근태 기록 상태 수정
-     */
     @PutMapping("/attendance/{attendanceId}")
     public boolean updateAttendanceStatus(@PathVariable Integer attendanceId, @RequestBody Attendance updatedAtt) {
-        // 7. 서비스 없이 false 반환
-        return false;
+        // [수정] 실제 서비스 호출
+        updatedAtt.setAttendance_id(attendanceId); // URL의 ID를 VO에 설정
+        return attendanceService.updateAttendanceStatus(updatedAtt);
     }
 
     // ================================================================

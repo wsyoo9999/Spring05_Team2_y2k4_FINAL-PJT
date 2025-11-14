@@ -71,4 +71,25 @@
             att_id = #{attendance_id}
     </update>
 
+    <insert id="addBulkAttendance" parameterType="java.util.List">
+        INSERT INTO attendance
+        (emp_id, att_date, clock_out, att_status)
+        VALUES
+        <foreach collection="attendanceList" item="att" separator=",">
+            (
+            #{att.emp_id},
+            #{att.check_in},  #{att.check_out}, CASE #{att.attendance_status}
+            WHEN '정상' THEN 0
+            WHEN '지각' THEN 1
+            WHEN '조퇴' THEN 2
+            WHEN '결근' THEN 3
+            ELSE 0
+            END
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        att_date = VALUES(att_date),
+        clock_out = VALUES(clock_out),
+        att_status = VALUES(att_status)
+    </insert>
 </mapper>
