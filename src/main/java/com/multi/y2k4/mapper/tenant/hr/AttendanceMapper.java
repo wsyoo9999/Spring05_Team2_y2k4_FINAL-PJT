@@ -32,4 +32,9 @@ public interface AttendanceMapper {
      * 근태 상태 수정
      */
     int updateAttendanceStatus(Attendance attendance);
+
+    /**
+     * [추가] 근태 기록 일괄 등록
+     */
+    int addBulkAttendance(@Param("attendanceList") List<Attendance> attendanceList);
 }

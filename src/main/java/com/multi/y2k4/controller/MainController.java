@@ -2,9 +2,12 @@ package com.multi.y2k4.controller;
 
 
 
+import com.multi.y2k4.db.TenantContext;
 import com.multi.y2k4.service.db.DBService;
 import com.multi.y2k4.service.db.TenantSchemaService;
+import com.multi.y2k4.service.hr.EmployeeService;
 import com.multi.y2k4.service.management.UserService;
+import com.multi.y2k4.vo.hr.Employee;
 import com.multi.y2k4.vo.user.UserVO;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +17,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
+
 @Controller
 @RequiredArgsConstructor
 
@@ -22,6 +27,7 @@ public class MainController {
     private final UserService userService;
     private final DBService dbService;
     private final TenantSchemaService tenantSchemaService;
+    private final EmployeeService employeeService;
 
 
 
@@ -57,7 +63,28 @@ public class MainController {
                 dbService.createDatabase(dbName);
                 // 4-1) 테이블도 생성
                 tenantSchemaService.migrate(dbName);
+
+                // --- [수정] 첫 가입자 자동 등록 로직 ---
+                // 5) EmployeeService가 올바른 DB를 바라보도록 현재 스레드에 DB 이름 설정
+                TenantContext.setCurrentDb(dbName);
+                try {
+                    // 6) 인사 테이블에 등록할 Employee 객체 생성
+                    Employee firstEmployee = new Employee();
+                    firstEmployee.setEmp_name(user.getName()); // 회원가입 시 입력한 이름 사용
+                    firstEmployee.setHire_date(LocalDate.now()); // 오늘 날짜로 자동 입사 처리
+                    firstEmployee.setStatus("재직"); // 재직 상태
+                    firstEmployee.setPosition("관리자"); //
+
+                    // 7) 인사(human_resource) 테이블에 추가
+                    employeeService.addEmployee(firstEmployee);
+
+                } catch (Exception e) {
+                    // 만약 등록 실패 시 로그 기록 (DB는 이미 생성된 상태)
+                    System.err.println("최초 관리자 직원 등록 실패: " + dbName + " / " + e.getMessage());
+                }
+                // ------------------------------------
             }
+
             httpSession.setAttribute("id", user.getId());
             httpSession.setAttribute("LOGIN_DB_NAME", dbName);
             return "redirect:/";

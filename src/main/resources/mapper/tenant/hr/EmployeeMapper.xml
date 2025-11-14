@@ -73,4 +73,18 @@
             emp_id = #{emp_id}
     </update>
 
+    <insert id="addEmployee" parameterType="com.multi.y2k4.vo.hr.Employee" useGeneratedKeys="true" keyProperty="emp_id">
+        INSERT INTO human_resource
+            (emp_name, dept_name, position, hire_date, status, phone_number)
+        VALUES
+            (#{emp_name}, #{dept_name}, #{position}, #{hire_date},
+             CASE #{status}
+                 WHEN '재직' THEN 0
+                 WHEN '휴직' THEN 1
+                 WHEN '퇴사' THEN 2
+                 ELSE 0
+                 END,
+             #{phone_number})
+    </insert>
+
 </mapper>
