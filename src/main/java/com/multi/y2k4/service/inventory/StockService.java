@@ -24,6 +24,8 @@ public class StockService {
     public int addStock(Stock stock) {
         return stockMapper.addStock(stock);
     }
+
+    public Stock selectStockById(Integer stock_id) { return stockMapper.selectStockById(stock_id);  }
     public int updateStock(Stock stock) {
         return stockMapper.updateStock(stock);
     }

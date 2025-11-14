@@ -36,6 +36,11 @@
         values (#{stock_name}, #{qty}, #{unit_price}, #{location}, #{type})
     </insert>
 
+    <select id="selectStockById" resultType="com.multi.y2k4.vo.inventory.Stock">
+        SELECT * FROM stock
+        WHERE stock_id = #{stock_id}
+    </select>
+
     <update id="updateStock" parameterType="com.multi.y2k4.vo.inventory.Stock">
         UPDATE stock
         <set>
@@ -47,4 +52,6 @@
         </set>
         WHERE stock_id = #{stock_id}
     </update>
+
+
 </mapper>

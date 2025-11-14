@@ -66,6 +66,18 @@ public class ItemController {
         return affected == 1;
     }
 
+    // 단건 조회
+    @GetMapping("/stock/{stock_id}")
+    public ResponseEntity<Stock> selectStockById(@PathVariable Integer stock_id) {
+        Stock stock = stockService.selectStockById(stock_id);
+
+        if (stock == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(stock);
+    }
+
     @PutMapping(value = "/stock/{stock_id}", consumes = "application/json")
     public ResponseEntity<Void> update(@PathVariable("stock_id") Integer stock_id,
                                        @RequestBody Stock body) {
@@ -125,6 +137,16 @@ public class ItemController {
         return affected == 1;
     }
 
+    @GetMapping("/inbound/{inbound_id}")
+    public ResponseEntity<Inbound> selectInboundById(@PathVariable Integer inbound_id) {
+        Inbound inbound = inboundService.selectInboundById(inbound_id);
+
+        if (inbound == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(inbound);
+    }
     @PutMapping(value = "/inbound/{inbound_id}", consumes = "application/json")
     public ResponseEntity<Void> update(@PathVariable("inbound_id") Integer inbound_id,
                                        @RequestBody Inbound body) {

@@ -15,5 +15,6 @@ public interface StockMapper {
                              @Param("location")String location,
                              @Param("type")Integer type);
     public int addStock(Stock stock);
+    Stock selectStockById(int stock_id);
     public int updateStock(Stock stock);
 }
