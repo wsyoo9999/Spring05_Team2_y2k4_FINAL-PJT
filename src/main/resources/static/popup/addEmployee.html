@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>신규 직원 등록</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2; --bg-light: #F8F9FA; --text-dark: #333333;
+            --border-color: #E0E0E0; --card-bg: #FFFFFF;
+        }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-light); color: var(--text-dark); padding: 20px; margin: 0; }
+        .form-card { background: var(--card-bg); border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 20px 30px; }
+        h2 { font-size: 22px; font-weight: 700; color: var(--text-dark); border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; font-size: 14px; }
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group input[type="tel"],
+        .form-group select {
+            width: 100%; padding: 10px; border: 1px solid var(--border-color);
+            border-radius: 5px; font-size: 15px; color: var(--text-dark); box-sizing: border-box;
+        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .submit-button { background-color: var(--primary-color); color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: 500; width: 100%; margin-top: 10px; }
+        .submit-button:hover { background-color: #3A7BD5; }
+    </style>
+</head>
+<body>
+
+<div class="form-card">
+    <h2><i class="fas fa-user-plus"></i> 신규 직원 등록</h2>
+
+    <form method="POST" action="/api/hr/employees/add" id="form">
+
+        <div class="form-group">
+            <label for="emp_name">이름</label>
+            <input type="text" id="emp_name" name="emp_name" required>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="dept_name">부서</label>
+                <input type="text" id="dept_name" name="dept_name" placeholder="예: 인사팀">
+            </div>
+            <div class="form-group">
+                <label for="position">직급</label>
+                <input type="text" id="position" name="position" placeholder="예: 사원" required>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="hire_date">입사일</label>
+                <input type="date" id="hire_date" name="hire_date" required>
+            </div>
+            <div class="form-group">
+                <label for="status">재직 상태</label>
+                <select id="status" name="status">
+                    <option value="재직" selected>재직</option>
+                    <option value="휴직">휴직</option>
+                    <option value="퇴사">퇴사</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="phone_number">연락처</label>
+            <input type="tel" id="phone_number" name="phone_number" placeholder="예: 010-1234-5678">
+        </div>
+
+        <button type="submit" class="submit-button">
+            <i class="fas fa-check"></i> 등록 완료
+        </button>
+    </form>
+</div>
+<script>
+    // 입사일 기본값을 오늘 날짜로 설정
+    (function setToday(){
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        document.getElementById('hire_date').value = `${y}-${m}-${day}`;
+    })();
+
+    // 폼 제출 (AJAX)
+    const form = document.getElementById("form");
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        try {
+            const result = await $.ajax({
+                url: form.action,
+                method: 'POST',
+                dataType: 'json',
+                data: $(form).serialize() // 폼 데이터를 직렬화하여 전송
+            });
+
+            if (result === true) {
+                alert('✅ 직원이 성공적으로 등록되었습니다.');
+                // 부모 창(main.html)의 직원 목록 새로고침
+                if (window.opener && !window.opener.closed) {
+                    const menu = window.opener.document.querySelector('.menu[data-file="hr"][data-fn="employees_listAll"]');
+                    if(menu) menu.click(); // 목록 새로고침
+                }
+                window.close();
+            } else {
+                alert('❌ 등록에 실패했습니다. (login_id가 중복되었거나 서버 오류)');
+            }
+        } catch (error) {
+            console.error('등록 실패:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        }
+    });
+</script>
+</body>
+</html>

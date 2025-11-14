@@ -15,7 +15,7 @@ CREATE TABLE stock (
                        qty          INT UNSIGNED NOT NULL DEFAULT 0,
                        unit_price   DECIMAL(15,2) NOT NULL DEFAULT 0.00,
                        location     VARCHAR(30),
-                       type         tinyint,
+                       type         tinyint
 );
 
 
@@ -68,9 +68,9 @@ CREATE TABLE inbound (
                          ac_id       BIGINT UNSIGNED,
                          emp_id      BIGINT UNSIGNED NOT NULL,
                          remark      varchar(200),
-                         approval tinyint NOT NULL
-                             CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
-                         CONSTRAINT fk_inb_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id),
+                         approval tinyint NOT NULL,
+                         CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id),
+                         CONSTRAINT fk_inb_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id)
 );
 
 CREATE TABLE outbound (
@@ -81,9 +81,9 @@ CREATE TABLE outbound (
                           ac_id       BIGINT UNSIGNED,
                           emp_id      BIGINT UNSIGNED NOT NULL,
                           remark varchar(200),
-                          approval tinyint NOT NULL default 0
-                              CONSTRAINT fk_out_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
-                          CONSTRAINT fk_out_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id),
+                          approval tinyint NOT NULL default 0,
+                          CONSTRAINT fk_out_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id),
+                          CONSTRAINT fk_out_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id)
 );
 
 CREATE TABLE salary (
