@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>거래처 수정</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        :root{
+            --primary-color:#4A90E2;
+            --bg-light:#F8F9FA;
+            --text-dark:#333333;
+            --border-color:#E0E0E0;
+            --card-bg:#FFFFFF;
+        }
+        html,body{height:100%}
+        body{
+            margin:0; background:var(--bg-light); color:var(--text-dark);
+            font-family:'Noto Sans KR', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            padding:24px; display:flex; align-items:flex-start; justify-content:center; box-sizing:border-box;
+        }
+        .wrap{ width:min(1080px, 100%); }
+        .title{ font-weight:700; font-size:20px; margin-bottom:14px; color:#2c3e50; }
+
+        .card{
+            background:var(--card-bg);
+            border:1px solid var(--border-color);
+            border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,.06);
+            padding:18px 20px;
+        }
+
+
+        .form-grid{
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+        }
+        .form-grid label{
+            display:block;
+            font-size:14px;
+            font-weight:600;
+            color:#555;
+        }
+        .form-grid input[type="text"],
+        .form-grid input[type="tel"],
+        .form-grid input[type="email"]{
+            display:block;
+            width:100%;
+            margin-top:6px;
+            padding:10px 12px;
+            font-size:15px;
+            color:var(--text-dark);
+            border:1px solid var(--border-color);
+            border-radius:6px;
+            background:#fff;
+            outline:none;
+            transition:border-color .15s, box-shadow .15s;
+            box-sizing:border-box;
+        }
+        .form-grid input:focus{
+            border-color:var(--primary-color);
+            box-shadow:0 0 0 3px rgba(74,144,226,.15);
+        }
+
+        .submit-btn{
+            margin-top:16px; width:100%; padding:12px 18px; border:none; border-radius:8px;
+            background:var(--primary-color); color:#fff; font-size:16px; font-weight:700; cursor:pointer;
+        }
+        .submit-btn:hover{ filter:brightness(.95); }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="title">거래처 수정</div>
+
+    <section class="card">
+
+        <form method="POST" action="/api/account/edit" id="editForm">
+
+            <input type="hidden" id="ac_id" name="ac_id"/>
+
+            <div class="form-grid">
+                <label>
+                    거래처 이름
+                    <input type="text" id="ac_name" name="ac_name" placeholder="거래처 이름을 입력하세요">
+                </label>
+                <label>
+                    거래처 담당자
+                    <input type="text" id="ac_manager" name="ac_manager" placeholder="담당자 이름을 입력하세요">
+                </label>
+                <label>
+                    거래처 위치
+                    <input type="text" id="ac_loc" name="ac_loc" placeholder="주소 또는 지역을 입력하세요">
+                </label>
+                <label>
+                    거래처 연락처(전화번호)
+                    <input type="tel" id="ac_phone" name="ac_phone" placeholder="전화번호를 입력하세요">
+                </label>
+                <label>
+                    거래처 연락처(이메일)
+                    <input type="email" id="ac_email" name="ac_email" placeholder="이메일을 입력하세요">
+                </label>
+            </div>
+
+            <button type="submit" class="submit-btn">수정 내용 저장</button>
+        </form>
+    </section>
+</div>
+
+<script>
+
+    async function loadBeforeForm(ac_id){
+        try {
+            const before = await $.ajax({
+                url: '/api/account/searchById',
+                method: 'GET',
+                data: { ac_id: ac_id },
+                dataType: 'json'
+            });
+
+            console.log(before);
+
+
+            $('#ac_id').val(before.ac_id ?? '');
+
+            $('#ac_name').val(before.ac_name ?? '');
+            $('#ac_manager').val(before.ac_manager ?? '');
+            $('#ac_loc').val(before.ac_loc ?? '');
+            $('#ac_phone').val(before.ac_phone ?? '');
+            $('#ac_email').val(before.ac_email ?? '');
+        }catch(err){
+            console.error(err);
+            alert('거래처 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+        }
+    }
+
+    $(async function(){
+        const ac_id = new URLSearchParams(location.search).get('ac_id');
+        if(!ac_id){
+            alert('ac_id가 필요합니다.');
+            window.close?.();
+            return;
+        }
+
+        await loadBeforeForm(ac_id);
+
+
+        $('#editForm').on('submit', async function(e){
+            e.preventDefault();
+
+            if (!$('#ac_name').val().trim()) {
+                alert('거래처 이름을 적어주세요');
+                return;
+            }
+
+            try{
+                const result = await $.ajax({
+                    url: this.action,
+                    method: 'POST',
+                    dataType:'json',
+                    data: $(this).serialize()
+                });
+
+                if(result === true || result?.success){
+                    alert('수정 완료');
+                    window.close?.();
+                }else{
+                    alert('이미 사용 중인 이메일입니다.');
+                }
+            }catch(err){
+                console.error(err);
+                alert('수정 중 오류가 발생했습니다.');
+            }
+        });
+    });
+</script>
+</body>
+</html>

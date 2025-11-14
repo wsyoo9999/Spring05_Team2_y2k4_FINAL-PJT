@@ -8,9 +8,56 @@
         select * from accounts
     </select>
 
+    <select id="list" resultType="com.multi.y2k4.vo.account.Account">
+        select * from accounts
+        <where>
+            <if test="ac_id !=null">
+                AND ac_id = #{ac_id}
+            </if>
+            <if test="ac_name !=null and ac_name!=''">
+                AND ac_name LIKE CONCAT('%', #{ac_name}, '%')
+            </if>
+            <if test="ac_loc !=null and ac_loc!=''">
+                AND ac_loc LIKE CONCAT('%', #{ac_loc}, '%')
+            </if>
+        </where>
+    </select>
+
     <select id="searchById" resultType="com.multi.y2k4.vo.account.Account">
         select * from accounts where ac_id = #{ac_id}
     </select>
+
+    <insert id="addAccount" parameterType="com.multi.y2k4.vo.account.Account">
+        INSERT INTO accounts (ac_name, ac_manager, ac_loc, ac_phone, ac_email)
+        VALUES (#{ac_name}, #{ac_manager}, #{ac_loc}, #{ac_phone}, #{ac_email})
+    </insert>
+
+    <update id="editAccount" parameterType="com.multi.y2k4.vo.account.Account">
+        UPDATE accounts
+        <set>
+            <if test="ac_name !=null and ac_name!=''">
+                ac_name = #{ac_name}
+            </if>
+            <if test="ac_manager !=null and ac_manager!=''">
+                ,ac_manager = #{ac_manager}
+            </if>
+            <if test="ac_loc !=null and ac_loc!=''">
+                ,ac_loc = #{ac_loc}
+            </if>
+            <if test="ac_phone !=null and ac_phone!=''">
+                ,ac_phone = #{ac_phone}
+            </if>
+            <if test="ac_email !=null and ac_email!=''">
+                ,ac_email = #{ac_email}
+            </if>
+        </set>
+        WHERE ac_id = #{ac_id}
+    </update>
+    
+    <delete id="deleteAccount">
+        DELETE FROM accounts where ac_id = #{ac_id}
+    </delete>
+
 
 
 
