@@ -1,6 +1,7 @@
 package com.multi.y2k4.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.multi.y2k4.service.transaction.PurchaseDetailsService;
 import com.multi.y2k4.service.transaction.PurchaseService;
 import com.multi.y2k4.service.transaction.SaleDetailsService;
@@ -16,9 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 
 @RestController
@@ -29,6 +28,7 @@ public class TransactionController {
     private final PurchaseService purchaseService;
     private final SaleDetailsService saleDetailsService;
     private final PurchaseDetailsService purchaseDetailsService;
+    private final ObjectMapper objectMapper;
 
     @GetMapping("/sale/list")
     public List<Sale> saleList(@RequestParam(required = false) Integer sale_id,
@@ -41,8 +41,17 @@ public class TransactionController {
                        Model model) {
 
         //테스트를 위한 수동 리스트 값 생성
+        Map<String, Object> body = new HashMap<>();
+        body.put("table", "transaction");
+        body.put("method", "read");
+        body.put("values", saleService.list(sale_id,emp_id,ac_id,order_date,due_date,status));
 
-        System.out.println(saleService.list(sale_id,emp_id,ac_id,order_date,due_date,status));
+        try {
+
+            System.out.println( objectMapper.writeValueAsString(body));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         return saleService.list(sale_id,emp_id,ac_id,order_date,due_date,status);
     }
 

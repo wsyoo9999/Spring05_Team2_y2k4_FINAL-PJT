@@ -50,7 +50,7 @@ export async function sale_listAll(){
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
-                            data-action="detail" data-file="transaction" data-fn="addSale">
+                            data-action="detail" data-file="transaction" data-fn="viewEmployee">
                           ${row.emp_name}
                         </td>
                         <td class="ac-id"
@@ -58,7 +58,7 @@ export async function sale_listAll(){
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
-                            data-action="detail" data-file="transaction" data-fn="addSale">
+                            data-action="detail" data-file="transaction" data-fn="viewAccount">
                           ${row.ac_name}
                         </td>
                         <td>
@@ -163,7 +163,7 @@ export async function sale_list(formData){
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
-                            data-action="detail" data-file="transaction" data-fn="addSale">
+                            data-action="detail" data-file="transaction" data-fn="viewEmployee">
                           ${row.emp_name}
                         </td>
                         <td class="ac-id"
@@ -171,7 +171,7 @@ export async function sale_list(formData){
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
-                            data-action="detail" data-file="transaction" data-fn="addSale">
+                            data-action="detail" data-file="transaction" data-fn="viewAccount">
                           ${row.ac_name}
                         </td>
                         <td>
@@ -266,7 +266,7 @@ export async function purchase_listAll(){
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
-                            data-action="detail" data-file="transaction" data-fn="addSale">
+                            data-action="detail" data-file="transaction" data-fn="viewEmployee">
                           ${row.emp_name}
                         </td>
                         <td class="ac-id"
@@ -274,7 +274,7 @@ export async function purchase_listAll(){
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';" 
-                            data-action="detail" data-file="transaction" data-fn="addSale">
+                            data-action="detail" data-file="transaction" data-fn="viewAccount">
                           ${row.ac_name}
                         </td>
                         <td>
@@ -380,7 +380,7 @@ export async function purchase_list(formData){
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';"
-                            data-action="detail" data-file="transaction" data-fn="addSale">
+                            data-action="detail" data-file="transaction" data-fn="viewEmployee">
                           ${row.emp_name}
                         </td>
                         <td class="ac-id"
@@ -388,7 +388,7 @@ export async function purchase_list(formData){
                             style="cursor:pointer"
                             onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
                             onmouseout="this.style.color=''; this.style.fontWeight='';" 
-                            data-action="detail" data-file="transaction" data-fn="addSale">
+                            data-action="detail" data-file="transaction" data-fn="viewAccount">
                           ${row.ac_name}
                         </td>
                         <td>
@@ -559,5 +559,21 @@ export async function editSaleStatus(id) {
     const url  = `${base}?sale_id=${encodeURIComponent(id)}`;
     const features = 'width=1000,height=700,resizable=no,scrollbars=yes';
     const child = window.open(url, 'ss_edit', features);
+    if (child) child.focus();
+}
+
+export async function  viewEmployee(id) {
+    const base = './../popup/hr/viewEmployee.html';
+    const url  = `${base}?emp_id=${encodeURIComponent(id)}`;
+    const features = 'width=1000,height=700,resizable=no,scrollbars=yes';
+    const child = window.open(url, 'view_emp', features);
+    if (child) child.focus();
+}
+
+export async function  viewAccount(id) {
+    const base = './../popup/account/viewAccount.html';
+    const url  = `${base}?ac_id=${encodeURIComponent(id)}`;
+    const features = 'width=1000,height=700,resizable=no,scrollbars=yes';
+    const child = window.open(url, 'view_ac', features);
     if (child) child.focus();
 }
