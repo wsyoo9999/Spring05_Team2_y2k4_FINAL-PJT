@@ -8,8 +8,10 @@ import java.time.LocalDateTime;
 @Data
 public class WorkOrder {
     private Long work_order_id;         // 작업지시 번호
-    private Long stock_id;              // 자재(품목) 번호
+    private Long stock_id;
+    private String stock_name;
     private Long emp_id;                // 담당 사원 번호
+    private String emp_name;
     private LocalDate start_date;       // 시작일
     private LocalDate due_date;         // 완료 예정일
     private Integer target_qty;         // 목표 수량

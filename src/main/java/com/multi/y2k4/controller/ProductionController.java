@@ -22,10 +22,10 @@ public class ProductionController {
     @GetMapping("/work_order")
     public List<WorkOrder> getWorkOrderList(
             @RequestParam(required = false) String order_status,
-            @RequestParam(required = false) Long stock_id,
+            @RequestParam(required = false) String stock_name,
             @RequestParam(required = false) String start_date,
             @RequestParam(required = false) String due_date) {
-        return productionService.getWorkOrderList(order_status, stock_id, start_date, due_date);
+        return productionService.getWorkOrderList(order_status, stock_name, start_date, due_date);
     }
 
     // 2. 작업지시서 상세 조회
@@ -113,5 +113,21 @@ public class ProductionController {
     @DeleteMapping("/bom/{bom_id}")
     public boolean deleteBOM(@PathVariable Long bom_id) {
         return productionService.deleteBOM(bom_id);
+    }
+
+    @PostMapping("/lot/add")
+    public boolean addLot(
+            @RequestParam Long work_order_id,
+            @RequestParam Long stock_id,
+            @RequestParam Integer lot_qty,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate lot_date
+    ) {
+        Lot newLot = new Lot();
+        newLot.setWork_order_id(work_order_id);
+        newLot.setStock_id(stock_id);
+        newLot.setLot_qty(lot_qty);
+        newLot.setLot_date(lot_date);
+
+        return productionService.addLot(newLot);
     }
 }

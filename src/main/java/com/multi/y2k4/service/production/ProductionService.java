@@ -17,8 +17,8 @@ public class ProductionService {
 
     // --- 작업지시서 (Work Order) ---
 
-    public List<WorkOrder> getWorkOrderList(String order_status, Long stock_id, String start_date, String due_date) {
-        return productionMapper.getWorkOrderList(order_status, stock_id, start_date, due_date);
+    public List<WorkOrder> getWorkOrderList(String order_status, String stock_name, String start_date, String due_date) {
+        return productionMapper.getWorkOrderList(order_status, stock_name, start_date, due_date);
     }
 
     public WorkOrder getWorkOrderDetail(Long work_order_id) {
@@ -66,5 +66,11 @@ public class ProductionService {
     @Transactional
     public boolean deleteBOM(Long bom_id) {
         return productionMapper.deleteBOM(bom_id) > 0;
+    }
+
+    // Lot
+    @Transactional
+    public boolean addLot(Lot lot) {
+        return productionMapper.addLot(lot) > 0;
     }
 }

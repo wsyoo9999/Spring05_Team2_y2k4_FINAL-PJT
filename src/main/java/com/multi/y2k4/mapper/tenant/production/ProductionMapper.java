@@ -13,7 +13,7 @@ import java.util.List;
 public interface ProductionMapper {
 
     List<WorkOrder> getWorkOrderList(@Param("order_status") String order_status,
-                                     @Param("stock_id") Long stock_id,
+                                     @Param("stock_name") String stock_name,
                                      @Param("start_date") String start_date,
                                      @Param("due_date") String due_date);
 
@@ -32,4 +32,5 @@ public interface ProductionMapper {
     BOM getBOMById(@Param("bom_id") Long bom_id);
     int updateBOM(BOM bom);
     int deleteBOM(@Param("bom_id") Long bom_id);
+    int addLot(Lot lot);
 }
