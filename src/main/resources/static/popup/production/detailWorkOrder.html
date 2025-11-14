@@ -166,25 +166,47 @@
         const container = $('#detail-container');
         const actionContainer = $('#action-container');
 
-        try {
-            // 1. URL에서 order_id 추출
-            const urlParams = new URLSearchParams(window.location.search);
-            const work_order_id = urlParams.get('work_order_id');
+        const urlParams = new URLSearchParams(window.location.search);
+        const work_order_id = urlParams.get('work_order_id');
 
+        let loadedData = null; // 작업지시서 상세 정보
+        let currentGoodQty = 0; // 현재까지 등록된 Lot 수량의 총 합
+        let targetQty = 0;      // 목표 수량
+        let startDate = '';     // 시작일
+
+        try {
             if (!work_order_id) {
                 throw new Error('작업 지시서 ID가 없습니다.');
             }
 
-            // 2. API 호출
-            const data = await $.ajax({
-                url: `/api/production/work_order/${work_order_id}`,
-                method: 'GET',
-                dataType: 'json'
-            });
+            // 1. 작업지시서 상세 정보와 Lot 목록을 동시에 병렬로 불러옵니다.
+            const [data, lots] = await Promise.all([
+                // 1-1. 작업지시서 상세 정보 (target_qty, start_date 등)
+                $.ajax({
+                    url: `/api/production/work_order/${work_order_id}`,
+                    method: 'GET',
+                    dataType: 'json'
+                }),
+                // 1-2. 현재까지 등록된 Lot 목록 (수량 합계를 계산하기 위함)
+                $.ajax({
+                    url: `/api/production/work_order/${work_order_id}/lots`,
+                    method: 'GET',
+                    dataType: 'json'
+                })
+            ]);
+
+            loadedData = data;
+
+            // 2. 유효성 검사를 위한 값들을 계산하고 저장합니다.
+            if (lots && lots.length > 0) {
+                currentGoodQty = lots.reduce((sum, lot) => sum + (lot.lot_qty || 0), 0);
+            }
+            targetQty = loadedData.target_qty || 0;
+            startDate = loadedData.start_date ? formatDate(loadedData.start_date) : '';
 
             // 3. HTML 생성
-            const progress = data.target_qty > 0
-                ? Math.round((data.good_qty / data.target_qty) * 100)
+            const progress = targetQty > 0
+                ? Math.round((currentGoodQty / targetQty) * 100)
                 : 0;
 
             // 헤더 생성
@@ -195,7 +217,6 @@
                 </h2>
             `;
 
-            // 상세 정보 HTML 생성
             let detailHtml = `
                 <h3>기본 정보</h3>
                 <div class="info-grid">
@@ -205,8 +226,11 @@
                     <div class="label">제품코드</div>
                     <div class="value">${data.stock_id ?? '-'}</div>
 
+                    <div class="label">제품명</div>
+                    <div class="value"><strong>${data.stock_name ?? '-'}</strong></div>
+
                     <div class="label">담당자</div>
-                    <div class="value">${data.emp_id ?? '-'}</div>
+                    <div class="value">${data.emp_name ?? (data.emp_id ?? '-')}</div>
 
                     <div class="label">시작일</div>
                     <div class="value">${formatDate(data.start_date)}</div>
@@ -223,8 +247,8 @@
                     <div class="label">목표수량</div>
                     <div class="value">${numberFormat(data.target_qty)}</div>
 
-                    <div class="label">양품수량</div>
-                    <div class="value good"><strong>${numberFormat(data.good_qty)}</strong></div>
+                    <div class="label">현재 생산량(양품)</div>
+                    <div class="value good"><strong>${numberFormat(currentGoodQty)}</strong></div>
 
                     <div class="label">불량수량</div>
                     <div class="value defect"><strong>${numberFormat(data.defect_qty)}</strong></div>
@@ -236,7 +260,7 @@
 
             // 버튼 HTML 생성
             let actionHtml = `
-                <button class="action-button btn-primary" data-work-order-id="${data.work_order_id}">
+                <button class="action-button btn-primary btn-register-result" data-work-order-id="${data.work_order_id}">
                     <i class="fas fa-check-circle"></i> 생산 실적 등록
                 </button>
                 <button class="action-button btn-danger" data-work-order-id="${data.work_order_id}">
@@ -252,8 +276,29 @@
             container.html(detailHtml);
             actionContainer.html(actionHtml);
 
+            // 5. 팝업 내 버튼에 클릭 리스너 추가
+            actionContainer.on('click', '.btn-register-result', function() {
+                if (!loadedData) {
+                    alert("데이터가 아직 로드되지 않았습니다.");
+                    return;
+                }
+
+                const woId = loadedData.work_order_id;
+                const sId = loadedData.stock_id;
+
+                if (!woId || !sId) {
+                    alert("작업지시서 ID 또는 제품 ID가 없습니다.");
+                    return;
+                }
+
+                const url = `./addLot.html?work_order_id=${woId}&stock_id=${sId}&start_date=${startDate}&target_qty=${targetQty}&current_good_qty=${currentGoodQty}`;
+                const features = 'width=500,height=450,resizable=no,scrollbars=yes';
+                window.open(url, 'add_lot', features).focus();
+            });
+
         } catch (error) {
             console.error('상세 정보 로드 실패:', error);
+            // 오류 메시지를 표시하여 사용자가 알 수 있도록 함
             container.html(`<p style="color:red;">데이터를 불러오는데 실패했습니다: ${error.message}</p>`);
         }
     });
