@@ -3,14 +3,13 @@ package com.multi.y2k4.vo.inventory;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-import java.util.Objects;
+import java.time.LocalDate;
 
 @Data
 public class Outbound {
     private int outbound_id;        // 출고 번호 (PK)
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
-    private LocalDateTime outbound_date;  // 출고일
+    private LocalDate outbound_date;  // 출고일
     private int stock_id;            // 재고 코드(FK)
     private int outbound_qty;       // 수량
     private int ac_id;  // 업체id(FK)

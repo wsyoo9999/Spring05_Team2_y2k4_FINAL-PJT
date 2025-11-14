@@ -99,30 +99,30 @@
                 <input type="date" id="inbound_date" name="inbound_date" required>
             </div>
             <div class="form-group">
-                <label for="inbound_qty">입고 수량</label>
+                <label for="inbound_qty">입고 수량(개)</label>
                 <input type="number" id="inbound_qty" name="inbound_qty" required min="1" value="1">
             </div>
         </div>
 
         <div class="form-grid">
             <div class="form-group">
-                <label for="unit_price">입고 단가</label>
+                <label for="unit_price">입고 단가(원)</label>
                 <input type="number" id="unit_price" name="unit_price" required min="0" value="0">
             </div>
             <div class="form-group">
-                <label for="total_price">총 금액</label>
+                <label for="total_price">총 금액(원)</label>
                 <input type="text" id="total_price" name="total_price" class="readonly" readonly placeholder="자동 계산">
             </div>
         </div>
 
         <div class="form-grid">
             <div class="form-group">
-                <label for="supplier">공급업체</label>
-                <input type="text" id="supplier" name="supplier" required>
+                <label for="ac_id">공급업체</label>
+                <input type="number" id="ac_id" name="ac_id" required>
             </div>
             <div class="form-group">
-                <label for="manager">담당자</label>
-                <input type="text" id="manager" name="manager" required>
+                <label for="emp_id">담당자</label>
+                <input type="number" id="emp_id" name="emp_id" required>
             </div>
         </div>
 
@@ -136,15 +136,15 @@
         </button>
     </form>
 </div>
-
 <script>
-    // 오늘 날짜 기본값
+    // 오늘 날짜 기본값 세팅 (YYYY-MM-DD)
     (function setToday(){
         const d = new Date();
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
-        document.getElementById('inbound_date').value = `${y}-${m}-${day}`;
+        const el = document.getElementById('inbound_date');
+        if (el) el.value = `${y}-${m}-${day}`;
     })();
 
     const qtyInput   = document.getElementById('inbound_qty');
@@ -161,45 +161,47 @@
     priceInput.addEventListener('input', updateTotal);
     updateTotal();
 
-    // 제출 처리 (콤마 제거해서 전송)
     const form = document.getElementById('form');
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // 직렬화 후 총액 콤마 제거해서 보냄
-        const formData = $(form).serializeArray();
-        // total_price가 있다면 콤마 제거한 숫자로 교체
-        const tpIndex = formData.findIndex(f => f.name === 'total_price');
-        if (tpIndex >= 0) {
-            formData[tpIndex].value = (totalInput.value || '').replace(/,/g, '');
-        }
+        // addStock과 동일: x-www-form-urlencoded로 직렬화해서 전송
+        const payload = $(form).serialize();
 
         try {
             const result = await $.ajax({
-                url: form.action,
+                url: form.action,          // /api/inventory/inbound/add
                 method: 'POST',
-                dataType: 'json',
-                data: $.param(formData)
+                data: payload              // x-www-form-urlencoded
+                // dataType 지정 불필요 (컨트롤러가 boolean 반환 가정)
             });
 
-            const ok = (result === true) || (result && (result.success === true || result.result === true));
+            // boolean 응답 표준화 (true/'true'/success/result)
+            const ok = (result === true) || (result === 'true') ||
+                (result && (result.success === true || result.result === true));
+
             if (ok) {
-                alert('✅ 입고가 성공적으로 등록되었습니다.');
+                alert('입고가 성공적으로 등록되었습니다.');
                 if (window.opener && !window.opener.closed) {
-                    const menu = window.opener.document.querySelector('.menu[data-file="inventory"][data-fn="inbound_listAll"]');
-                    if (menu) menu.click();
-                    else window.opener.location.reload();
+                    try {
+                        // 부모창에 목록 갱신 함수가 있으면 호출, 없으면 새로고침
+                        if (typeof window.opener.reloadInboundList === 'function') {
+                            window.opener.reloadInboundList();
+                        } else {
+                            window.opener.location.reload();
+                        }
+                    } catch(_) {}
                 }
                 window.close();
             } else {
-                alert('❌ 입력에 실패했습니다.');
+                alert('입력에 실패했습니다.');
             }
-        } catch (error) {
-            console.error('등록 실패:', error);
-            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        } catch (err) {
+            console.error('등록 실패:', err);
+            alert('서버 통신 중 오류가 발생했습니다.');
         }
     });
 </script>
-
 </body>
 </html>

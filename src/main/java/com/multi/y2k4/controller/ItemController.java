@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,15 +29,21 @@ public class ItemController {
 
     // =============================================재고=============================================
     @GetMapping("/stock")
-    public List<Stock> list(@RequestParam(required = false) String  stock_name,
-                            @RequestParam(required = false) Integer qty,
-                            @RequestParam(required = false) Integer unit_price,
-                            @RequestParam(required = false) Integer  location,
-                            @RequestParam(required = false) Integer type,
-                            Model model) {
-        // 서비스에 동일 시그니처가 있다고 가정
-        System.out.println(stockService.list(stock_name, qty, unit_price, location,type));
-        return stockService.list(stock_name, qty, unit_price, location, type);
+    public List<Stock> listStock(@RequestParam(required=false) String stock_name,
+                            @RequestParam(required=false) Integer qty,
+                            @RequestParam(required=false) Integer unit_price,
+                            @RequestParam(required=false) String location,
+                            @RequestParam(required=false) Integer type) {
+
+        boolean noFilter = (stock_name == null || stock_name.isBlank())
+                && qty == null
+                && unit_price == null
+                && (location == null || location.isBlank())
+                && type == null;
+
+        return noFilter
+                ? stockService.list_all()
+                : stockService.list(stock_name, qty, unit_price, location, type);
     }
 
     // 재고 목록 추가
@@ -45,7 +52,7 @@ public class ItemController {
     public boolean addStock(@RequestParam String  stock_name,
                             @RequestParam Integer qty,
                             @RequestParam Integer unit_price,
-                            @RequestParam Integer  location,
+                            @RequestParam String  location,
                             @RequestParam Integer type) {
 
         Stock stock = new Stock();
@@ -55,15 +62,14 @@ public class ItemController {
         stock.setLocation(location);
         stock.setType(type);
 
-        // addStock이 int(반영 행 수) 를 리턴한다고 가정
         int affected = stockService.addStock(stock);
         return affected == 1;
     }
 
     @PutMapping(value = "/stock/{stock_id}", consumes = "application/json")
-    public ResponseEntity<Void> update(@PathVariable("stock_id") Integer stockId,
+    public ResponseEntity<Void> update(@PathVariable("stock_id") Integer stock_id,
                                        @RequestBody Stock body) {
-        body.setStock_id(stockId);              // PK는 경로로 고정
+        body.setStock_id(stock_id);              // PK는 경로로 고정
         int updated = stockService.updateStock(body); // Mapper: UPDATE stock SET ... WHERE stock_id=?
         return (updated == 1) ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
@@ -75,187 +81,110 @@ public class ItemController {
 
     // =============================================입고=============================================
 
-    // 입고 목록 조회
     @GetMapping("/inbound")
-    public List<Inbound> inboundList() {
-        List<Inbound> inboundList = new ArrayList<>();
+    public List<Inbound> listInbound(@RequestParam(required=false) LocalDate inbound_date,
+                            @RequestParam(required=false) Integer stock_id,
+                            @RequestParam(required=false) Integer ac_id,
+                            @RequestParam(required=false) Integer emp_id,
+                            @RequestParam(required=false) Integer approval) {
 
-        Inbound inbound1 = new Inbound();
-        inbound1.setInbound_id(1);
-        inbound1.setStock_id(1);
-        inbound1.setInbound_date(LocalDateTime.now().minusDays(2));
-        inbound1.setInbound_qty(5);
-        inbound1.setUnit_price(120000);
-        inbound1.setAc_id(201);
-        inbound1.setAc_name("삼성상사");
-        inbound1.setEmp_id(101);
-        inbound1.setEmp_name("홍길동");
-        inbound1.setRemark("긴급 입고");
-        inboundList.add(inbound1);
+        boolean noFilter = (inbound_date == null)
+                && (stock_id == null)
+                && (ac_id == null)
+                && (emp_id == null)
+                && (approval == null);
 
-        Inbound inbound2 = new Inbound();
-        inbound2.setInbound_id(2);
-        inbound2.setStock_id(2);
-        inbound2.setInbound_date(LocalDateTime.now().minusDays(1));
-        inbound2.setInbound_qty(2);
-        inbound2.setUnit_price(350000);
-        inbound2.setAc_id(202);
-        inbound2.setAc_name("LG트레이딩");
-        inbound2.setEmp_id(102);
-        inbound2.setEmp_name("김철수");
-        inbound2.setRemark("정기 입고");
-        inboundList.add(inbound2);
-
-        Inbound inbound3 = new Inbound();
-        inbound3.setInbound_id(3);
-        inbound3.setStock_id(3);
-        inbound3.setInbound_date(LocalDateTime.now());
-        inbound3.setInbound_qty(10);
-        inbound3.setUnit_price(80000);
-        inbound3.setAc_id(203);
-        inbound3.setAc_name("한국공구");
-        inbound3.setEmp_id(103);
-        inbound3.setEmp_name("이영희");
-        inbound3.setRemark("추가 발주");
-        inboundList.add(inbound3);
-
-        return inboundList;
+        return noFilter
+                ? inboundService.list_all()
+                : inboundService.list(inbound_date, stock_id, ac_id, emp_id, approval);
     }
 
-    // 입고 단건 조회 (추가!)
-    @GetMapping("/inbound/{inbound_id}")
-    public Inbound getInboundById(@PathVariable int inbound_id) {
-        Map<Integer, Inbound> inboundMap = new HashMap<>();
+    // 재고 목록 추가
+    @PostMapping("/inbound/add")
+    @Transactional
+    public boolean addInbound(@RequestParam LocalDate inbound_date,
+                              @RequestParam Integer stock_id,
+                              @RequestParam Integer inbound_qty,
+                              @RequestParam Integer unit_price,
+                              @RequestParam Integer ac_id,
+                              @RequestParam Integer emp_id,
+                              @RequestParam String remark,
+                              @RequestParam(required=false, defaultValue = "0") Integer approval) {
 
-        Inbound inbound1 = new Inbound();
-        inbound1.setInbound_id(1);
-        inbound1.setStock_id(1);
-        inbound1.setInbound_date(LocalDateTime.now().minusDays(2));
-        inbound1.setInbound_qty(5);
-        inbound1.setUnit_price(120000);
-        inbound1.setAc_id(201);
-        inbound1.setAc_name("삼성상사");
-        inbound1.setEmp_id(101);
-        inbound1.setEmp_name("홍길동");
-        inbound1.setRemark("긴급 입고");
-        inboundMap.put(1, inbound1);
+        Inbound inbound = new Inbound();
+        inbound.setInbound_date(inbound_date);
+        inbound.setStock_id(stock_id);
+        inbound.setInbound_qty(inbound_qty);
+        inbound.setUnit_price(unit_price);
+        inbound.setAc_id(ac_id);
+        inbound.setEmp_id(emp_id);
+        inbound.setRemark(remark);
+        inbound.setApproval(approval);
 
-        Inbound inbound2 = new Inbound();
-        inbound2.setInbound_id(2);
-        inbound2.setStock_id(2);
-        inbound2.setInbound_date(LocalDateTime.now().minusDays(1));
-        inbound2.setInbound_qty(2);
-        inbound2.setUnit_price(350000);
-        inbound2.setAc_id(202);
-        inbound2.setAc_name("LG트레이딩");
-        inbound2.setEmp_id(102);
-        inbound2.setEmp_name("김철수");
-        inbound2.setRemark("정기 입고");
-        inboundMap.put(2, inbound2);
-
-        Inbound inbound3 = new Inbound();
-        inbound3.setInbound_id(3);
-        inbound3.setStock_id(3);
-        inbound3.setInbound_date(LocalDateTime.now());
-        inbound3.setInbound_qty(10);
-        inbound3.setUnit_price(80000);
-        inbound3.setAc_id(203);
-        inbound3.setAc_name("한국공구");
-        inbound3.setEmp_id(103);
-        inbound3.setEmp_name("이영희");
-        inbound3.setRemark("추가 발주");
-        inboundMap.put(3, inbound3);
-
-        return inboundMap.getOrDefault(inbound_id, new Inbound());
+        int affected = inboundService.addInbound(inbound);
+        return affected == 1;
     }
+
+    @PutMapping(value = "/inbound/{inbound_id}", consumes = "application/json")
+    public ResponseEntity<Void> update(@PathVariable("inbound_id") Integer inbound_id,
+                                       @RequestBody Inbound body) {
+        body.setInbound_id(inbound_id);              // PK는 경로로 고정
+        int updated = inboundService.updateInbound(body); // Mapper: UPDATE stock SET ... WHERE stock_id=?
+        return (updated == 1) ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
+    }
+
 
     // =============================================출고=============================================
 
-    // 출고 목록 조회
     @GetMapping("/outbound")
-    public List<Outbound> outboundList() {
-        List<Outbound> outboundList = new ArrayList<>();
+    public List<Outbound> listOutbound(@RequestParam(required=false) LocalDate outbound_date,
+                                     @RequestParam(required=false) Integer stock_id,
+                                     @RequestParam(required=false) Integer ac_id,
+                                     @RequestParam(required=false) Integer emp_id,
+                                     @RequestParam(required=false) Integer approval) {
 
-        Outbound outbound1 = new Outbound();
-        outbound1.setOutbound_id(1);
-        outbound1.setStock_id(1);
-        outbound1.setOutbound_date(LocalDateTime.now().minusDays(1));
-        outbound1.setOutbound_qty(3);
-        outbound1.setAc_id(301);
-        outbound1.setAc_name("서울창고");
-        outbound1.setEmp_id(101);
-        outbound1.setEmp_name("홍길동");
-        outbound1.setRemark("정상 출고");
-        outboundList.add(outbound1);
+        boolean noFilter = (outbound_date == null)
+                && (stock_id == null)
+                && (ac_id == null)
+                && (emp_id == null)
+                && (approval == null);
 
-        Outbound outbound2 = new Outbound();
-        outbound2.setOutbound_id(2);
-        outbound2.setStock_id(2);
-        outbound2.setOutbound_date(LocalDateTime.now().minusDays(2));
-        outbound2.setOutbound_qty(5);
-        outbound2.setAc_id(302);
-        outbound2.setAc_name("부산물류센터");
-        outbound2.setEmp_id(102);
-        outbound2.setEmp_name("김철수");
-        outbound2.setRemark("배송 완료");
-        outboundList.add(outbound2);
-
-        Outbound outbound3 = new Outbound();
-        outbound3.setOutbound_id(3);
-        outbound3.setStock_id(3);
-        outbound3.setOutbound_date(LocalDateTime.now());
-        outbound3.setOutbound_qty(2);
-        outbound3.setAc_id(303);
-        outbound3.setAc_name("대전지점");
-        outbound3.setEmp_id(103);
-        outbound3.setEmp_name("이영희");
-        outbound3.setRemark("긴급 배송");
-        outboundList.add(outbound3);
-
-        return outboundList;
+        return noFilter
+                ? outboundService.list_all()
+                : outboundService.list(outbound_date, stock_id, ac_id, emp_id, approval);
     }
 
-    // 출고 단건 조회 (추가!)
-    @GetMapping("/outbound/{outbound_id}")
-    public Outbound getOutboundById(@PathVariable int outbound_id) {
-        Map<Integer, Outbound> outboundMap = new HashMap<>();
+    // 재고 목록 추가
+    @PostMapping("/outbound/add")
+    @Transactional
+    public boolean addOutbound(@RequestParam LocalDate outbound_date,
+                              @RequestParam Integer stock_id,
+                              @RequestParam Integer outbound_qty,
+                              @RequestParam Integer ac_id,
+                              @RequestParam Integer emp_id,
+                              @RequestParam String remark,
+                              @RequestParam(required=false, defaultValue = "0") Integer approval) {
 
-        Outbound outbound1 = new Outbound();
-        outbound1.setOutbound_id(1);
-        outbound1.setStock_id(1);
-        outbound1.setOutbound_date(LocalDateTime.now().minusDays(1));
-        outbound1.setOutbound_qty(3);
-        outbound1.setAc_id(301);
-        outbound1.setAc_name("서울창고");
-        outbound1.setEmp_id(101);
-        outbound1.setEmp_name("홍길동");
-        outbound1.setRemark("정상 출고");
-        outboundMap.put(1, outbound1);
+        Outbound outbound = new Outbound();
+        outbound.setOutbound_date(outbound_date);
+        outbound.setStock_id(stock_id);
+        outbound.setOutbound_qty(outbound_qty);
+        outbound.setAc_id(ac_id);
+        outbound.setEmp_id(emp_id);
+        outbound.setRemark(remark);
+        outbound.setApproval(approval);
 
-        Outbound outbound2 = new Outbound();
-        outbound2.setOutbound_id(2);
-        outbound2.setStock_id(2);
-        outbound2.setOutbound_date(LocalDateTime.now().minusDays(2));
-        outbound2.setOutbound_qty(5);
-        outbound2.setAc_id(302);
-        outbound2.setAc_name("부산물류센터");
-        outbound2.setEmp_id(102);
-        outbound2.setEmp_name("김철수");
-        outbound2.setRemark("배송 완료");
-        outboundMap.put(2, outbound2);
+        int affected = outboundService.addOutbound(outbound);
+        return affected == 1;
+    }
 
-        Outbound outbound3 = new Outbound();
-        outbound3.setOutbound_id(3);
-        outbound3.setStock_id(3);
-        outbound3.setOutbound_date(LocalDateTime.now());
-        outbound3.setOutbound_qty(2);
-        outbound3.setAc_id(303);
-        outbound3.setAc_name("대전지점");
-        outbound3.setEmp_id(103);
-        outbound3.setEmp_name("이영희");
-        outbound3.setRemark("긴급 배송");
-        outboundMap.put(3, outbound3);
-
-        return outboundMap.getOrDefault(outbound_id, new Outbound());
+    @PutMapping(value = "/outbound/{outbound_id}", consumes = "application/json")
+    public ResponseEntity<Void> updateOutbound(@PathVariable("outbound_id") Integer outbound_id,
+                                       @RequestBody Outbound body) {
+        body.setOutbound_id(outbound_id);              // PK는 경로로 고정
+        int updated = outboundService.updateOutbound(body); // Mapper: UPDATE stock SET ... WHERE stock_id=?
+        return (updated == 1) ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }

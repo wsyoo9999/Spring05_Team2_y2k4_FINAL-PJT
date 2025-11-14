@@ -9,25 +9,27 @@
     </select>
 
     <select id="list" resultType="com.multi.y2k4.vo.inventory.Stock">
-        select * from stock
+        SELECT stock_id, stock_name, qty, unit_price, location, type
+        FROM stock
         <where>
-            <if test="stock_name !=null">
-                stock_name = #{stock_name}
+            <if test="stock_name != null and stock_name != ''">
+                AND stock_name LIKE CONCAT('%', #{stock_name}, '%')
             </if>
-            <if test="qty !=null">
-                qty = #{qty}
+            <if test="qty != null">
+                AND qty = #{qty}
             </if>
-            <if test="unit_price !=null">
-                unit_price = #{unit_price}
+            <if test="unit_price != null">
+                AND unit_price = #{unit_price}
             </if>
-            <if test="location!=null">
-                location = #{location}
+            <if test="location != null and location != ''">
+                AND location LIKE CONCAT('%', #{location}, '%')
             </if>
-            <if test="type!=null">
-                type = #{type}
+            <if test="type != null">
+                AND type = #{type}
             </if>
         </where>
     </select>
+
 
     <insert id="addStock" parameterType="com.multi.y2k4.vo.inventory.Stock" useGeneratedKeys="true" keyProperty="stock_id" keyColumn="stock_id">
         insert into stock (stock_name, qty, unit_price, location, type)

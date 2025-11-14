@@ -25,7 +25,7 @@ export async function stock_listAll() {
                 </tr>
             </thead>
             <tbody>
-    `;
+    `
 
     const data = await $.ajax({
         url: '/api/inventory/stock',
@@ -118,7 +118,7 @@ export function stock_search_form() {
     return `
     <form data-file="inventory" data-fn="items_list">
       <div class="form-group">
-        <label for="stock_name">물품명
+        <label for="stock_name">재고명
         <input type="text" id="stock_name" name="stock_name" placeholder="검색" />
         </label>
       </div> 
@@ -131,7 +131,7 @@ export function stock_search_form() {
       
       <div class="form-group">
             <label>구분
-            <select>
+            <select id="type" name="type">
                 <option value="">전체</option>
                 <option value="0">원자재</option>
                 <option value="1">판매상품</option>
@@ -139,7 +139,7 @@ export function stock_search_form() {
             </label>
         </div>
 
-      <button type="button" class="search_btn" data-actoin="search" data-file="inventory" data-fn="stock_list">
+      <button type="button" class="search_btn" data-action="search" data-file="inventory" data-fn="stock_list">
         <i class="fas fa-search" aria-hidden="true"></i><span>검색</span>
       </button>
     </form>
@@ -151,7 +151,7 @@ function convertGubun(code) {
     switch (code) {
         case 0: return "원자재";
         case 1: return "판매상품";
-        default: return "-";
+        default: return "전체";
     }
 }
 
@@ -228,8 +228,8 @@ export async function inbound_listAll() {
                 <td>${Number(row.inbound_qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
-                <td>${row.ac_name}</td>  <!--조인하기-->
-                <td>${row.emp_name}</td>  <!--조인하기-->
+                <td>${row.ac_id}</td>  <!--조인하기-->
+                <td>${row.emp_id}</td>  <!--조인하기-->
                 <td class="actions">
                     <button id="inbound_edit" data-value="${row.inbound_id}">
                         <i class="fas fa-edit"></i>
@@ -293,8 +293,8 @@ export async function inbound_list(formData) {
                 <td>${Number(row.inbound_qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
-                <td>${row.ac_name}</td>  <!--조인하기-->
-                <td>${row.emp_name}</td>  <!--조인하기-->
+                <td>${row.ac_id}</td>  <!--조인하기-->
+                <td>${row.emp_id}</td>  <!--조인하기-->
                 <td class="actions">
                     <button id="inbound_edit" data-value="${row.inbound_id}">
                         <i class="fas fa-edit"></i>
@@ -310,23 +310,27 @@ export async function inbound_list(formData) {
 
 export function inbound_search_form() {
     return `
-        <form data-file="inbound" data-fn="inbound_list">
+        <form data-file="inventory" data-fn="inbound_list">
         <div class="form-group">
-            <label>검색 카테고리</label>
-            <select>
-                <option value="emp_name">담당자</option>
-                <option value="ac_name">공급업체</option>
-            </select>
-            
+          <label for="stock_id">재고 코드
+          <input type="text" id="stock_id" name="stock_id" placeholder="검색" />
+          </label>
+        </div> 
+        <div class="form-group">
+            <label for="ac_id">공급업체
+            <input type="text" id="ac_id" name="ac_id" placeholder="검색" />
+            </label>
         </div>
         <div class="form-group">
-            <input type="text" name="keyword" placeholder="예: 홍길동"/>
+            <label for="emp_id">담당자
+            <input type="text" id="emp_id" name="emp_id" placeholder="검색" />
+            </label>
         </div>
         <div class="form-group">
             <label>입고일</label>
             <input type="date" name="inbound_date" />
         </div>
-            <button type="button" class="search_btn" data-action="search" data-file="stock" data-fn="inbound_list">
+            <button type="button" class="search_btn" data-action="search" data-file="inventory" data-fn="inbound_list">
                 <i class="fas fa-search">검색</i>
             </button>
         </form>
@@ -401,8 +405,8 @@ export async function outbound_listAll() {
                         ${row.stock_id}
                 </td>
                 <td>${row.outbound_qty}</td>
-                <td>${row.ac_name}</td>  <!--조인하기-->
-                <td>${row.emp_name}</td>  <!--조인하기-->
+                <td>${row.ac_id}</td>  <!--조인하기-->
+                <td>${row.emp_id}</td>  <!--조인하기-->
                 <td class="actions">
                     <button id="outbound_edit" data-value="${row.outbound_id}">
                         <i class="fas fa-edit"></i>
@@ -438,12 +442,12 @@ export async function outbound_list(formData) {
             <thead>
                 <tr>
                     <th>출고 번호</th>
-                    <th>재고명</th>
-                    <th>수량(개)</th>
-                    <th>담당자</th>
-                    <th>출고처</th>
                     <th>출고일</th>
-                    <th>관리</th>                  
+                    <th>재고코드</th>
+                    <th>수량(개)</th>
+                    <th>출고처</th>
+                    <th>담당자</th>
+                    <th>관리</th>                    
                 </tr>
             </thead>
             <tbody>
@@ -461,10 +465,9 @@ export async function outbound_list(formData) {
                         ${row.stock_id}
                 </td>
                 <td>${row.outbound_qty}</td>
-                <td>${row.emp_name}</td>  <!--조인하기-->
-                <td>${row.ac_name}</td>  <!--조인하기-->
+                <td>${row.emp_id}</td>  <!--조인하기-->
+                <td>${row.ac_id}</td>  <!--조인하기-->
                 <td>${row.outbound_date}</td>
-                <td>${row.outbound_code}</td>
                 <td class="actions">
                     <button id="outbound_edit" data-value="${row.outbound_id}">
                         <i class="fas fa-edit"></i>
@@ -480,45 +483,30 @@ export async function outbound_list(formData) {
 
 export function outbound_search_form() {
     return `
-        <form data-file="outbound" data-fn="outbound_list">
+        <form data-file="inventory" data-fn="outbound_list">
             <div class="form-group">
-                <lable>출고처 검색
-                <input id="keyword" type="number" name="keyword" placeholder="예: 2001"/>
-                </lable>
+              <label for="stock_id">재고 코드
+              <input type="text" id="stock_id" name="stock_id" placeholder="검색" />
+              </label>
+            </div> 
+            <div class="form-group">
+                <label for="ac_id">공급업체
+                <input type="text" id="ac_id" name="ac_id" placeholder="검색" />
+                </label>
             </div>
             <div class="form-group">
-                <label>출고일</label>
-                <input type="date" name="outbound_date" />
+                <label for="emp_id">담당자
+                <input type="text" id="emp_id" name="emp_id" placeholder="검색" />
+                </label>
             </div>
-            
             <div class="form-group">
                 <label>출고일</label>
                 <input type="date" name="outbound_date" />
             </div>
 
-            <button type="button" class="search_btn" data-action="search" data-file="stock" data-fn="outbond_list">
+            <button type="button" class="search_btn" data-action="search" data-file="inventory" data-fn="outbound_list">
                 <i class="fas fa-search">검색</i>
             </button>
-<!--        </form>-->
-        <script>
-            const select = document.getElementById('keywordType');
-            const input = document.getElementById('keyword');
-
-            select.addEventListener('change', function() {
-                const selected = this.value;
-
-                // 숫자 검색 항목
-                if (selected === 'outbound_id' || selected === 'stock_id') {
-                    input.type = 'number';
-                    input.placeholder = selected === 'outbound_id' ? '예: 2001' : '예: 1001';
-                } 
-                // 문자 검색 항목
-                else if (selected === 'outbound_location') {
-                    input.type = 'text';
-                    input.placeholder = '예: 서울창고';
-                }
-            });
-        </script>
     `;
 }
 

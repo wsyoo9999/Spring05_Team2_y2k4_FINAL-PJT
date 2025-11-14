@@ -28,7 +28,7 @@ public class StockService {
         return stockMapper.updateStock(stock);
     }
 
-    public List<Stock> list(String stock_name, Integer qty, Integer unit_price, Integer location, Integer type) {
+    public List<Stock> list(String stock_name, Integer qty, Integer unit_price, String location, Integer type) {
         return stockMapper.list(stock_name, qty, unit_price, location, type);
     }
 }
