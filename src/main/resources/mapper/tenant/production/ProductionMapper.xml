@@ -173,4 +173,16 @@
         VALUES (#{work_order_id}, #{stock_id}, #{lot_qty}, #{lot_date})
     </insert>
 
+    <select id="getWorkOrderLots" resultMap="LotMap">
+        SELECT
+            lot_id,
+            work_order_id,
+            stock_id,
+            lot_qty,
+            lot_date
+        FROM lot
+        WHERE work_order_id = #{work_order_id}
+        ORDER BY lot_date DESC
+    </select>
+
 </mapper>
