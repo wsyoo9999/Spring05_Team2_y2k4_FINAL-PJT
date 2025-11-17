@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.multi.y2k4.mapper.tenant.document.DocumentsMapper">
+
+    <!--
+      TODO: 나중에 실제 쿼리 작성
+      일단 빈 mapper라도 XML 문서만 정상적이면 MyBatis는 에러 없이 넘어갑니다.
+    -->
+
+    <!-- 샘플 쿼리 (원하면 추가) -->
+    <!--
+    <select id="findAll"
+            resultType="com.multi.y2k4.vo.document.DocumentVO">
+        SELECT *
+        FROM documents
+    </select>
+    -->
+
+</mapper>
