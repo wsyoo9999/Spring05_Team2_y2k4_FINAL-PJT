@@ -340,8 +340,8 @@ export async function bom_listAll() {
                     <thead>
                         <tr>
                             <th>BOM 코드</th>
-                            <th>목표 재고코드</th>
-                            <th>자재 재고코드</th>
+                            <th>완제품명</th>
+                            <th>원자재명</th>
                             <th>필요량</th>
                             <th>관리</th>
                         </tr>
@@ -362,8 +362,8 @@ export async function bom_listAll() {
             $.each(data, function(i, row) {
                 tbody += `<tr>
                             <td>${row.bom_id ?? '-'}</td>
-                            <td>${row.parent_stock_id ?? '-'}</td>
-                            <td>${row.child_stock_id ?? '-'}</td>
+                            <td>${row.parent_stock_name ?? (row.parent_stock_id ?? '-')}</td>
+                            <td>${row.child_stock_name ?? (row.child_stock_id ?? '-')}</td>
                             <td><strong>${numberFormat(row.required_qty)}</strong></td>
                             
                             <td class="actions">
@@ -402,21 +402,66 @@ export async function bom_listAll() {
 
 
 // 6. BOM 검색 폼
-export function bom_search_form() {
+export async function bom_search_form() {
+
+    // 🔽 [추가] 완제품(type=1)과 원자재(type=0) 목록을 병렬로 로드
+    let parentOptions = '';
+    let childOptions = '';
+    try {
+        const [parents, children] = await Promise.all([
+            // 완제품 (type: 1)
+            $.ajax({
+                url: '/api/inventory/stock',
+                method: 'GET',
+                dataType: 'json',
+                data: { type: 1 } // '판매 상품'
+            }),
+            // 원자재 (type: 0)
+            $.ajax({
+                url: '/api/inventory/stock',
+                method: 'GET',
+                dataType: 'json',
+                data: { type: 0 } // '원자재'
+            })
+        ]);
+
+        if (parents && parents.length > 0) {
+            parents.forEach(stock => {
+                parentOptions += `<option value="${stock.stock_name}"></option>`;
+            });
+        }
+        if (children && children.length > 0) {
+            children.forEach(stock => {
+                childOptions += `<option value="${stock.stock_name}"></option>`;
+            });
+        }
+    } catch (err) {
+        console.error("BOM 검색폼의 재고 목록 로딩 실패:", err);
+    }
+    // 🔼 [추가] 완료
+
+    // 🔽 [수정] 폼 HTML 변경
     const search_bar = `
         <form data-file="production" data-fn="bom_list">
             <div class="form-group">
-                <label for="parent_stock_id">목표 재고코드 (완제품)</label>
-                <input type="text" id="parent_stock_id" name="parent_stock_id" placeholder="완제품 코드 입력" />
+                <label for="parent_stock_name">완제품명</label>
+                <input type="text" id="parent_stock_name" name="parent_stock_name" placeholder="완제품명 입력" list="parent-stock-list" autocomplete="off" />
             </div>
             <div class="form-group">
-                <label for="child_stock_id">자재 재고코드 (원자재)</label>
-                <input type="text" id="child_stock_id" name="child_stock_id" placeholder="원자재 코드 입력" />
+                <label for="child_stock_name">원자재명</label>
+                <input type="text" id="child_stock_name" name="child_stock_name" placeholder="원자재명 입력" list="child-stock-list" autocomplete="off" />
             </div>
             <button type="submit" data-action="search" data-file="production" data-fn="bom_list">
                 <i class="fas fa-search"></i> 검색
             </button>
         </form>
+
+        <datalist id="parent-stock-list">
+            ${parentOptions}
+        </datalist>
+        <datalist id="child-stock-list">
+            ${childOptions}
+        </datalist>
     `;
     return search_bar;
 }
@@ -425,8 +470,8 @@ export function bom_search_form() {
 
 // 7. BOM 조건 검색 (물품별)
 export async function bom_list(formData) {
-    const parent_stock_id = formData.parent_stock_id || '';
-    const child_stock_id = formData.child_stock_id || '';
+    const parent_stock_name = formData.parent_stock_name || '';
+    const child_stock_name = formData.child_stock_name || '';
     const actionRow = `
         <div class="table-actions-header">
             <button class="action-button btn-primary" data-action="add" data-file="production" data-fn="addBOM">
@@ -439,9 +484,9 @@ export async function bom_list(formData) {
                     <thead>
                         <tr>
                             <th>BOM 코드</th>
-                            <th>목표 재고코드</th>
-                            <th>자재 재고코드</th>
-                            <th>필요량</th>
+                            <th>완제품명</th>
+                            <th>원자재명</th>
+                            <th>필요량</th>                            
                             <th>관리</th>
                         </tr>
                     </thead>`;
@@ -454,8 +499,8 @@ export async function bom_list(formData) {
             method: 'GET',
             dataType: 'json',
             data: {
-                parent_stock_id: parent_stock_id,
-                child_stock_id: child_stock_id
+                parent_stock_name: parent_stock_name,
+                child_stock_name: child_stock_name
             }
         });
 
@@ -465,8 +510,8 @@ export async function bom_list(formData) {
             $.each(data, function(i, row) {
                 tbody += `<tr>
                             <td>${row.bom_id ?? '-'}</td>
-                            <td>${row.parent_stock_id ?? '-'}</td>
-                            <td>${row.child_stock_id ?? '-'}</td>
+                            <td>${row.parent_stock_name ?? (row.parent_stock_id ?? '-')}</td>
+                            <td>${row.child_stock_name ?? (row.child_stock_id ?? '-')}</td>
                             <td><strong>${numberFormat(row.required_qty)}</strong></td>
                             
                             <td class="actions">
@@ -474,6 +519,7 @@ export async function bom_list(formData) {
                                         data-file="production"
                                         data-fn="editBOM"
                                         data-bom-id="${row.bom_id}"
+                                        data-value="${row.bom_id}"
                                         title="수정">
                                     <i class="fas fa-edit"></i>
                                 </button>

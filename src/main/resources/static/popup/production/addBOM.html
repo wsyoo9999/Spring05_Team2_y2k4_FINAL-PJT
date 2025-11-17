@@ -45,7 +45,8 @@
             color: #555;
             font-size: 14px;
         }
-        .form-group input[type="number"] {
+        .form-group input[type="number"],
+        .form-group select {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--border-color);
@@ -54,8 +55,10 @@
             color: var(--text-dark);
             transition: border-color 0.2s;
             box-sizing: border-box;
+            background: #fff;
         }
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             border-color: var(--primary-color);
             outline: none;
         }
@@ -83,14 +86,19 @@
     <h2><i class="fas fa-plus-circle"></i> 자재 명세서(BOM) 추가</h2>
 
     <form method="POST" action="/api/production/bom/add" id="form">
+
         <div class="form-group">
-            <label for="parent_stock_id">목표 제품 코드 (완제품 ID)</label>
-            <input type="number" id="parent_stock_id" name="parent_stock_id" required>
+            <label for="parent_stock_id">완제품명 (판매 상품)</label>
+            <select id="parent_stock_id" name="parent_stock_id" required>
+                <option value="">로딩 중...</option>
+            </select>
         </div>
 
         <div class="form-group">
-            <label for="child_stock_id">자재 재고 코드 (원자재 ID)</label>
-            <input type="number" id="child_stock_id" name="child_stock_id" required>
+            <label for="child_stock_id">원자재명</label>
+            <select id="child_stock_id" name="child_stock_id" required>
+                <option value="">로딩 중...</option>
+            </select>
         </div>
 
         <div class="form-group">
@@ -106,38 +114,109 @@
 </div>
 
 <script>
-    const form = document.getElementById("form");
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
 
+    let parent_option = '<option value="">완제품 선택</option>';
+    let child_option = '<option value="">원자재 선택</option>';
+    let optionLoaded = false;
+
+    async function loadSelectForm() {
         try {
-            const result = await $.ajax({
-                url: form.action,
-                method: 'POST',
-                dataType: 'json',
-                data: $(form).serialize()
+            const [parents, children] = await Promise.all([
+                // 1. 완제품 (type: 1) 목록 조회
+                $.ajax({
+                    url: `/api/inventory/stock`,
+                    method: 'GET',
+                    dataType: 'json',
+                    data: { type: 1 } // '판매 상품'
+                }),
+                // 2. 원자재 (type: 0) 목록 조회
+                $.ajax({
+                    url: `/api/inventory/stock`,
+                    method: 'GET',
+                    dataType: 'json',
+                    data: { type: 0 } // '원자재'
+                })
+            ]);
+
+            // 3. 완제품 옵션 HTML 생성
+            $.each(parents, function (i, row) {
+                parent_option += `<option value="${row.stock_id}">${row.stock_name}</option>`;
             });
 
-            if (result === true) {
-                alert('✅ BOM이 성공적으로 등록되었습니다.');
-                // 부모 창의 BOM 목록 새로고침
-                if (window.opener && !window.opener.closed) {
-                    const bomMenu = window.opener.document.querySelector('.menu[data-file="production"][data-fn="bom_listAll"]');
-                    if(bomMenu) {
-                        bomMenu.click();
-                    } else {
-                        window.opener.location.reload();
-                    }
-                }
-                window.close();
-            } else {
-                alert('❌ 입력에 실패했습니다.');
-            }
-        } catch (error) {
-            console.error('등록 실패:', error);
-            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+            // 4. 원자재 옵션 HTML 생성
+            $.each(children, function (i, row) {
+                child_option += `<option value="${row.stock_id}">${row.stock_name}</option>`;
+            });
+
+            // 5. <select> 태그에 완성된 옵션 HTML 삽입
+            $('#parent_stock_id').html(parent_option);
+            $('#child_stock_id').html(child_option);
+            optionLoaded = true;
+
+        } catch(err) {
+            console.error("옵션 로딩 실패:", err);
+            alert('옵션 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+            $('#parent_stock_id').html('<option value="">로딩 실패</option>');
+            $('#child_stock_id').html('<option value="">로딩 실패</option>');
         }
-    })
+    }
+
+    $(async function() {
+        // 1. 페이지가 준비되면 옵션 데이터부터 불러옵니다.
+        await loadSelectForm();
+
+        // 2. 기존 폼 제출(submit) 이벤트 리스너를 설정합니다.
+        const form = document.getElementById("form");
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            // 3. [추가] 유효성 검사
+            if (!optionLoaded) {
+                alert('옵션을 불러오는 중입니다. 잠시만 기다려주세요.');
+                return;
+            }
+            const parentId = $('#parent_stock_id').val();
+            const childId = $('#child_stock_id').val();
+
+            if (!parentId || !childId) {
+                alert('완제품과 원자재를 모두 선택하세요.');
+                return;
+            }
+            if (parentId === childId) {
+                alert('완제품과 원자재는 같을 수 없습니다.');
+                return;
+            }
+
+            // 4. 폼 데이터 전송
+            try {
+                const result = await $.ajax({
+                    url: form.action,
+                    method: 'POST',
+                    dataType: 'json',
+                    data: $(form).serialize()
+                });
+
+                if (result === true) {
+                    alert('✅ BOM이 성공적으로 등록되었습니다.');
+                    // 부모 창의 BOM 목록 새로고침
+                    if (window.opener && !window.opener.closed) {
+                        const bomMenu = window.opener.document.querySelector('.menu[data-file="production"][data-fn="bom_listAll"]');
+                        if(bomMenu) {
+                            bomMenu.click();
+                        } else {
+                            window.opener.location.reload();
+                        }
+                    }
+                    window.close();
+                } else {
+                    alert('❌ 입력에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('등록 실패:', error);
+                alert('❌ 서버 통신 중 오류가 발생했습니다.');
+            }
+        });
+    });
 </script>
 </body>
 </html>

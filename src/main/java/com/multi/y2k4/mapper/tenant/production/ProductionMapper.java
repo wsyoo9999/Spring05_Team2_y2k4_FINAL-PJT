@@ -23,8 +23,8 @@ public interface ProductionMapper {
 
     List<Defect> getWorkOrderDefects(@Param("work_order_id") Long work_order_id);
 
-    List<BOM> getBOMList(@Param("parent_stock_id") Long parent_stock_id,
-                         @Param("child_stock_id") Long child_stock_id); // 2. 파라미터 추가
+    List<BOM> getBOMList(@Param("parent_stock_name") String parent_stock_name,
+                         @Param("child_stock_name") String child_stock_name);
     int addWorkOrder(WorkOrder workOrder);
 
     int addBOM(BOM bom);
@@ -33,4 +33,14 @@ public interface ProductionMapper {
     int updateBOM(BOM bom);
     int deleteBOM(@Param("bom_id") Long bom_id);
     int addLot(Lot lot);
+    Lot getLotById(@Param("lot_id") Long lot_id);
+    void updateWorkOrderProgress(
+            @Param("work_order_id") Long work_order_id,
+            @Param("good_qty") Integer good_qty,
+            @Param("defect_qty") Integer defect_qty, // 추가됨
+            @Param("order_status") int order_status
+    );
+    int addDefect(Defect defect);
+    int deleteDefectsByWorkOrderId(@Param("work_order_id") Long work_order_id);
+    int deleteLotsByWorkOrderId(@Param("work_order_id") Long work_order_id);
 }
