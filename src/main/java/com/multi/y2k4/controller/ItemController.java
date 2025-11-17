@@ -29,21 +29,16 @@ public class ItemController {
 
     // =============================================재고=============================================
     @GetMapping("/stock")
-    public List<Stock> listStock(@RequestParam(required=false) String stock_name,
-                            @RequestParam(required=false) Integer qty,
-                            @RequestParam(required=false) Integer unit_price,
-                            @RequestParam(required=false) String location,
-                            @RequestParam(required=false) Integer type) {
+    public List<Stock> listStock(@ModelAttribute Stock stock) {
 
-        boolean noFilter = (stock_name == null || stock_name.isBlank())
-                && qty == null
-                && unit_price == null
-                && (location == null || location.isBlank())
-                && type == null;
+        boolean noFilter = (stock.getStock_name() == null || stock.getStock_name().isBlank())
+                && (stock.getLocation() == null || stock.getLocation().isBlank())
+                && stock.getType() == null;
+
 
         return noFilter
                 ? stockService.list_all()
-                : stockService.list(stock_name, qty, unit_price, location, type);
+                : stockService.list(stock);
     }
 
     // 재고 목록 추가

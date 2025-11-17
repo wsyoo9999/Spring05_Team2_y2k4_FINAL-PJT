@@ -9,7 +9,7 @@
     </select>
 
     <select id="list" resultType="com.multi.y2k4.vo.inventory.Stock">
-        SELECT stock_id, stock_name, qty, unit_price, location, type
+        SELECT *
         FROM stock
         <where>
             <if test="stock_name != null and stock_name != ''">
@@ -28,7 +28,7 @@
                 AND type = #{type}
             </if>
             <if test="is_deleted != null">
-                AND is_deleted = #{is_deleted}
+                AND is_deleted = 0
             </if>
         </where>
     </select>

@@ -11,11 +11,7 @@ import java.util.List;
 @Mapper
 public interface StockMapper {
     public List<Stock> list_all();
-    public List<Stock> list( @Param("stock_name")String stock_name,
-                             @Param("qty")Integer qty,
-                             @Param("unit_price")Integer unit_price,
-                             @Param("location")String location,
-                             @Param("type")Integer type);
+    public List<Stock> list(Stock stock);
     public int addStock(Stock stock);
     Stock selectStockById(int stock_id);
     public int updateStock(Stock stock);
