@@ -32,7 +32,7 @@ public class StockService {
         System.out.println("Service - 결과: " + result);
         return result;}
 
-    public List<Stock> list(String stock_name, Integer qty, Integer unit_price, String location, Integer type) {
-        return stockMapper.list(stock_name, qty, unit_price, location, type);
+    public List<Stock> list(Stock stock) {
+        return stockMapper.list(stock);
     }
 }
