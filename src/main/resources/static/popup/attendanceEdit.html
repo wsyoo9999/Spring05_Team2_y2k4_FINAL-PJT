@@ -17,7 +17,8 @@
 
         /* 폼 스타일 */
         #updateForm label { display: block; margin-top: 10px; font-weight: bold; }
-        #updateForm select {
+        #updateForm select,
+        #updateForm input[type="time"] {
             width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
         }
         #updateForm button {
@@ -37,11 +38,16 @@
             <div class="info-label">사번</div><div class="info-value" id="empIdValue"></div>
             <div class="info-label">이름</div><div class="info-value" id="empNameValue"></div>
             <div class="info-label">근무 일자</div><div class="info-value" id="workDateValue"></div>
-            <div class="info-label">출근/퇴근</div><div class="info-value" id="timeValue"></div>
         </div>
 
         <h3>근무 상태 변경</h3>
         <form id="updateForm">
+            <label for="check_in_time">출근 시간:</label>
+            <input type="time" id="check_in_time" name="check_in_time" required>
+
+            <label for="check_out_time">퇴근 시간:</label>
+            <input type="time" id="check_out_time" name="check_out_time" required>
+
             <label for="status">근무 상태:</label>
             <select id="status" name="attendance_status" required>
                 <option value="정상">정상</option>
@@ -58,6 +64,7 @@
 <script>
     const API_BASE_URL = '/api/hr/attendance';
     let currentAttendanceId = null;
+    let currentWorkDate = null;
 
     // URL 쿼리 파라미터에서 ID 가져오기
     function getAttendanceIdFromUrl() {
@@ -67,10 +74,16 @@
 
     // 시간 포맷 (HH:MM)
     function formatTime(dateTimeString) {
-        if (!dateTimeString) return '-';
+        if (!dateTimeString) return '00:00'; // [수정] 기본값
         const time = dateTimeString.split('T')[1];
-        if (time) return time.substring(0, 5);
-        return '-';
+        if (time) return time.substring(0, 5); // "HH:MM"
+
+        // "YYYY-MM-DD HH:MM:SS" 같은 구형 포맷 대비
+        const parts = dateTimeString.split(' ');
+        if (parts.length > 1) {
+            return parts[1].substring(0, 5);
+        }
+        return '00:00';
     }
 
     // 1. 상세 데이터 로드
@@ -79,7 +92,7 @@
         currentAttendanceId = attendanceId;
 
         if (!attendanceId) {
-            document.getElementById('loading').innerHTML = '<p style="color: red;">🚨 오류: 근태 ID가 전달되지 않았습니다.</p>';
+            document.getElementById('loading').innerHTML = '<p style="color: red;"> 오류: 근태 ID가 전달되지 않았습니다.</p>';
             return;
         }
 
@@ -91,6 +104,8 @@
             });
 
             if (data && data.attendance_id) {
+                // ▼ [수정] 시간 및 날짜 처리
+                currentWorkDate = data.work_date; // 날짜 저장 (예: "2025-11-17")
                 const checkIn = formatTime(data.check_in);
                 const checkOut = formatTime(data.check_out);
 
@@ -98,10 +113,13 @@
                 document.getElementById('empIdValue').textContent = data.emp_id;
                 document.getElementById('empNameValue').textContent = data.emp_name;
                 document.getElementById('workDateValue').textContent = data.work_date;
-                document.getElementById('timeValue').textContent = `${checkIn} ~ ${checkOut}`;
+                // document.getElementById('timeValue').textContent = `${checkIn} ~ ${checkOut}`; // [삭제]
 
                 // 폼 초기값 설정 (현재 상태)
+                document.getElementById('check_in_time').value = checkIn;
+                document.getElementById('check_out_time').value = checkOut;
                 document.getElementById('status').value = data.attendance_status;
+
 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('attendance-detail-content').style.display = 'block';
@@ -120,7 +138,20 @@
     document.getElementById('updateForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
+        // ▼ [수정] 시간 값을 가져와서 YYYY-MM-DDTHH:MM 형식으로 조합
         const status = document.getElementById('status').value;
+        const checkInTime = document.getElementById('check_in_time').value; // "HH:MM"
+        const checkOutTime = document.getElementById('check_out_time').value; // "HH:MM"
+
+        if (!currentWorkDate) {
+            alert('오류: 근무 일자 정보가 없습니다.');
+            return;
+        }
+
+        // 서버의 LocalDateTime 형식(YYYY-MM-DDTHH:MM)으로 조합
+        const checkInDateTime = `${currentWorkDate}T${checkInTime}`;
+        const checkOutDateTime = `${currentWorkDate}T${checkOutTime}`;
+        // ▲ [수정]
 
         // PUT 요청으로 서버에 수정된 데이터 전송
         try {
@@ -128,17 +159,26 @@
                 url: `${API_BASE_URL}/${currentAttendanceId}`,
                 method: 'PUT',
                 contentType: 'application/json',
+
                 data: JSON.stringify({
-                    // 상태만 전송 (제안 2)
-                    attendance_status: status
+                    attendance_status: status,
+                    check_in: checkInDateTime,
+                    check_out: checkOutDateTime
                 })
+
             });
 
             if (result === true) {
                 alert('✅ 근태 상태가 성공적으로 수정되었습니다.');
-                // 부모 창 새로고침 (수정된 정보를 반영하기 위해)
+
                 if (window.opener && !window.opener.closed) {
-                    window.opener.location.reload();
+
+                    const menu = window.opener.document.querySelector('.menu[data-file="hr"][data-fn="attendance_listAll"]');
+                    if (menu) {
+                        menu.click();
+                    } else {
+                        window.opener.location.reload(); // 최후의 수단
+                    }
                 }
                 window.close();
             } else {
@@ -154,4 +194,5 @@
 
     $(document).ready(loadAttendanceDetail);
 </script>
+</body>
 </html>
