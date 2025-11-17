@@ -20,6 +20,12 @@ spring:
       username: root          # docker-compose에서 설정한 계정
       password: 5678     # docker-compose의 MYSQL_ROOT_PASSWORD와 일치
       driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        maximum-pool-size: 5
+        minimum-idle: 1
+        idle-timeout: 600000
+        max-lifetime: 1800000
+        connection-timeout: 30000
 
   # 여러 DataSource/빈들을 직접 등록하고 있어서 충돌 나지 않도록 허용
   main:

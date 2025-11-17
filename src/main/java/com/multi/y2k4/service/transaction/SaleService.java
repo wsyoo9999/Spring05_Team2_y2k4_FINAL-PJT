@@ -1,10 +1,13 @@
 package com.multi.y2k4.service.transaction;
 
+import com.multi.y2k4.mapper.tenant.transaction.SaleDetailsMapper;
 import com.multi.y2k4.mapper.tenant.transaction.SaleMapper;
 import com.multi.y2k4.vo.transaction.Purchase;
 import com.multi.y2k4.vo.transaction.Sale;
+import com.multi.y2k4.vo.transaction.SaleDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SaleService {
     private final SaleMapper saleMapper;
+    private final SaleDetailsMapper saleDetailsMapper;
 
     public List<Sale> list_all() {
         return saleMapper.list_all();
@@ -28,5 +32,11 @@ public class SaleService {
     }
     public int editSaleStatus(Sale sale) {
         return saleMapper.editSaleStatus(sale);
+    }
+
+    @Transactional
+    public int deleteSale(Integer sale_id) {
+        saleDetailsMapper.deleteSaleDetails(sale_id);
+        return saleMapper.deleteSale(sale_id);
     }
 }

@@ -51,7 +51,11 @@ public class TenantDataSourceProvider {
         config.setUsername(username);
         config.setPassword(password);
         config.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        config.setMaximumPoolSize(10);
+        config.setMaximumPoolSize(5);
+        config.setMinimumIdle(1);
+        config.setIdleTimeout(600_000);   // 10분
+        config.setMaxLifetime(1_800_000); // 30분
+        config.setConnectionTimeout(30_000);
         config.setPoolName("tenant-pool-" + dbName);
 
         return new HikariDataSource(config);

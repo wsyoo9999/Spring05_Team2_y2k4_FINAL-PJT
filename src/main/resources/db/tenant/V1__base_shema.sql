@@ -111,9 +111,9 @@ CREATE TABLE attendance (
 
 CREATE TABLE documents (
                            doc_id     BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                           cat_id tinyint not null,	/*0(재무), 1(판매/구매), 2(샌산/제조), 3(재고), 4(인사), */
-                           tb_id tinyint not null,	/*각 카테고리 별 세부 테이블, 0부터 시작, 순서는 main의 아코디언 메뉴 순  */
-                           cd_id tinyint not null,  /*0(생성관련 문서), 1(삭제 관련 문서)*/
+                           cat_id     tinyint not null,	/*0(재무), 1(판매/구매), 2(샌산/제조), 3(재고), 4(인사), */
+                           tb_id      tinyint not null,	/*각 카테고리 별 세부 테이블, 0부터 시작, 순서는 main의 아코디언 메뉴 순  */
+                           cd_id      tinyint not null,  /*0(생성관련 문서), 1(삭제 관련 문서)*/
                            req_id     BIGINT UNSIGNED NOT NULL,
                            req_date   DATETIME DEFAULT CURRENT_TIMESTAMP,
                            title      VARCHAR(200),
@@ -122,6 +122,7 @@ CREATE TABLE documents (
                            appr_date  DATETIME,
                            status     tinyint,  /*0(처리중), 1(승인), 2(반려)*/
                            comments   Text,
+                           query Text,
                            CONSTRAINT fk_doc_req  FOREIGN KEY (req_id)  REFERENCES human_resource(emp_id),
                            CONSTRAINT fk_doc_appr FOREIGN KEY (appr_id) REFERENCES human_resource(emp_id)
 );

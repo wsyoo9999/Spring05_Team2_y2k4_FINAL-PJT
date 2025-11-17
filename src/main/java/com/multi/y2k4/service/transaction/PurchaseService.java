@@ -1,10 +1,12 @@
 package com.multi.y2k4.service.transaction;
 
 
+import com.multi.y2k4.mapper.tenant.transaction.PurchaseDetailsMapper;
 import com.multi.y2k4.mapper.tenant.transaction.PurchaseMapper;
 import com.multi.y2k4.vo.transaction.Purchase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,6 +15,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PurchaseService {
     private final PurchaseMapper purchaseMapper;
+    private final PurchaseDetailsMapper purchaseDetailsMapper;
+
     public int addPurchase(Purchase purchase){
         return purchaseMapper.addPurchase(purchase);
     }
@@ -27,4 +31,10 @@ public class PurchaseService {
     }
     public int editPurchaseStatus(Purchase purchase){
         return purchaseMapper.editPurchaseStatus(purchase);}
+
+    @Transactional
+    public int deletePurchase(Integer purchase_id) {
+        purchaseDetailsMapper.deletePurchaseDetails(purchase_id);
+        return purchaseMapper.deletePurchase(purchase_id);
+    }
 }

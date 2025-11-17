@@ -1,11 +1,14 @@
 package com.multi.y2k4.controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.multi.y2k4.service.document.DocumentsService;
 import com.multi.y2k4.service.transaction.PurchaseDetailsService;
 import com.multi.y2k4.service.transaction.PurchaseService;
 import com.multi.y2k4.service.transaction.SaleDetailsService;
 import com.multi.y2k4.service.transaction.SaleService;
+import com.multi.y2k4.vo.document.Documents;
 import com.multi.y2k4.vo.transaction.Purchase;
 import com.multi.y2k4.vo.transaction.PurchaseDetails;
 import com.multi.y2k4.vo.transaction.Sale;
@@ -29,6 +32,7 @@ public class TransactionController {
     private final SaleDetailsService saleDetailsService;
     private final PurchaseDetailsService purchaseDetailsService;
     private final ObjectMapper objectMapper;
+    private final DocumentsService documentsService;
 
     @GetMapping("/sale/list")
     public List<Sale> saleList(@RequestParam(required = false) Integer sale_id,
@@ -64,7 +68,7 @@ public class TransactionController {
                             @RequestParam Integer[] stock_id,
                             @RequestParam Integer[] qty,
                             @RequestParam Double[] price_per_unit,
-                            Model model){
+                            Model model) throws JsonProcessingException {
 
         double total_price = 0;
         List<SaleDetails> saleDetails = new ArrayList<>();
@@ -84,13 +88,45 @@ public class TransactionController {
         sale.setOrder_date(order_date);
         sale.setDue_date(due_date);
         sale.setTotal_price(total_price);
-        sale.setStatus(0);
-        saleService.addSale(sale);
-        int id = sale.getSale_id();
-        for(int i = 0; i < stock_id.length; i++){
-            saleDetails.get(i).setSale_id(id);
+        /***********************이후론 계정의 등급에 따라 분기*******************************/
+        int authLevel = 0;
+        Documents doc = new Documents();
+
+        if(authLevel == 0){     //현재 계정의 등급이 문서화를 거칠 필요가 없을떄
+            sale.setStatus(0);
+            saleService.addSale(sale);
+            int id = sale.getSale_id();
+            for(int i = 0; i < stock_id.length; i++){
+                saleDetails.get(i).setSale_id(id);
+            }
+            saleDetailsService.addSaleDetails(saleDetails);
+            doc.setStatus(1);       //DB의 변경이 일어나므로 기록으로는 남김, 자체 승인을 한 것이므로 문서 상태는 바로 1(승인)
+        }else{      //문서화가 필요할 때
+            sale.setStatus(99);     //99는 해당 데이터는 비활성화라는 의미, 문서가 승인나면 99 -> 0으로 수정하는 방식
+            saleService.addSale(sale);
+            int id = sale.getSale_id();
+            for(int i = 0; i < stock_id.length; i++){
+                saleDetails.get(i).setSale_id(id);
+            }
+            saleDetailsService.addSaleDetails(saleDetails);
+            doc.setStatus(0);   //처리를 대기중
         }
-        saleDetailsService.addSaleDetails(saleDetails);
+
+        HashMap<String, Object> payload = new HashMap<>();
+        payload.put("cat_id", 1);   // 판매/구매
+        payload.put("tb_id", 0);    // 판매
+        payload.put("cd_id", 0);    // 추가
+        payload.put("pk", sale.getSale_id());
+        //제목
+        //기안자 emp_id(추후 세션에서 가져옴)
+        //결재자 emp_id(추후 세션에서 자신의 emp_id를 통해 supervisor값을 저장),자신이 상위관리자라면 자기 자신의 emp_id
+        doc.setReq_date(LocalDate.now());   //결재 올린 시간은 기본적으로 현재 시간
+        String query = objectMapper.writeValueAsString(payload);
+        doc.setQuery(query);
+            // (3) 문서 저장
+        documentsService.addDocument(doc);
+
+
         return true;
     }
 

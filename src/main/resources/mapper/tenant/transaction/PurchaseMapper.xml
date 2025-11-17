@@ -62,4 +62,8 @@
 
     </update>
 
+    <delete id="deletePurchase">
+        DELETE FROM purchase WHERE purchase_id = #{purchase_id}
+    </delete>
+
 </mapper>

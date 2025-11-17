@@ -63,4 +63,8 @@
 
     </update>
 
+    <delete id="deleteSale">
+        DELETE FROM sale WHERE sale_id = #{sale_id}
+    </delete>
+
 </mapper>

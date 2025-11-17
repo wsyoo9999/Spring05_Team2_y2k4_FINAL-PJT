@@ -20,4 +20,6 @@ public interface PurchaseMapper {
                             @Param("status") Integer status);
     public int editPurchase(Purchase purchase);
     public int editPurchaseStatus(Purchase purchase);
+
+    public int deletePurchase(@Param("purchase_id")Integer purchase_id);
 }
