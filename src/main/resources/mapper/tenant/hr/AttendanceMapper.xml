@@ -61,6 +61,8 @@
     <update id="updateAttendanceStatus" parameterType="com.multi.y2k4.vo.hr.Attendance">
         UPDATE attendance
         SET
+            att_date = #{check_in},
+            clock_out = #{check_out},
             att_status = CASE #{attendance_status}
                              WHEN '정상' THEN 0
                              WHEN '지각' THEN 1
