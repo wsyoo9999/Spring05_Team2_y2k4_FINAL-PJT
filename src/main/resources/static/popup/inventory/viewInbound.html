@@ -66,7 +66,13 @@
             gap:15px;
         }
         #remark{ height:100px; padding:8px; }
-        .submit-row{ margin-top:10px; text-align:right; }
+        .submit-row{
+            margin-top:10px;
+            text-align:right;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
         .submit-button{
             background:var(--primary-color);
             color:#fff;
@@ -79,6 +85,18 @@
             transition:background-color .2s;
         }
         .submit-button:hover{ background:#3A7BD5; }
+        .delete-button{
+            background-color:#dc3545;
+            color:#fff;
+            border:none;
+            padding:12px 20px;
+            border-radius:5px;
+            cursor:pointer;
+            font-size:16px;
+            font-weight:500;
+            transition:background-color .2s;
+        }
+        .delete-button:hover{ background-color:#c82333; }
     </style>
 </head>
 <body>
@@ -88,51 +106,65 @@
 
     <form id="inboundForm" autocomplete="off">
 
-        <div>
-            <label for="inbound_id">입고번호</label>
-            <input id="inbound_id" name="inbound_id" type="number" />
-        </div>
-
-
         <div class="grid-2">
+            <div>
+                <label for="inbound_id">입고번호</label>
+                <input id="inbound_id" name="inbound_id" type="number" />
+            </div>
             <div>
                 <label for="inbound_date">입고일</label>
                 <input id="inbound_date" name="inbound_date" type="date" />
             </div>
+        </div>
+
+        <div class="grid-2">
             <div>
                 <label for="stock_id">재고코드</label>
                 <input id="stock_id" name="stock_id" type="text" />
             </div>
-        </div>
-
-        <div class="grid-2">
             <div>
                 <label for="inbound_qty">입고수량</label>
                 <input id="inbound_qty" name="inbound_qty" type="number" />
             </div>
+        </div>
+
+        <div class="grid-2">
             <div>
                 <label for="unit_price">단가</label>
                 <input id="unit_price" name="unit_price" type="number" />
+            </div>
+            <div>
+                <label for="ac_id">공급업체</label>
+                <input id="ac_id" name="ac_id" type="number" />
             </div>
         </div>
 
         <div class="grid-2">
             <div>
-                <label for="ac_name">공급업체</label>
-                <input id="ac_name" name="ac_name" type="text" />
+                <label for="emp_id">담당자</label>
+                <input id="emp_id" name="emp_id" type="number" />
             </div>
             <div>
-                <label for="emp_name">담당자</label>
-                <input id="emp_name" name="emp_name" type="text" />
+                <label for="approval">승인상태</label>
+                    <select name="approval" id="approval">
+                        <option value="0">대기</option>
+                        <option value="1">승인</option>
+                        <option value="2">반려</option>
+                    </select>
             </div>
         </div>
+
 
         <div>
             <label for="remark">비고</label>
-            <input id="remark" name="remark" type="text" style="width:100%; height:39px; box-sizing:border-box;">
+            <input id="remark" name="remark" type="text" style="height:39px;">
         </div>
 
+
         <div class="submit-row">
+            <button type="button" id="delete" class="delete-button">
+                <i class="fas fa-trash"></i> 삭제
+            </button>
             <button type="submit" id="edit" class="submit-button">
                 <i class="fas fa-check"></i> 수정
             </button>
@@ -193,9 +225,14 @@
             setById('stock_id',      s.stock_id);
             setById('inbound_qty',   s.inbound_qty);
             setById('unit_price',    s.unit_price);
-            setById('ac_name',       s.ac_name);
-            setById('emp_name',      s.emp_name);
+            setById('ac_id',       s.ac_id);
+            setById('emp_id',      s.emp_id);
             setById('remark',        s.remark);
+
+            const approvalEl = document.getElementById('approval');
+            if (approvalEl) {
+                approvalEl.value = String(s.approval ?? '0');
+            }
 
             // 날짜 처리 (YYYY-MM-DD 형식으로 변환)
             if (s.inbound_date) {
@@ -266,6 +303,55 @@
             const text   = err?.responseText;
             console.error('수정 실패:', status, text, err);
             alert(`수정 실패 (status=${status})\n${text ?? ''}`);
+        }
+    });
+
+    $('#delete').on('click', async function () {
+        const id = $('#inbound_id').val();
+
+        if (!id) {
+            alert('입고번호가 없습니다.');
+            return;
+        }
+
+        // 삭제 확인
+        if (!confirm(`삭제하시겠습니까?`)) {
+            return;
+        }
+
+        if (!confirm('삭제된 데이터는 복구할 수 없습니다.\n정말 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            console.log('삭제 요청:', id);
+
+            await $.ajax({
+                url: `/api/inventory/inbound/${encodeURIComponent(id)}`,
+                method: 'DELETE',
+                dataType: 'json'
+            });
+
+            alert('삭제 완료');
+
+            // 부모 창 새로고침
+            if (window.opener && !window.opener.closed) {
+                try {
+                    if (typeof window.opener.reloadInboundList === 'function') {
+                        window.opener.reloadInboundList();
+                    } else {
+                        window.opener.location.reload();
+                    }
+                } catch(_) {}
+            }
+
+            window.close();
+
+        } catch (err) {
+            const status = err?.status;
+            const text   = err?.responseText;
+            console.error('삭제 실패:', status, text, err);
+            alert(`삭제 실패 (status=${status})\n${text ?? ''}`);
         }
     });
 </script>

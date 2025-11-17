@@ -27,6 +27,7 @@ public class InboundService {
     public int updateInbound(Inbound inbound) {
         return inboundMapper.updateInbound(inbound);
     }
+    public int deleteInbound(Inbound inbound) {return inboundMapper.deleteInbound(inbound);}
 
     // 검색 조건: inbound_date, stock_id, ac_id, emp_id, approval
     public List<Inbound> list(LocalDate inbound_date,

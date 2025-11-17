@@ -11,4 +11,5 @@ public class Stock {
     private int unit_price;             // 단가
     private String location;    // 보관위치
     private int type;               // 구분 (0=원자재, 1=판매상품)
+    private int is_deleted;     // 삭제 여부(0:삭제 안됨 1:삭제됨
 }

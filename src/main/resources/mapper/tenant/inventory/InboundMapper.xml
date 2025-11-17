@@ -48,7 +48,7 @@
 
     <select id="selectInboundById" resultType="com.multi.y2k4.vo.inventory.Inbound">
         SELECT * FROM inbound
-        WHERE inbond_id = #{inbound_id}
+        WHERE inbound_id = #{inbound_id}
     </select>
 
     <update id="updateInbound" parameterType="com.multi.y2k4.vo.inventory.Inbound">
@@ -66,4 +66,8 @@
         WHERE inbound_id = #{inbound_id}
     </update>
 
+    <delete id="deleteInbound" parameterType="com.multi.y2k4.vo.inventory.Inbound">
+        DELETE FROM inbound
+        WHERE inbound_id = #{inbound_id}
+    </delete>
 </mapper>

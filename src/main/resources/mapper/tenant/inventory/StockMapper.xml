@@ -5,7 +5,7 @@
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.inventory.StockMapper">
     <select id="list_all" resultType="com.multi.y2k4.vo.inventory.Stock">
-        select * from stock
+        select * from stock where is_deleted = 0
     </select>
 
     <select id="list" resultType="com.multi.y2k4.vo.inventory.Stock">
@@ -26,6 +26,9 @@
             </if>
             <if test="type != null">
                 AND type = #{type}
+            </if>
+            <if test="is_deleted != null">
+                AND is_deleted = #{is_deleted}
             </if>
         </where>
     </select>
@@ -54,4 +57,16 @@
     </update>
 
 
+    <!--삭제-->
+    <update id="deleteStock" parameterType="com.multi.y2k4.vo.inventory.Stock">
+        UPDATE stock
+        SET is_deleted = 1,
+            stock_name = '-',     -- VARCHAR
+            qty        = 0,       -- INT
+            unit_price = 0,       -- INT
+            location   = '-',     -- VARCHAR
+            type       = 0        -- INT (예: 기본값)
+        WHERE stock_id = #{stock_id}
+          AND is_deleted = 0
+    </update>
 </mapper>
