@@ -1,6 +1,7 @@
 package com.multi.y2k4.service.inventory;
 
 import com.multi.y2k4.mapper.tenant.inventory.OutboundMapper;
+import com.multi.y2k4.vo.inventory.Inbound;
 import com.multi.y2k4.vo.inventory.Outbound;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,11 @@ public class OutboundService {
         return outboundMapper.addOutbound(outbound);
     }
 
+    public Outbound selectOutboundById(Integer outbound_id) { return outboundMapper.selectOutboundById(outbound_id);  }
     public int updateOutbound(Outbound outbound) {
         return outboundMapper.updateOutbound(outbound);
     }
-
+    public int deleteOutbound(Outbound outbound) {return outboundMapper.deleteOutbound(outbound);}
     // 검색 조건: outbound_date, stock_id, ac_id, emp_id, approval
     public List<Outbound> list(LocalDate outbound_date,
                                Integer stock_id,

@@ -87,6 +87,14 @@ public class ItemController {
                 : ResponseEntity.notFound().build();
     }
 
+    @PutMapping(value = "/stock/{stock_id}/delete", consumes = "application/json")
+    public ResponseEntity<Void> delete(@PathVariable("stock_id") Integer stock_id,
+                                       @RequestBody Stock body) {
+        body.setStock_id(stock_id);              // PK는 경로로 고정
+        int updated = stockService.deleteStock(body); // Mapper: UPDATE stock SET ... WHERE stock_id=?
+        return (updated == 1) ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
+    }
 
 
 
@@ -156,7 +164,17 @@ public class ItemController {
                 : ResponseEntity.notFound().build();
     }
 
+    @DeleteMapping("/inbound/{inbound_id}")
+    public ResponseEntity<Void> deleteInbound(@PathVariable Integer inbound_id) {
+        Inbound inbound = new Inbound();
+        inbound.setInbound_id(inbound_id);
 
+        int deleted = inboundService.deleteInbound(inbound);
+
+        return (deleted == 1)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
+    }
     // =============================================출고=============================================
 
     @GetMapping("/outbound")
@@ -200,6 +218,16 @@ public class ItemController {
         int affected = outboundService.addOutbound(outbound);
         return affected == 1;
     }
+    @GetMapping("/outbound/{outbound_id}")
+    public ResponseEntity<Outbound> selectOutboundById(@PathVariable Integer outbound_id) {
+        Outbound outbound = outboundService.selectOutboundById(outbound_id);
+
+        if (outbound == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(outbound);
+    }
 
     @PutMapping(value = "/outbound/{outbound_id}", consumes = "application/json")
     public ResponseEntity<Void> updateOutbound(@PathVariable("outbound_id") Integer outbound_id,
@@ -207,6 +235,18 @@ public class ItemController {
         body.setOutbound_id(outbound_id);              // PK는 경로로 고정
         int updated = outboundService.updateOutbound(body); // Mapper: UPDATE stock SET ... WHERE stock_id=?
         return (updated == 1) ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/outbound/{outbound_id}")
+    public ResponseEntity<Void> deleteOutbound(@PathVariable Integer outbound_id) {
+        Outbound outbound = new Outbound();
+        outbound.setOutbound_id(outbound_id);
+
+        int deleted = outboundService.deleteOutbound(outbound);
+
+        return (deleted == 1)
+                ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
     }
 }

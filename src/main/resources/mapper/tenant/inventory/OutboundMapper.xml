@@ -45,6 +45,11 @@
         VALUES (#{outbound_date}, #{stock_id}, #{outbound_qty}, #{ac_id}, #{emp_id}, #{remark}, #{approval})
     </insert>
 
+    <select id="selectOutboundById" resultType="com.multi.y2k4.vo.inventory.Outbound">
+        SELECT * FROM outbound
+        WHERE outbound_id = #{outbound_id}
+    </select>
+
     <!-- 수정 -->
     <update id="updateOutbound" parameterType="com.multi.y2k4.vo.inventory.Outbound">
         UPDATE outbound
@@ -60,4 +65,8 @@
         WHERE outbound_id = #{outbound_id}
     </update>
 
+    <delete id="deleteOutbound" parameterType="com.multi.y2k4.vo.inventory.Outbound">
+        DELETE FROM outbound
+        WHERE outbound_id = #{outbound_id}
+    </delete>
 </mapper>

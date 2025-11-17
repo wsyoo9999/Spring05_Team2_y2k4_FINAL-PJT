@@ -15,7 +15,8 @@ CREATE TABLE stock (
                        qty          INT UNSIGNED NOT NULL DEFAULT 0,
                        unit_price   DECIMAL(15,2) NOT NULL DEFAULT 0.00,
                        location     VARCHAR(30),
-                       type         tinyint
+                       type         tinyint,
+                       is_deleted TINYINT(1) NOT NULL DEFAULT 0
 );
 
 
