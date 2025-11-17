@@ -49,9 +49,9 @@ public class ProductionController {
     // 5. BOM 목록 조회
     @GetMapping("/bom")
     public List<BOM> getBOMList(
-            @RequestParam(required = false) Long parent_stock_id,
-            @RequestParam(required = false) Long child_stock_id) {
-        return productionService.getBOMList(parent_stock_id, child_stock_id);
+            @RequestParam(required = false) String parent_stock_name,
+            @RequestParam(required = false) String child_stock_name) {
+        return productionService.getBOMList(parent_stock_name, child_stock_name);
     }
 
     // 6. BOM 상세 조회 (수정 팝업용)
@@ -129,5 +129,21 @@ public class ProductionController {
         newLot.setLot_date(lot_date);
 
         return productionService.addLot(newLot);
+    }
+
+    @PostMapping("/defect/add")
+    public boolean addDefect(
+            @RequestParam Long lot_id,
+            @RequestParam Integer defect_code, // [추가] 불량 코드
+            @RequestParam Integer defect_qty,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate defect_date
+    ) {
+        Defect defect = new Defect();
+        defect.setLot_id(lot_id);
+        defect.setDefect_code(Long.valueOf(defect_code)); // VO 타입에 맞게 변환
+        defect.setDefect_qty(defect_qty);
+        defect.setDefect_date(defect_date);
+
+        return productionService.addDefect(defect);
     }
 }

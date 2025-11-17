@@ -40,8 +40,8 @@
     <resultMap id="BOMMap" type="com.multi.y2k4.vo.production.BOM">
         <id property="bom_id" column="bom_id"/>
         <result property="parent_stock_id" column="parent_stock_id"/>
-        <result property="child_stock_id" column="child_stock_id"/>
-        <result property="required_qty" column="required_qty"/>
+        <result property="parent_stock_name" column="parent_stock_name"/> <result property="child_stock_id" column="child_stock_id"/>
+        <result property="child_stock_name" column="child_stock_name"/> <result property="required_qty" column="required_qty"/>
     </resultMap>
 
     <select id="getWorkOrderList" resultMap="WorkOrderMap">
@@ -117,14 +117,20 @@
     </select>
 
     <select id="getBOMList" resultMap="BOMMap">
-        SELECT bom_id, parent_stock_id, child_stock_id, required_qty
-        FROM bom
+        SELECT
+        b.bom_id,
+        b.parent_stock_id,
+        s_parent.stock_name AS parent_stock_name, b.child_stock_id,
+        s_child.stock_name AS child_stock_name, b.required_qty
+        FROM bom b
+        LEFT JOIN stock s_parent ON b.parent_stock_id = s_parent.stock_id
+        LEFT JOIN stock s_child ON b.child_stock_id = s_child.stock_id
         <where>
-            <if test="parent_stock_id != null">
-                AND parent_stock_id = #{parent_stock_id}
+            <if test="parent_stock_name != null and parent_stock_name != ''">
+                AND s_parent.stock_name LIKE CONCAT('%', #{parent_stock_name}, '%')
             </if>
-            <if test="child_stock_id != null">
-                AND child_stock_id = #{child_stock_id}
+            <if test="child_stock_name != null and child_stock_name != ''">
+                AND s_child.stock_name LIKE CONCAT('%', #{child_stock_name}, '%')
             </if>
         </where>
     </select>
@@ -150,10 +156,29 @@
         DELETE FROM work_order
         WHERE work_order_id = #{work_order_id}
     </delete>
+
+    <delete id="deleteDefectsByWorkOrderId">
+        DELETE d
+        FROM defect d
+        JOIN lot l ON d.lot_id = l.lot_id
+        WHERE l.work_order_id = #{work_order_id}
+    </delete>
+
+    <delete id="deleteLotsByWorkOrderId">
+        DELETE FROM lot
+        WHERE work_order_id = #{work_order_id}
+    </delete>
+
     <select id="getBOMById" resultMap="BOMMap">
-        SELECT bom_id, parent_stock_id, child_stock_id, required_qty
-        FROM bom
-        WHERE bom_id = #{bom_id}
+        SELECT
+            b.bom_id,
+            b.parent_stock_id,
+            s_parent.stock_name AS parent_stock_name, b.child_stock_id,
+            s_child.stock_name AS child_stock_name,   b.required_qty
+        FROM bom b
+                 LEFT JOIN stock s_parent ON b.parent_stock_id = s_parent.stock_id
+                 LEFT JOIN stock s_child ON b.child_stock_id = s_child.stock_id
+        WHERE b.bom_id = #{bom_id}
     </select>
 
     <update id="updateBOM" parameterType="com.multi.y2k4.vo.production.BOM">
@@ -182,7 +207,27 @@
             lot_date
         FROM lot
         WHERE work_order_id = #{work_order_id}
-        ORDER BY lot_date DESC
+        ORDER BY lot_id ASC
     </select>
+
+    <select id="getLotById" resultMap="LotMap">
+        SELECT * FROM lot WHERE lot_id = #{lot_id}
+    </select>
+
+    <update id="updateWorkOrderProgress">
+        UPDATE work_order
+        SET
+        good_qty = #{good_qty},
+        defect_qty = #{defect_qty},  order_status = #{order_status}
+        <if test="order_status == 2">
+            , due_date = CURDATE()
+        </if>
+        WHERE work_order_id = #{work_order_id}
+    </update>
+
+    <insert id="addDefect" parameterType="com.multi.y2k4.vo.production.Defect">
+        INSERT INTO defect (lot_id, defect_code, defect_qty, defect_date)
+        VALUES (#{lot_id}, #{defect_code}, #{defect_qty}, #{defect_date})
+    </insert>
 
 </mapper>
