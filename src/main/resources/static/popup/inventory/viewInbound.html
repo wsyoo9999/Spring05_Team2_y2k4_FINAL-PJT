@@ -9,21 +9,21 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
     <style>
-        :root{
+        :root {
             --primary-color:#4A90E2;
             --bg-light:#F8F9FA;
             --text-dark:#333333;
             --border-color:#E0E0E0;
             --card-bg:#FFFFFF;
         }
-        body{
+        body {
             font-family:'Noto Sans KR', sans-serif;
-            background:var(--bg-light);
+            background-color:var(--bg-light);
             color:var(--text-dark);
             padding:20px;
             margin:0;
         }
-        .form-card{
+        .form-card {
             background:var(--card-bg);
             border-radius:8px;
             box-shadow:0 4px 12px rgba(0,0,0,0.05);
@@ -31,7 +31,7 @@
             max-width:720px;
             margin:0 auto;
         }
-        h2{
+        h2 {
             font-size:22px;
             font-weight:700;
             color:var(--text-dark);
@@ -39,17 +39,18 @@
             padding-bottom:10px;
             margin:0 0 20px 0;
         }
-        #inboundForm > div{ margin-bottom:15px; }
-        label{
+        .form-group { margin-bottom:15px; }
+        .form-group label {
             display:block;
             margin-bottom:6px;
             font-weight:500;
             color:#555;
             font-size:14px;
         }
-        input[type="text"],
-        input[type="number"],
-        input[type="date"]{
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group select {
             width:100%;
             padding:10px;
             border:1px solid var(--border-color);
@@ -59,22 +60,22 @@
             transition:border-color .2s;
             box-sizing:border-box;
         }
-        input:focus{ border-color:var(--primary-color); outline:none; }
-        .grid-2{
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color:var(--primary-color);
+            outline:none;
+        }
+        .form-grid {
             display:grid;
             grid-template-columns:1fr 1fr;
             gap:15px;
         }
-        #remark{ height:100px; padding:8px; }
-        .submit-row{
+        .submit-row {
             margin-top:10px;
             text-align:right;
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
         }
-        .submit-button{
-            background:var(--primary-color);
+        .submit-button {
+            background-color:var(--primary-color);
             color:#fff;
             border:none;
             padding:12px 20px;
@@ -84,9 +85,7 @@
             font-weight:500;
             transition:background-color .2s;
         }
-        .submit-button:hover{ background:#3A7BD5; }
         .delete-button{
-            background-color:#dc3545;
             color:#fff;
             border:none;
             padding:12px 20px;
@@ -96,7 +95,7 @@
             font-weight:500;
             transition:background-color .2s;
         }
-        .delete-button:hover{ background-color:#c82333; }
+        .submit-button:hover { background-color:#3A7BD5; }
     </style>
 </head>
 <body>
@@ -106,45 +105,45 @@
 
     <form id="inboundForm" autocomplete="off">
 
-        <div class="grid-2">
-            <div>
+        <div class="form-grid">
+            <div class="form-group">
                 <label for="inbound_id">입고번호</label>
-                <input id="inbound_id" name="inbound_id" type="number" />
+                <input id="inbound_id" name="inbound_id" type="number"/>
             </div>
-            <div>
+            <div class="form-group">
                 <label for="inbound_date">입고일</label>
                 <input id="inbound_date" name="inbound_date" type="date" />
             </div>
         </div>
 
-        <div class="grid-2">
-            <div>
+        <div class="form-grid">
+            <div class="form-group">
                 <label for="stock_id">재고코드</label>
-                <input id="stock_id" name="stock_id" type="text" />
+                <input id="stock_id" name="stock_id" type="text" readonly/>
             </div>
-            <div>
+            <div class="form-group">
                 <label for="inbound_qty">입고수량</label>
-                <input id="inbound_qty" name="inbound_qty" type="number" />
+                <input id="inbound_qty" name="inbound_qty" type="number" readonly/>
             </div>
         </div>
 
-        <div class="grid-2">
-            <div>
+        <div class="form-grid">
+            <div class="form-group">
                 <label for="unit_price">단가</label>
                 <input id="unit_price" name="unit_price" type="number" />
             </div>
-            <div>
+            <div class="form-group">
                 <label for="ac_id">공급업체</label>
                 <input id="ac_id" name="ac_id" type="number" />
             </div>
         </div>
 
-        <div class="grid-2">
-            <div>
+        <div class="form-grid">
+            <div class="form-group">
                 <label for="emp_id">담당자</label>
                 <input id="emp_id" name="emp_id" type="number" />
             </div>
-            <div>
+            <div class="form-group">
                 <label for="approval">승인상태</label>
                     <select name="approval" id="approval">
                         <option value="0">대기</option>
@@ -155,14 +154,14 @@
         </div>
 
 
-        <div>
+        <div class="form-group">
             <label for="remark">비고</label>
             <input id="remark" name="remark" type="text" style="height:39px;">
         </div>
 
 
         <div class="submit-row">
-            <button type="button" id="delete" class="delete-button">
+            <button type="button" id="delete" class="delete-button" style="background-color:#dc3545;">
                 <i class="fas fa-trash"></i> 삭제
             </button>
             <button type="submit" id="edit" class="submit-button">
@@ -255,9 +254,31 @@
 
     })();
 
-    // 수정 버튼 클릭 → PUT /api/inventory/inbound/{inbound_id}
+    // approval 선택 변경 시 경고 표시
+    $('#approval').on('change', function() {
+        const value = Number($(this).val());
+
+        if (value === 2) {
+            // 반려 선택 시 경고
+            if (!confirm('주의: 반려로 변경하면 수정 시 해당 입고 데이터가 삭제됩니다.\n계속하시겠습니까?')) {
+                // 취소하면 이전 값으로 복원 (대기 또는 승인)
+                $(this).val('0'); // 대기로 변경
+                return;
+            }
+
+            // 시각적 피드백
+            $('.form-card').css('border', '3px solid #dc3545');
+            $('#edit').text('반려 처리 (삭제)').css('background-color', '#dc3545');
+        } else {
+            // 대기/승인이면 원래 스타일로 복원
+            $('.form-card').css('border', '');
+            $('#edit').html('<i class="fas fa-check"></i> 수정').css('background-color', '');
+        }
+    });
+
+    // 수정 버튼
     $('#edit').on('click', async function (e) {
-        e.preventDefault(); // form submit 기본 동작 방지
+        e.preventDefault();
 
         const id = $('#inbound_id').val();
         if (!id) {
@@ -265,15 +286,56 @@
             return;
         }
 
-        // ac_name, emp_name은 읽기 전용이므로 전송하지 않음
-        // 실제 수정은 ID 기반으로 처리
+        const approvalValue = Number($('#approval').val());
+
+        // 반려(2)로 변경하면 삭제
+        if (approvalValue === 2) {
+            if (!confirm('반려 처리하여 삭제하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                console.log('반려 → 삭제 요청:', id);
+
+                await $.ajax({
+                    url: `/api/inventory/inbound/${encodeURIComponent(id)}`,
+                    method: 'DELETE',
+                    dataType: 'json'
+                });
+
+                alert('반려 처리(삭제) 완료');
+
+                if (window.opener && !window.opener.closed) {
+                    try {
+                        if (typeof window.opener.reloadInboundList === 'function') {
+                            window.opener.reloadInboundList();
+                        } else {
+                            window.opener.location.reload();
+                        }
+                    } catch(_) {}
+                }
+                window.close();
+
+            } catch (err) {
+                const status = err?.status;
+                const text   = err?.responseText;
+                console.error('삭제 실패:', status, text, err);
+                alert(`반려 처리 실패 (status=${status})\n${text ?? ''}`);
+            }
+
+            return;
+        }
+
+        // 일반 수정
         const payload = {
             inbound_date: $('#inbound_date').val(),
             stock_id:     Number($('#stock_id').val()),
             inbound_qty:  Number($('#inbound_qty').val()),
             unit_price:   Number($('#unit_price').val()),
+            ac_id:        Number($('#ac_id').val()),
+            emp_id:       Number($('#emp_id').val()),
+            approval:     approvalValue,
             remark:       $('#remark').val()
-            // ac_id, emp_id는 서버에서 기존 값 유지 또는 별도 처리
         };
 
         try {
@@ -287,7 +349,6 @@
 
             alert('수정 완료');
 
-            // 부모 창 새로고침
             if (window.opener && !window.opener.closed) {
                 try {
                     if (typeof window.opener.reloadInboundList === 'function') {

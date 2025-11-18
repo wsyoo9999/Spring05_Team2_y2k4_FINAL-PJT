@@ -23,8 +23,10 @@ public class Inbound {
     private String remark;          // 비고
     private Integer approval;   // 결재승인상태 (0:대기, 1:승인, 2:반려)
 
-    public int getTotal_price() {
+    public Integer getTotal_price() {
+        if (inbound_qty == null || unit_price == null) {
+            return 0;
+        }
         return inbound_qty * unit_price;
     }
-
 }

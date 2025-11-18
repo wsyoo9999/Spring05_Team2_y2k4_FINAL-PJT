@@ -80,7 +80,7 @@
             margin-top:10px;
         }
         .submit-button:hover { background:#3A7BD5; }
-    </style>
+    </style>`
 </head>
 <body>
 
@@ -89,8 +89,10 @@
 
     <form method="POST" action="/api/inventory/inbound/add" id="form" autocomplete="off">
         <div class="form-group">
-            <label for="stock_id">재고코드</label>
-            <input type="number" id="stock_id" name="stock_id" required min="1">
+            <label for="stock_id">재고선택 *</label>
+            <select id="stock_id" name="stock_id" required onchange="setStockPrice()">
+                <option value="">재고를 선택하세요</option>
+            </select>
         </div>
 
         <div class="form-grid">
@@ -107,7 +109,7 @@
         <div class="form-grid">
             <div class="form-group">
                 <label for="unit_price">입고 단가(원)</label>
-                <input type="number" id="unit_price" name="unit_price" required min="0" value="0">
+                <input type="number" id="unit_price" name="unit_price" required min="0" value="0" readonly>
             </div>
             <div class="form-group">
                 <label for="total_price">총 금액(원)</label>
@@ -137,16 +139,45 @@
     </form>
 </div>
 <script>
-    // 오늘 날짜 기본값 세팅 (YYYY-MM-DD)
-    (function setToday(){
-        const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const el = document.getElementById('inbound_date');
-        if (el) el.value = `${y}-${m}-${day}`;
-    })();
+    // 페이지 로드 시 재고 목록 불러오기
+    $(document).ready(async function() {
+        try {
+            const stocks = await $.ajax({
+                url: '/api/inventory/stock',
+                method: 'GET',
+                dataType: 'json'
+            });
 
+            let options = '<option value="">재고를 선택하세요</option>';
+
+            $.each(stocks, function(i, stock) {
+                // 삭제된 재고는 제외
+                if (stock.is_deleted === 0) {
+                    options += `<option value="${stock.stock_id}" data-price="${stock.unit_price}">
+                    ${stock.stock_id} - ${stock.stock_name}
+                </option>`;
+                }
+            });
+
+            $('#stock_id').html(options);
+
+        } catch (err) {
+            console.error('재고 목록 조회 실패:', err);
+        }
+    });
+
+    // 재고 선택 시 단가 자동 설정
+    function setStockPrice() {
+        const selectedOption = $('#stock_id option:selected');
+        const price = selectedOption.data('price');
+
+        if (price) {
+            $('#unit_price').val(price);
+        } else {
+            $('#unit_price').val('');
+        }
+    }
+    // 총금액
     const qtyInput   = document.getElementById('inbound_qty');
     const priceInput = document.getElementById('unit_price');
     const totalInput = document.getElementById('total_price');
@@ -161,45 +192,45 @@
     priceInput.addEventListener('input', updateTotal);
     updateTotal();
 
-    const form = document.getElementById('form');
-
-    form.addEventListener('submit', async (e) => {
+    // 입고 등록
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        // addStock과 동일: x-www-form-urlencoded로 직렬화해서 전송
-        const payload = $(form).serialize();
+        const payload = {
+            inbound_date: $('#inbound_date').val(),
+            stock_id: Number($('#stock_id').val()),
+            inbound_qty: Number($('#inbound_qty').val()),
+            unit_price: Number($('#unit_price').val()),
+            ac_id: Number($('#ac_id').val()),
+            emp_id: Number($('#emp_id').val()),
+            remark: $('#remark').val(),
+            approval: 0
+        };
 
         try {
-            const result = await $.ajax({
-                url: form.action,          // /api/inventory/inbound/add
+            await $.ajax({
+                url: '/api/inventory/inbound/add',
                 method: 'POST',
-                data: payload              // x-www-form-urlencoded
-                // dataType 지정 불필요 (컨트롤러가 boolean 반환 가정)
+                dataType: 'json',
+                data: $(form).serialize()
             });
 
-            // boolean 응답 표준화 (true/'true'/success/result)
-            const ok = (result === true) || (result === 'true') ||
-                (result && (result.success === true || result.result === true));
+            alert('입고 등록 완료');
 
-            if (ok) {
-                alert('입고가 성공적으로 등록되었습니다.');
-                if (window.opener && !window.opener.closed) {
-                    try {
-                        // 부모창에 목록 갱신 함수가 있으면 호출, 없으면 새로고침
-                        if (typeof window.opener.reloadInboundList === 'function') {
-                            window.opener.reloadInboundList();
-                        } else {
-                            window.opener.location.reload();
-                        }
-                    } catch(_) {}
-                }
-                window.close();
-            } else {
-                alert('입력에 실패했습니다.');
+            if (window.opener && !window.opener.closed) {
+                try {
+                    if (typeof window.opener.reloadInboundList === 'function') {
+                        window.opener.reloadInboundList();
+                    } else {
+                        window.opener.location.reload();
+                    }
+                } catch(_) {}
             }
+            window.close();
+
         } catch (err) {
             console.error('등록 실패:', err);
-            alert('서버 통신 중 오류가 발생했습니다.');
+            alert('입고 등록 실패');
         }
     });
 </script>
