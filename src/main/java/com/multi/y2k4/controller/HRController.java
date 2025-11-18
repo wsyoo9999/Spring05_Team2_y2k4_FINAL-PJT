@@ -133,25 +133,26 @@ public class HRController {
     // 3. 급여 관리  임시로 빈 값 반환 - 추후 연동)
     // ================================================================
 
-    /**
-     * 급여 대장 조회
-     */
-    @GetMapping("/salary")
-    public List<Salary> getSalaryList(
-            @RequestParam(required = false) Integer search_year,
-            @RequestParam(required = false) Integer search_month) {
-
-        // ✨ 7. 서비스 없이 빈 목록 반환
-        return Collections.emptyList();
-    }
-
-    /**
-     * 급여 상세 조회
-     */
-    @GetMapping("/salary/{salaryId}")
-    public Salary getSalaryDetail(@PathVariable Integer salaryId) {
-        // ✨ 7. 서비스 없이 null 반환
-        return null;
-    }
+//
+//    /**
+//     * 급여 대장 조회
+//     */
+//    @GetMapping("/salary")
+//    public List<Salary> getSalaryList(
+//            @RequestParam(required = false) Integer search_year,
+//            @RequestParam(required = false) Integer search_month) {
+//
+//        // ✨ 7. 서비스 없이 빈 목록 반환
+//        return Collections.emptyList();
+//    }
+//
+//    /**
+//     * 급여 상세 조회
+//     */
+//    @GetMapping("/salary/{salaryId}")
+//    public Salary getSalaryDetail(@PathVariable Integer salaryId) {
+//        // ✨ 7. 서비스 없이 null 반환
+//        return null;
+//    }
 }
 
