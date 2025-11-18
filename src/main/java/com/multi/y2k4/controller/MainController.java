@@ -149,4 +149,9 @@ public class MainController {
         httpSession.invalidate(); // 세션 만료
         return "redirect:/login";
     }
+    @GetMapping({"/document"})
+    public String document() {
+
+        return "approval";
+    }
 }
