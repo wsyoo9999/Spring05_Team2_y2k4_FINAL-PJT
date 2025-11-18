@@ -6,7 +6,7 @@ import com.multi.y2k4.vo.transaction.Purchase;
 import com.multi.y2k4.vo.transaction.PurchaseDetails;
 import com.multi.y2k4.vo.transaction.Sale;
 import com.multi.y2k4.vo.transaction.SaleDetails;
-
+import com.multi.y2k4.vo.production.WorkOrder;
 
 import java.util.*;
 
@@ -573,17 +573,126 @@ public class DocumentBodyBuilder {
 
                 /*===============================생산 제조 관련=================================================*/
 
+                /*===============================생산 제조 관련=================================================*/
             } else if (cat_id == 2) { // 생산/제조
-                if (tb_id == 0) {  //작업 지시서
-                    if (cd_id == 0) {  //추가
+                if (tb_id == 0) {  // 작업 지시서
 
+                    // 1. 추가(0) 또는 삭제(2) 요청
+                    if (cd_id == 0 || cd_id == 2) {
+                        Object wo_obj = payload_map.get("workOrder");
 
-                    } else if (cd_id == 1) {  //수정
+                        WorkOrder wo = (wo_obj != null)
+                                ? objectMapper.convertValue(wo_obj, WorkOrder.class)
+                                : null;
 
+                        sb.append("<h3 class=\"doc-section-title\">")
+                                .append(cd_id == 0 ? "작업 지시서 등록 요청" : "작업 지시서 삭제 대상")
+                                .append("</h3>");
 
-                    } else if (cd_id == 2) {  //삭제
+                        if (wo != null) {
+                            sb.append("<h4 class=\"doc-subtitle\">작업 지시 상세 정보</h4>");
+                            sb.append("<table class=\"doc-map-table\"><tbody>");
 
+                            if (wo.getWork_order_id() != null) {
+                                sb.append("<tr>")
+                                        .append("<th class=\"doc-data-label\">작업지시번호</th>")
+                                        .append("<td class=\"doc-data-value\">")
+                                        .append(escape_html(String.valueOf(wo.getWork_order_id())))
+                                        .append("</td></tr>");
+                            }
 
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">제품명 (코드)</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(escape_html(wo.getStock_name() != null ? wo.getStock_name() : "-"))
+                                    .append(" <span style='color:#888;'>(")
+                                    .append(escape_html(String.valueOf(wo.getStock_id())))
+                                    .append(")</span>")
+                                    .append("</td></tr>");
+
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">담당자 (사번)</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(escape_html(wo.getEmp_name() != null ? wo.getEmp_name() : "-"))
+                                    .append(" <span style='color:#888;'>(")
+                                    .append(escape_html(String.valueOf(wo.getEmp_id())))
+                                    .append(")</span>")
+                                    .append("</td></tr>");
+
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">작업 기간</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(escape_html(String.valueOf(wo.getStart_date())))
+                                    .append(" ~ ")
+                                    .append(escape_html(String.valueOf(wo.getDue_date())))
+                                    .append("</td></tr>");
+
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">목표 수량</th>")
+                                    .append("<td class=\"doc-data-value\" style=\"font-weight:bold; color:#007bff;\">")
+                                    .append(escape_html(String.valueOf(wo.getTarget_qty())))
+                                    .append(" 개")
+                                    .append("</td></tr>");
+
+                            sb.append("</tbody></table>");
+                        } else {
+                            sb.append("<p class=\"doc-info\">작업 지시 정보가 없습니다.</p>");
+                        }
+
+                        // 2. 수정(1) 요청
+                    } else if (cd_id == 1) {
+                        Object data_obj = payload_map.get("data");
+                        WorkOrder before = null;
+                        WorkOrder after = null;
+
+                        if (data_obj != null) {
+                            Map<String, Object> data_map =
+                                    objectMapper.convertValue(data_obj, new TypeReference<Map<String, Object>>() {});
+
+                            if (data_map.get("before") != null) {
+                                before = objectMapper.convertValue(data_map.get("before"), WorkOrder.class);
+                            }
+                            if (data_map.get("after") != null) {
+                                after = objectMapper.convertValue(data_map.get("after"), WorkOrder.class);
+                            }
+                        }
+
+                        sb.append("<h3 class=\"doc-section-title\">작업 지시서 수정 내역</h3>");
+
+                        sb.append("<table class=\"doc-list-table\">")
+                                .append("<thead><tr>")
+                                .append("<th style='width:15%'>구분</th>")
+                                .append("<th>제품명</th>")
+                                .append("<th>담당자</th>")
+                                .append("<th>시작일</th>")
+                                .append("<th>완료일</th>")
+                                .append("<th>목표수량</th>")
+                                .append("</tr></thead><tbody>");
+
+                        // 변경 전 행
+                        if (before != null) {
+                            sb.append("<tr>")
+                                    .append("<td style='background-color:#f8f9fa; font-weight:bold;'>변경 전</td>")
+                                    .append("<td>").append(escape_html(before.getStock_name())).append("</td>")
+                                    .append("<td>").append(escape_html(before.getEmp_name())).append("</td>")
+                                    .append("<td>").append(escape_html(String.valueOf(before.getStart_date()))).append("</td>")
+                                    .append("<td>").append(escape_html(String.valueOf(before.getDue_date()))).append("</td>")
+                                    .append("<td>").append(escape_html(String.valueOf(before.getTarget_qty()))).append("</td>")
+                                    .append("</tr>");
+                        }
+
+                        // 변경 후 행
+                        if (after != null) {
+                            sb.append("<tr style='background-color:#e8f4ff;'>")
+                                    .append("<td style='color:#0056b3; font-weight:bold;'>변경 후</td>")
+                                    .append("<td>").append(escape_html(after.getStock_name())).append("</td>")
+                                    .append("<td>").append(escape_html(after.getEmp_name())).append("</td>")
+                                    .append("<td>").append(escape_html(String.valueOf(after.getStart_date()))).append("</td>")
+                                    .append("<td>").append(escape_html(String.valueOf(after.getDue_date()))).append("</td>")
+                                    .append("<td style='font-weight:bold;'>").append(escape_html(String.valueOf(after.getTarget_qty()))).append("</td>")
+                                    .append("</tr>");
+                        }
+                        sb.append("</tbody></table>");
                     }
                 }
 

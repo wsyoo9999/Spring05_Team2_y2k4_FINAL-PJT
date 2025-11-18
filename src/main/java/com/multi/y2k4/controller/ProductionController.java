@@ -1,6 +1,9 @@
 package com.multi.y2k4.controller;
 
-import com.multi.y2k4.service.production.ProductionService; // Service 임포트
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.multi.y2k4.service.document.DocumentsService;
+import com.multi.y2k4.service.production.ProductionService;
+import com.multi.y2k4.vo.document.Documents;
 import com.multi.y2k4.vo.production.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -10,13 +13,17 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/production")
 @RequiredArgsConstructor
 public class ProductionController {
 
-    private final ProductionService productionService; // Mapper 대신 Service 사용
+    private final ProductionService productionService;
+    private final DocumentsService documentsService;
+    private final ObjectMapper objectMapper;
 
     // 1. 작업지시서 목록 조회
     @GetMapping("/work_order")
@@ -70,19 +77,97 @@ public class ProductionController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start_date,
             @RequestParam Integer target_qty
     ) {
-        WorkOrder newWorkOrder = new WorkOrder();
-        newWorkOrder.setStock_id(stock_id);
-        newWorkOrder.setEmp_id(emp_id);
-        newWorkOrder.setStart_date(start_date);
-        newWorkOrder.setTarget_qty(target_qty);
-        newWorkOrder.setRequest_date(LocalDateTime.now());
+        try {
+            // 1. 작업 지시서 객체 생성
+            WorkOrder newWorkOrder = new WorkOrder();
+            newWorkOrder.setStock_id(stock_id);
+            newWorkOrder.setEmp_id(emp_id);
+            newWorkOrder.setStart_date(start_date);
+            newWorkOrder.setTarget_qty(target_qty);
+            newWorkOrder.setRequest_date(LocalDateTime.now());
+            // 결재 대기 중인 상태로 임시 저장하거나, 로직에 따라 상태값 설정 (예: "대기" 또는 특정 코드)
+            newWorkOrder.setOrder_status("대기");
+            // productionService.addWorkOrder(newWorkOrder);
 
-        return productionService.addWorkOrder(newWorkOrder);
+            // 2. 결재 문서용 JSON 데이터 생성 (DocumentBodyBuilder에서 사용할 데이터)
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("cat_id", 2);   // 카테고리: 생산/제조
+            payload.put("tb_id", 0);    // 테이블: 작업지시서
+            payload.put("cd_id", 0);    // 동작: 추가 (Create)
+
+            // DocumentBodyBuilder에서 꺼낼 키 이름("workOrder")과 객체를 담습니다.
+            payload.put("workOrder", newWorkOrder);
+
+            // 3. 결재 문서 객체 생성 및 정보 설정
+            Documents doc = new Documents();
+            doc.setTitle("[생산] 작업지시서 등록 요청 - " + start_date); // 문서 제목
+            doc.setReq_id(emp_id);           // 기안자 ID (현재 로그인한 사용자 ID로 변경 필요 시 수정)
+            doc.setReq_date(LocalDate.now());
+            doc.setStatus(0);                // 결재 상태: 0(대기)
+
+            // JSON 변환 후 쿼리 스트링 저장
+            String query = objectMapper.writeValueAsString(payload);
+            doc.setQuery(query);
+
+            // 4. 결재 문서 저장 (이때 DocumentBodyBuilder가 호출되어 본문 HTML이 생성됨)
+            documentsService.addDocument(doc);
+
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @DeleteMapping("/work_order/{work_order_id}")
     public boolean deleteWorkOrder(@PathVariable Long work_order_id) {
-        return productionService.deleteWorkOrder(work_order_id);
+        try {
+            // 1. 삭제할 대상 정보 조회
+            WorkOrder targetWo = productionService.getWorkOrderDetail(work_order_id);
+
+            if (targetWo == null) {
+                System.out.println("삭제 대상 작업지시서가 존재하지 않습니다: " + work_order_id);
+                return false;
+            }
+
+            // 2. 결재 문서용 JSON 데이터 생성
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("cat_id", 2);   // 카테고리: 생산/제조
+            payload.put("tb_id", 0);    // 테이블: 작업지시서
+            payload.put("cd_id", 2);    // 동작: 삭제 (Delete)
+
+            // DocumentBodyBuilder가 데이터를 읽을 수 있도록 "workOrder" 키에 객체 저장
+            payload.put("workOrder", targetWo);
+
+            // 3. 결재 문서 객체 생성 및 정보 설정
+            Documents doc = new Documents();
+            // 문서 제목 설정 (예: [생산] 작업지시서 삭제 요청 - 제품명)
+            String title = "[생산] 작업지시서 삭제 요청 - " +
+                    (targetWo.getStock_name() != null ? targetWo.getStock_name() : "ID:" + work_order_id);
+            doc.setTitle(title);
+
+            // 기안자 ID 설정 (삭제를 요청한 담당자 ID 사용, 필요 시 로그인 세션 ID로 변경 가능)
+            doc.setReq_id(targetWo.getEmp_id());
+            doc.setReq_date(LocalDate.now());
+            doc.setStatus(0); // 결재 상태: 0(대기)
+
+            // JSON 변환 및 쿼리 저장
+            String query = objectMapper.writeValueAsString(payload);
+            doc.setQuery(query);
+
+            // 4. 결재 문서 저장 (결재 요청 발송)
+            documentsService.addDocument(doc);
+
+            // 실제 삭제는 여기서 수행하지 않음 (결재 승인 시 수행)
+            // productionService.deleteWorkOrder(work_order_id);
+
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @PostMapping("/bom/add")

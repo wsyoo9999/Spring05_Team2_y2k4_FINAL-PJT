@@ -11,11 +11,13 @@ import com.multi.y2k4.service.transaction.PurchaseDetailsService;
 import com.multi.y2k4.service.transaction.PurchaseService;
 import com.multi.y2k4.service.transaction.SaleDetailsService;
 import com.multi.y2k4.service.transaction.SaleService;
+import com.multi.y2k4.service.production.ProductionService;
 import com.multi.y2k4.vo.document.Documents;
 import com.multi.y2k4.vo.transaction.Purchase;
 import com.multi.y2k4.vo.transaction.PurchaseDetails;
 import com.multi.y2k4.vo.transaction.Sale;
 import com.multi.y2k4.vo.transaction.SaleDetails;
+import com.multi.y2k4.vo.production.WorkOrder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/doc/")
@@ -279,28 +282,34 @@ public class DocumentsController {
             /*===============================생산 제조 관련=================================================*/
 
             } else if (cat_id == 2) { // 생산/제조
-                if (tb_id == 0) {  //작업 지시서
-                    if (cd_id == 0) {  //추가
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
+                if (tb_id == 0) {  // 작업 지시서
 
-                        } else if (status == 2) {  //결재 서류 반려
+                    // JSON에서 workOrder 객체 추출 (추가/삭제 공통 사용)
+                    Object workOrderObj = map.get("workOrder");
+                    WorkOrder workOrder = (workOrderObj != null)
+                            ? objectMapper.convertValue(workOrderObj, WorkOrder.class)
+                            : null;
 
+                    if (cd_id == 0) {  // [추가] 요청 처리
+                        if (status == 1) {    // 1: 승인 -> DB에 실제 데이터 INSERT
+                            if (workOrder != null) {
+                                // 결재 승인 시 상태를 '대기(0)' 등으로 확정하여 저장
+                                // (ProductionController에서 임시로 저장하지 않았다면 여기서 저장)
+                                productionService.addWorkOrder(workOrder);
+                            }
+                        } else if (status == 2) {
+                            // 반려 시에는 DB에 넣지 않음 (별도 처리 없음)
                         }
 
-                    } else if (cd_id == 1) {  //수정
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
 
-                        } else if (status == 2) {  //결재 서류 반려
-
+                    } else if (cd_id == 2) {  // [삭제] 요청 처리
+                        if (status == 1) {    // 1: 승인 -> DB 데이터 DELETE
+                            if (workOrder != null && workOrder.getWork_order_id() != null) {
+                                // 실제 DB에서 삭제 수행
+                                productionService.deleteWorkOrder(workOrder.getWork_order_id());
+                            }
                         }
-
-                    } else if (cd_id == 2) {  //삭제
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-
-                        } else if (status == 2) {  //결재 서류 반려
-
-                        }
-
+                        // 반려 시에는 삭제하지 않고 유지
                     }
                 }
 
