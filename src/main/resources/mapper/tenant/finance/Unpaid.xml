@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.multi.y2k4.mapper.tenant.finance.UnpaidMapper">
+
+    <select id="searchById" resultType="com.multi.y2k4.vo.finance.Unpaid">
+        SELECT *
+        FROM unpaid
+        WHERE unp_id = #{unp_id}
+    </select>
+
+    <select id="searchByBusiness" resultType="com.multi.y2k4.vo.finance.Unpaid">
+        SELECT *
+        FROM unpaid
+        WHERE cat_id = #{cat_id}
+          AND tb_id  = #{tb_id}
+          AND ref_pk = #{ref_pk}
+    </select>
+
+    <select id="list" resultType="com.multi.y2k4.vo.finance.Unpaid">
+        SELECT *
+        FROM unpaid
+        <where>
+            <if test="cat_id != null">
+                AND cat_id = #{cat_id}
+            </if>
+            <if test="tb_id != null">
+                AND tb_id = #{tb_id}
+            </if>
+            <if test="type != null">
+                AND type = #{type}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <insert id="upsertUnpaid" parameterType="com.multi.y2k4.vo.finance.Unpaid">
+        INSERT INTO unpaid
+            (cat_id, tb_id, ref_pk, last_doc_id, cost, type, status, unpaid_date)
+        VALUES
+            (#{cat_id}, #{tb_id}, #{ref_pk}, #{last_doc_id}, #{cost}, #{type}, #{status}, NOW())
+            ON DUPLICATE KEY UPDATE
+                                 cost        = VALUES(cost),
+                                 type        = VALUES(type),
+                                 status      = VALUES(status),
+                                 last_doc_id = VALUES(last_doc_id)
+    </insert>
+
+    <!-- 정산 완료 -->
+    <update id="markPaid">
+        UPDATE unpaid
+        SET
+            status    = 1,
+            paid_date = NOW()
+        WHERE cat_id = #{cat_id}
+          AND tb_id  = #{tb_id}
+          AND ref_pk = #{ref_pk}
+    </update>
+
+    <!-- 취소 처리 (status = 2, cost = 0 으로 정리) -->
+    <update id="markCancelled">
+        UPDATE unpaid
+        SET
+            status      = 2,
+            cost        = 0,
+            paid_date   = NOW()
+        WHERE cat_id = #{cat_id}
+          AND tb_id  = #{tb_id}
+          AND ref_pk = #{ref_pk}
+    </update>
+
+</mapper>

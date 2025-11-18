@@ -188,7 +188,8 @@ CREATE TABLE bom (
 
 CREATE TABLE profit (
                         profit_id     BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                        profit_code   tinyint,
+                        cat_id        TINYINT NOT NULL,        -- 0 재무, 1 판매/구매, ...
+                        tb_id         TINYINT NOT NULL,        -- 0: 판매, 1: 구매, ...
                         profit        DECIMAL(15,2) NOT NULL,
                         profit_date   DATETIME NOT NULL,
                         profit_comment Text
@@ -196,7 +197,8 @@ CREATE TABLE profit (
 
 CREATE TABLE spend (
                        spend_id      BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                       spend_code    tinyint,
+                       cat_id        TINYINT NOT NULL,        -- 0 재무, 1 판매/구매, ...
+                       tb_id         TINYINT NOT NULL,        -- 0: 판매, 1: 구매, ...
                        spend         DECIMAL(15,2) NOT NULL,
                        spend_date    DATETIME NOT NULL,
                        spend_comment Text
@@ -211,4 +213,18 @@ CREATE TABLE defect (
                         defect_qty  INT UNSIGNED NOT NULL,
                         defect_date DATE,
                         CONSTRAINT fk_defect_lot  FOREIGN KEY (lot_id)      REFERENCES lot(lot_id)
+);
+
+CREATE TABLE unpaid (
+                        unp_id      BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+                        cat_id      TINYINT NOT NULL,        -- 0 재무, 1 판매/구매, ...
+                        tb_id       TINYINT NOT NULL,        -- 0: 판매, 1: 구매, ...
+                        ref_pk      BIGINT UNSIGNED NOT NULL, -- 실제 대상 PK (sale_id, purchase_id, 등)
+                        cost        DECIMAL(15,2) NOT NULL,   -- 현재 기준 미정산 금액
+                        type        TINYINT NOT NULL,         -- 1 수익(매출), 2 지출(매입/급여 등)
+                        status      TINYINT NOT NULL,         -- 0 미정산, 1 정산 완료, 2 도중에 취소
+                        unpaid_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        paid_date   DATETIME,
+
+                        UNIQUE KEY uq_unpaid_business (cat_id, tb_id, ref_pk)
 );

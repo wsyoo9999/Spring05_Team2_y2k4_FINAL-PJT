@@ -180,7 +180,7 @@
                         </div>
                         <!-- 도착 수량 입력 + pd_id -->
                         <div class="col-arrived">
-                            <input type="number" name="qty[]" min="0" required>
+                            <input type="number" name="qty" min="0" required>
                             <input type="hidden" name="pd_id" value="${row.pd_id}">
                         </div>
                     </div>
@@ -213,7 +213,7 @@
             e.preventDefault();
 
             // 도착 수량 모두 입력했는지 체크
-            const qtyInputs = $('input[name="qty[]"]');
+            const qtyInputs = $('input[name="qty"]');
             const hasEmptyQty = qtyInputs.toArray().some(input => !input.value || input.value.trim() === '');
             if (hasEmptyQty) {
                 alert('도착 수량을 모두 입력하세요.');

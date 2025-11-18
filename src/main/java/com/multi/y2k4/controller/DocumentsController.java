@@ -4,6 +4,7 @@ package com.multi.y2k4.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.multi.y2k4.service.document.DocumentsService;
+import com.multi.y2k4.service.finance.UnpaidService;
 import com.multi.y2k4.service.hr.AttendanceService;
 import com.multi.y2k4.service.hr.EmployeeService;
 import com.multi.y2k4.service.production.ProductionService;
@@ -13,6 +14,7 @@ import com.multi.y2k4.service.transaction.SaleDetailsService;
 import com.multi.y2k4.service.transaction.SaleService;
 import com.multi.y2k4.service.production.ProductionService;
 import com.multi.y2k4.vo.document.Documents;
+import com.multi.y2k4.vo.finance.Unpaid;
 import com.multi.y2k4.vo.transaction.Purchase;
 import com.multi.y2k4.vo.transaction.PurchaseDetails;
 import com.multi.y2k4.vo.transaction.Sale;
@@ -47,7 +49,7 @@ public class DocumentsController {
     /***********************인사관련 서비스**************************/
     private final EmployeeService employeeService;
     private final AttendanceService attendanceService;
-
+    private final UnpaidService unpaidService;
 
 
     @GetMapping("/list")
@@ -143,6 +145,7 @@ public class DocumentsController {
             /*===============================판매 구매 관련=================================================*/
 
             } else if (cat_id == 1) { //판매 및 구매 관련
+                Unpaid unpaid = new Unpaid();
                 if (tb_id == 0) {  //판매
 
                     if (cd_id == 0) {  //추가
@@ -152,6 +155,15 @@ public class DocumentsController {
                             s.setStatus(0);
                             s.setSale_id(pk);
                             saleService.editSaleStatus(s);
+
+                            Sale sale = saleService.searchById(pk);
+                            unpaid.setCat_id(cat_id);
+                            unpaid.setTb_id(tb_id);
+                            unpaid.setRef_pk((long) pk);
+                            unpaid.setCost(sale.getTotal_price());
+                            unpaid.setStatus(0);
+                            unpaid.setType(1);
+                            unpaidService.upsertUnpaid(unpaid);
 
                         } else if (status == 2) {  //결재 서류 반려
                             saleService.deleteSale(pk);
@@ -177,18 +189,19 @@ public class DocumentsController {
 
 
                             saleDetailsService.deleteSaleDetails(before_pk);   //기존의 판매 세부 정보 삭제
-
                             saleDetailsService.addSaleDetails(details_list);
 
-                            sale.setSale_id(before_pk);  // pk는 기존 id 고정
                             saleService.editSale(sale);
 
 
-                            // 3) 상태 되돌리기 (99 -> 0)
-                            Sale sStatus = new Sale();
-                            sStatus.setSale_id(before_pk);
-                            sStatus.setStatus(0);
-                            saleService.editSaleStatus(sStatus);  //수정 완료되었다고 status 변경
+                            unpaid.setCat_id(cat_id);
+                            unpaid.setTb_id(tb_id);
+                            unpaid.setRef_pk((long) before_pk);
+                            unpaid.setCost(sale.getTotal_price());
+                            unpaid.setStatus(0);
+                            unpaid.setType(1);
+                            unpaidService.upsertUnpaid(unpaid);
+
 
                         } else if (status == 2) {  //결재 서류 반려,기존의 정보 유지
                             Sale s =new Sale();
@@ -201,6 +214,7 @@ public class DocumentsController {
                         int pk = Integer.parseInt(map.get("pk").toString());
                         if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
                             saleService.deleteSale(pk);
+                            unpaidService.cancelUnpaid(cat_id,tb_id,(long)doc_id);
 
                         } else if (status == 2) {  //결재 서류 반려
                             Sale s =new Sale();
@@ -220,6 +234,15 @@ public class DocumentsController {
                             p.setStatus(0);
                             p.setPurchase_id(pk);
                             purchaseService.editPurchaseStatus(p);
+
+                            Purchase purchase = purchaseService.searchById(pk);
+                            unpaid.setCat_id(cat_id);
+                            unpaid.setTb_id(tb_id);
+                            unpaid.setRef_pk((long)pk);
+                            unpaid.setCost(purchase.getTotal_price());
+                            unpaid.setStatus(0);
+                            unpaid.setType(2);
+                            unpaidService.upsertUnpaid(unpaid);
 
                         } else if (status == 2) {  //결재 서류 반려
                             purchaseService.deletePurchase(pk); //미리 집어넣은 데이터 삭제
@@ -246,16 +269,16 @@ public class DocumentsController {
 
                             purchaseDetailsService.addPurchaseDetails(details_list);
 
-
-                            purchase.setPurchase_id(before_pk);
                             purchaseService.editPurchase(purchase);  // emp, ac, 날짜, total_price 수정
 
 
-                            // 3) status 0으로
-                            Purchase pStatus = new Purchase();
-                            pStatus.setPurchase_id(before_pk);
-                            pStatus.setStatus(0);
-                            purchaseService.editPurchaseStatus(pStatus);
+                            unpaid.setCat_id(cat_id);
+                            unpaid.setTb_id(tb_id);
+                            unpaid.setRef_pk((long)before_pk);
+                            unpaid.setCost(purchase.getTotal_price());
+                            unpaid.setStatus(0);
+                            unpaid.setType(2);
+                            unpaidService.upsertUnpaid(unpaid);
 
                         } else if (status == 2) {  //결재 서류 반려
                             Purchase p =new Purchase();
@@ -268,6 +291,7 @@ public class DocumentsController {
                         int pk = Integer.parseInt(map.get("pk").toString());
                         if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
                             purchaseService.deletePurchase(pk);
+                            unpaidService.cancelUnpaid(cat_id,tb_id,(long)pk);
 
                         } else if (status == 2) {  //결재 서류 반려
                             Purchase p = new Purchase();

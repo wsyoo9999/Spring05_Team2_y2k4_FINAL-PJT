@@ -1,26 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.multi.y2k4.mapper.finance.ProfitMapper">
 
-    <select id="listProfits" resultType="com.multi.y2k4.vo.finance.Profit">
-        SELECT
-        profit_id,
-        profit_code,
-        profit,
-        profit_date,
-        profit_comment
-        FROM
-        profit
+<mapper namespace="com.multi.y2k4.mapper.tenant.finance.ProfitMapper">
+
+    <select id="list_all" resultType="com.multi.y2k4.vo.finance.Profit">
+        SELECT *
+        FROM profit
+    </select>
+
+    <select id="searchById" resultType="com.multi.y2k4.vo.finance.Profit">
+        SELECT *
+        FROM profit
+        WHERE profit_id = #{profit_id}
+    </select>
+
+    <select id="list" resultType="com.multi.y2k4.vo.finance.Profit">
+        SELECT *
+        FROM profit
         <where>
-            <if test="profitCode != null">
-                AND profit_code = #{profitCode}
+            <if test="profit_id != null">
+                AND profit_id = #{profit_id}
             </if>
-            <if test="searchComment != null and searchComment != ''">
-                AND profit_comment LIKE CONCAT('%', #{searchComment}, '%')
+            <if test="cat_id != null">
+                AND cat_id = #{cat_id}
+            </if>
+            <if test="tb_id != null">
+                AND tb_id = #{tb_id}
+            </if>
+            <if test="from_date != null">
+                AND profit_date &gt;= #{from_date}
+            </if>
+            <if test="to_date != null">
+                AND profit_date &lt;= #{to_date}
             </if>
         </where>
-        ORDER BY profit_date DESC
     </select>
+
+    <insert id="addProfit" parameterType="com.multi.y2k4.vo.finance.Profit" useGeneratedKeys="true" keyProperty="profit_id" keyColumn="profit_id">
+        INSERT INTO profit (cat_id, tb_id, profit, profit_date, profit_comment)
+        VALUES (#{cat_id}, #{tb_id}, #{profit}, #{profit_date}, #{profit_comment})
+    </insert>
+
+    <update id="editProfit" parameterType="com.multi.y2k4.vo.finance.Profit">
+        UPDATE profit
+        SET
+            cat_id        = #{cat_id},
+            tb_id         = #{tb_id},
+            profit        = #{profit},
+            profit_date   = #{profit_date},
+            profit_comment= #{profit_comment}
+        WHERE profit_id = #{profit_id}
+    </update>
+
+    <delete id="deleteProfit">
+        DELETE FROM profit
+        WHERE profit_id = #{profit_id}
+    </delete>
 
 </mapper>

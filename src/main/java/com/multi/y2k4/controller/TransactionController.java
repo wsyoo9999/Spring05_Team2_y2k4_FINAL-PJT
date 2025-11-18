@@ -4,11 +4,17 @@ package com.multi.y2k4.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.multi.y2k4.service.document.DocumentsService;
+import com.multi.y2k4.service.finance.ProfitService;
+import com.multi.y2k4.service.finance.SpendService;
+import com.multi.y2k4.service.finance.UnpaidService;
 import com.multi.y2k4.service.transaction.PurchaseDetailsService;
 import com.multi.y2k4.service.transaction.PurchaseService;
 import com.multi.y2k4.service.transaction.SaleDetailsService;
 import com.multi.y2k4.service.transaction.SaleService;
 import com.multi.y2k4.vo.document.Documents;
+import com.multi.y2k4.vo.finance.Profit;
+import com.multi.y2k4.vo.finance.Spend;
+import com.multi.y2k4.vo.finance.Unpaid;
 import com.multi.y2k4.vo.transaction.Purchase;
 import com.multi.y2k4.vo.transaction.PurchaseDetails;
 import com.multi.y2k4.vo.transaction.Sale;
@@ -20,6 +26,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -33,6 +40,9 @@ public class TransactionController {
     private final PurchaseDetailsService purchaseDetailsService;
     private final ObjectMapper objectMapper;
     private final DocumentsService documentsService;
+    private final ProfitService profitService;
+    private final SpendService spendService;
+    private final UnpaidService unpaidService;
 
     @GetMapping("/sale/list")
     public List<Sale> saleList(@RequestParam(required = false) Integer sale_id,
@@ -109,6 +119,16 @@ public class TransactionController {
                 saleDetails.get(i).setSale_id(id);
             }
             saleDetailsService.addSaleDetails(saleDetails);
+
+            Unpaid unpaid = new Unpaid();
+            unpaid.setCat_id(1);                  // 1 = 판매/구매
+            unpaid.setTb_id(0);                   // 0 = 판매
+            unpaid.setRef_pk((long) sale.getSale_id());
+            unpaid.setCost(total_price);          // 주문 기준 금액
+            unpaid.setType(1);                    // 1 = 수익 쪽
+            unpaid.setStatus(0);                  // 0 = 미정산
+            unpaidService.upsertUnpaid(unpaid);
+
             doc.setStatus(0);   //처리를 대기중
         }
 
@@ -183,6 +203,13 @@ public class TransactionController {
             saleService.editSale(edit_sale);
             saleDetailsService.deleteSaleDetails(sale_id);
             saleDetailsService.addSaleDetails(edit_saleDetail);
+
+            Unpaid unpaid = unpaidService.searchByBusiness(1, 0, sale_id.longValue());
+            unpaid.setCost(edit_sale.getTotal_price());
+            unpaid.setStatus(0); // 여전히 미정산
+            unpaidService.upsertUnpaid(unpaid);
+
+
             doc.setStatus(1);       //DB의 변경이 일어나므로 기록으로는 남김, 자체 승인을 한 것이므로 문서 상태는 바로 1(승인)
         }else{      //문서화가 필요할 때
             before_sale.setStatus(99);
@@ -217,11 +244,35 @@ public class TransactionController {
     @PostMapping("/sale/editSaleStatus")
     public boolean editSaleStatus(  @RequestParam Integer sale_id,
                                     @RequestParam Integer status) {
-        Sale sale = new Sale();
-        sale.setSale_id(sale_id);
+        // 0) 현재 판매 정보 조회
+        Sale sale = saleService.searchById(sale_id);
+        if (sale == null) {
+            return false;
+        }
+
+        // 1) 판매 상태 변경
         sale.setStatus(status);
         saleService.editSaleStatus(sale);
-    return true;
+
+        // 2) status == 1 일 때만 정산 처리
+        if (status == 1) { // 1 = 도착/정산 완료 같은 의미로 사용
+            // 2) Unpaid를 정산 완료로만 변경 (금액 수정 X)
+            unpaidService.markPaid(1, 0, sale_id.longValue());  // cat=1(판매/구매), tb=0(판매)
+
+            double amount = sale.getTotal_price();   // 금액은 add/edit에서 유지하던 값 사용
+
+            // 3) Profit 기록
+            Profit profit = new Profit();
+            profit.setCat_id(1);
+            profit.setTb_id(0);
+            profit.setProfit(amount);
+            profit.setProfit_date(LocalDateTime.now());
+            profit.setProfit_comment("판매ID " + sale_id + " 도착/정산");
+
+            profitService.addProfit(profit);
+        }
+
+        return true;
     }
 
     @GetMapping("/purchase/list")
@@ -281,6 +332,16 @@ public class TransactionController {
                 purchaseDetails.get(i).setPurchase_id(id);
             }
             purchaseDetailsService.addPurchaseDetails(purchaseDetails);
+
+            Unpaid unpaid = new Unpaid();
+            unpaid.setCat_id(1);                    // 판매/구매
+            unpaid.setTb_id(1);                     // 1 = 구매
+            unpaid.setRef_pk((long) purchase.getPurchase_id());
+            unpaid.setCost(total_price);
+            unpaid.setType(2);                      // 2 = 지출 쪽
+            unpaid.setStatus(0);                    // 미정산
+            unpaidService.upsertUnpaid(unpaid);
+
             doc.setStatus(1);       //DB의 변경이 일어나므로 기록으로는 남김, 자체 승인을 한 것이므로 문서 상태는 바로 1(승인)
         }else{      //문서화가 필요할 때
             purchase.setStatus(99);
@@ -364,6 +425,12 @@ public class TransactionController {
             purchaseService.editPurchase(edit_purchase);
             purchaseDetailsService.deletePurchaseDetails(purchase_id);
             purchaseDetailsService.addPurchaseDetails(edit_purchaseDetail);
+
+            Unpaid unpaid = unpaidService.searchByBusiness(1, 1, purchase_id.longValue());
+            unpaid.setCost(edit_purchase.getTotal_price());
+            unpaid.setStatus(0); // 여전히 미정산
+            unpaidService.upsertUnpaid(unpaid);
+
             doc.setStatus(1);       //DB의 변경이 일어나므로 기록으로는 남김, 자체 승인을 한 것이므로 문서 상태는 바로 1(승인)
         }else{      //문서화가 필요할 때
             before_purchase.setStatus(99);
@@ -398,15 +465,53 @@ public class TransactionController {
     public boolean editPurchaseStatus(  @RequestParam Integer purchase_id,
                                         @RequestParam Integer[] pd_id,
                                         @RequestParam Integer[] qty) {
-        Double total_price = 0.0;
-        for(int i = 0; i < pd_id.length; i++){
-            total_price+=(purchaseDetailsService.searchById(purchase_id).get(0).getPrice_per_unit())*qty[i];   //실제 수량을 통한 가격 계산, 추후를 위해 생성
-            purchaseDetailsService.editPurchaseDetailsQTY(pd_id[i],qty[i]);
+        // 0) 상세 정보 가져오기
+        List<PurchaseDetails> details = purchaseDetailsService.searchById(purchase_id);
+        if (details == null || details.isEmpty()) {
+            return false;
         }
-        Purchase p = new Purchase();
-        p.setStatus(1);
-        p.setPurchase_id(purchase_id);
-        purchaseService.editPurchaseStatus(p);
+
+        double total_price = 0.0;
+
+        // 1) 도착 수량을 라인별로 반영 (재고/입고 수량용)
+        for (int i = 0; i < pd_id.length; i++) {
+            Integer currentPdId = pd_id[i];
+            Integer arrivedQty  = qty[i];
+
+            PurchaseDetails detail = details.get(i);
+            double lineTotal = detail.getPrice_per_unit() * arrivedQty;
+            total_price += lineTotal;
+
+            // 도착 수량 업데이트
+            purchaseDetailsService.editPurchaseDetailsQTY(currentPdId, arrivedQty);
+        }
+
+        // 2) 구매 헤더 total_price 도 실제 도착 기준으로 맞춰주고,
+        //    상태(status)도 1(정산 완료/입고 완료)로 변경
+        Purchase origin = purchaseService.searchById(purchase_id);
+        if (origin == null) return false;
+
+        origin.setTotal_price(total_price);
+        purchaseService.editPurchase(origin);  // total_price 반영
+
+        Purchase statusOnly = new Purchase();
+        statusOnly.setPurchase_id(purchase_id);
+        statusOnly.setStatus(1);
+        purchaseService.editPurchaseStatus(statusOnly);
+
+        // 3) Unpaid는 '정산 완료'로만 변경 (금액은 add/edit에서 맞춰두었다고 가정)
+        unpaidService.markPaid(1, 1, purchase_id.longValue()); // cat=1, tb=1(구매)
+
+        // 4) 지출 기록
+        Spend spend = new Spend();
+        spend.setCat_id(1);
+        spend.setTb_id(1);
+        spend.setSpend(total_price); // 실제 도착 수량 기준
+        spend.setSpend_date(LocalDateTime.now());
+        spend.setSpend_comment("구매ID " + purchase_id + " 실제 도착 수량 기준 정산");
+
+        spendService.addSpend(spend);
+
         return true;
     }
 }
