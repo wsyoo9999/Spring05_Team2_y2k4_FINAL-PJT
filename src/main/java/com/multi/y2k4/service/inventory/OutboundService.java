@@ -68,7 +68,7 @@ public class OutboundService {
             int newQty = stock.getQty() + qtyChange;
 
             if (newQty < 0) {
-                throw new IllegalStateException("재고 수량이 음수가 될 수 없습니다.");
+                throw new IllegalStateException("재고가 부족합니다.");
             }
 
             stock.setQty(newQty);

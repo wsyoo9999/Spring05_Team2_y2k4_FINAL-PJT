@@ -225,12 +225,20 @@ public class ItemController {
     }
 
     @PutMapping(value = "/outbound/{outbound_id}", consumes = "application/json")
-    public ResponseEntity<Void> updateOutbound(@PathVariable("outbound_id") Integer outbound_id,
+    public ResponseEntity<?> updateOutbound(@PathVariable("outbound_id") Integer outbound_id,
                                        @RequestBody Outbound body) {
         body.setOutbound_id(outbound_id);              // PK는 경로로 고정
-        int updated = outboundService.updateOutbound(body); // Mapper: UPDATE stock SET ... WHERE stock_id=?
-        return (updated == 1) ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+
+        try {
+            int updated = outboundService.updateOutbound(body);
+            return (updated == 1) ? ResponseEntity.noContent().build()
+                    : ResponseEntity.notFound().build();
+        }  catch (IllegalStateException e) {
+            // ⭐ 이 부분만 추가!
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 
     @DeleteMapping("/outbound/{outbound_id}")
