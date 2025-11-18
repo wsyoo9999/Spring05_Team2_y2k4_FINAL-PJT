@@ -137,7 +137,7 @@ export function stock_search_form() {
                 <option value="1">판매상품</option>
             </select>
             </label>
-        </div>
+      </div>
 
       <button type="button" class="search_btn" data-action="search" data-file="inventory" data-fn="stock_list">
         <i class="fas fa-search" aria-hidden="true"></i><span>검색</span>
@@ -214,6 +214,7 @@ export async function inbound_listAll() {
     });
 
     $.each(data.rows || data, function (i, row) {
+        const total_price = row.total_price;
         table += `
             <tr>
                 <td>${row.inbound_id}</td>
@@ -227,7 +228,7 @@ export async function inbound_listAll() {
                 </td>
                 <td>${Number(row.inbound_qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
-                <td>${Number(row.unit_price).toLocaleString()}</td>
+                <td>${Number(total_price).toLocaleString()}</td>
                 <td>${row.ac_id}</td>  <!--조인하기-->
                 <td>${row.emp_id}</td>  <!--조인하기-->
                 <td class="actions">
@@ -279,6 +280,7 @@ export async function inbound_list(formData) {
     `;
 
     $.each(data.rows || data, function (i, row) {
+        const total_price = row.total_price;
         table += `
             <tr>
                 <td>${row.inbound_id}</td>
@@ -292,7 +294,7 @@ export async function inbound_list(formData) {
                 </td>
                 <td>${Number(row.inbound_qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
-                <td>${Number(row.unit_price).toLocaleString()}</td>
+                <td>${Number(total_price).toLocaleString()}</td>
                 <td>${row.ac_id}</td>  <!--조인하기-->
                 <td>${row.emp_id}</td>  <!--조인하기-->
                 <td class="actions">
@@ -329,6 +331,15 @@ export function inbound_search_form() {
         <div class="form-group">
             <label>입고일</label>
             <input type="date" name="inbound_date" />
+        </div>
+        <div class="form-group">
+            <label for="approval"> 승인상태</label>
+            <select id="approval" name="approval">
+                <option value="">전체</option>
+                <option value="0">대기</option>
+                <option value="1">승인</option>
+                <option value="2">반려</option>
+            </select>
         </div>
             <button type="button" class="search_btn" data-action="search" data-file="inventory" data-fn="inbound_list">
                 <i class="fas fa-search">검색</i>

@@ -142,7 +142,7 @@
 
         <div class="submit-row">
             <button type="button" id="delete" class="delete-button" style="background-color:#dc3545;">
-                <i class="fas fa-check"></i> 삭제
+                <i class="fas fa-trash"></i> 삭제
             </button>
             <button type="button" id="edit" class="submit-button">
                 <i class="fas fa-check"></i> 수정
@@ -209,6 +209,11 @@
             // PK는 보통 수정 금지
             const pk = document.getElementById('stock_id');
             if (pk) pk.readOnly = true;
+
+            if (s.is_deleted === 1) {
+                alert('삭제된 재고입니다');
+                window.close();
+            }
         }
 
         // 초기 로드 (조회만 수행)
