@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <title>주문 상세 정보</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f8f8; }
+    .detail-card {
+      background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px; max-width: 600px; margin: auto;
+    }
+
+    /* 기본 리셋 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #4A90E2; /* ERP의 주요 액션 색상 */
+      --secondary-color: #50B86C; /* 보조 색상 (예: 성공) */
+      --bg-light: #F8F9FA; /* 밝은 배경 */
+      --bg-dark: #343A40; /* 어두운 배경 (네비게이션 등) */
+      --text-dark: #333333; /* 본문 텍스트 */
+      --text-light: #FFFFFF; /* 밝은 텍스트 */
+      --border-color: #E0E0E0; /* 테두리 색상 */
+      --card-bg: #FFFFFF;
+      --nav-h: 64px;
+      --sidebar-w: 280px; /* 사이드바 너비 변수 추가 */
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+
+    /* 표 스타일 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 12px 15px;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background-color: var(--bg-light);
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+
+<div class="detail-card">
+  <h2> 사원 정보</h2>
+
+  <div id="doc-detail-content">
+    데이터를 로드하는 중...
+  </div>
+
+</div>
+<div class="btn-wrap">
+  <button type="button" id="btn-approve" value="1" class="submit-btn">
+    승인
+  </button>
+  <button type="button" id="btn-reject" value="2" class="submit-btn">
+    반려
+  </button>
+</div>
+
+<script>
+  // 숫자 포맷 함수 (hr.js에 있는 함수와 동일)
+  function numberFormat(num) {
+    if (num === null || num === undefined) return '0';
+    return parseInt(num).toLocaleString('ko-KR');
+  }
+
+  // URL 쿼리 파라미터에서 salaryId 가져오기
+
+
+  // API 호출하여 상세 데이터 로드
+  async function loadDocument() {
+    const doc_id = new URLSearchParams(location.search).get('doc_id');
+    const contentDiv = document.getElementById('doc-detail-content');
+
+    if (!doc_id) {
+      contentDiv.innerHTML=  '<p style="color: red;">🚨 오류: 문서 번호가 전달되지 않았습니다.</p>';
+      return;
+    }
+
+
+    try {
+      const document = await $.ajax({
+        url: `/api/doc/searchById`,
+        method: 'GET',
+        date:{
+          doc_id: doc_id
+        },
+        dataType: 'json'
+      });
+
+      // 만약 해당 문서가 없어서 null이면 처리
+      if (!document) {
+        contentDiv.innerHTML =
+                '<p style="color:red;">해당 문서 정보를 찾을 수 없습니다.</p>';
+        return;
+      }
+
+      let body;
+      contentDiv.innerHTML= body;
+
+
+
+
+    } catch (err) {
+      console.error("로딩 실패:", err);
+      contentDiv.innerHTML = '<p style="color: red;">🚨 데이터 로딩 중 오류가 발생했습니다.</p>';
+    }
+  }
+
+  async function changeStatus() {
+    const doc_id = new URLSearchParams(location.search).get('doc_id');
+    if (!doc_id) {
+      alert('doc_id가 없어 상태를 변경할 수 없습니다.');
+      return;
+    }
+    const status = this.value;
+
+
+    try{
+      const result = await $.ajax({
+        url: '/api/doc/editStatus',
+        method: 'POST',
+        dataType: 'json',
+        data: {
+          doc_id: doc_id,
+          status: status
+        }
+      });
+
+      if (result === true || result?.success) {
+        alert('상태가 변경되었습니다.');
+        window.close?.();
+      } else {
+        alert('상태 변경에 실패했습니다.');
+      }
+    }catch(err){
+      console.error('상태 변경 중 오류:', err);
+      alert('상태 변경 중 오류가 발생했습니다.');
+    }
+  }
+
+  $(document).ready(function(){
+    loadDocument();
+
+    // 버튼 클릭 이벤트
+    $('.submit-btn').on('click', changeStatus);
+  });
+</script>
+</body>
+</html>

@@ -69,10 +69,15 @@ public class DocumentBodyBuilder {
                 /*===============================판매 구매 관련=================================================*/
 
             } else if (cat_id == 1) { //판매 및 구매 관련
+
+
+                /*--------------------------- 판매 ---------------------------*/
                 if (tb_id == 0) {  //판매
 
-                    if (cd_id == 0 || cd_id == 2) {  //추가 or 삭제
-                        Object sale_obj = payload_map.get("sale");
+                    /*======== 판매 추가 / 삭제 (cd_id = 0, 2) ========*/
+                    if (cd_id == 0 || cd_id == 2) {
+
+                        Object sale_obj    = payload_map.get("sale");
                         Object details_obj = payload_map.get("details");
 
                         Sale sale = (sale_obj != null)
@@ -88,10 +93,10 @@ public class DocumentBodyBuilder {
                                 .append(cd_id == 0 ? "판매 추가 요청 내용" : "판매 삭제 대상")
                                 .append("</h3>");
 
-                        // 판매 기본 정보 테이블
+                        // 판매 기본 정보
                         if (sale != null) {
                             sb.append("<h4 class=\"doc-subtitle\">판매 기본 정보</h4>");
-                            sb.append("<table class=\"doc-map-table\"><tbody>");
+                            sb.append("<table id=\"sale_basic_table\" class=\"doc-map-table\"><tbody>");
 
                             sb.append("<tr>")
                                     .append("<th class=\"doc-data-label\">담당자 ID</th>")
@@ -126,12 +131,13 @@ public class DocumentBodyBuilder {
                             sb.append("</tbody></table>");
                         }
 
-                        // 판매 상세 정보 테이블
+                        // 판매 상세 항목
                         sb.append("<h4 class=\"doc-subtitle\">판매 상세 항목</h4>");
+
                         if (details_list == null || details_list.isEmpty()) {
                             sb.append("<p class=\"doc-info\">상세 항목이 없습니다.</p>");
                         } else {
-                            sb.append("<table class=\"doc-list-table\">")
+                            sb.append("<table id=\"sale_details_table\" class=\"doc-list-table\">")
                                     .append("<thead><tr>")
                                     .append("<th>#</th>")
                                     .append("<th>재고 ID</th>")
@@ -158,37 +164,100 @@ public class DocumentBodyBuilder {
                             sb.append("</tbody></table>");
                         }
 
-                    } else if (cd_id == 1) {  //수정
+                        /*======== 판매 수정 (cd_id = 1) ========*/
+                    } else if (cd_id == 1) {
 
-                        Object data_obj = payload_map.get("data");
-                        List<SaleDetails> before_list = null;
-                        List<SaleDetails> after_list  = null;
+                        Object before_sale_obj    = payload_map.get("before_sale");
+                        Object before_details_obj = payload_map.get("before_details");
+                        Object after_sale_obj     = payload_map.get("after_sale");
+                        Object after_details_obj  = payload_map.get("after_details");
 
-                        if (data_obj != null) {
-                            Map<String, Object> data_map =
-                                    objectMapper.convertValue(data_obj, new TypeReference<Map<String, Object>>() {});
+                        Sale before_sale = (before_sale_obj != null)
+                                ? objectMapper.convertValue(before_sale_obj, Sale.class)
+                                : null;
 
-                            Object before_obj = data_map.get("before");
-                            Object after_obj  = data_map.get("after");
+                        Sale after_sale = (after_sale_obj != null)
+                                ? objectMapper.convertValue(after_sale_obj, Sale.class)
+                                : null;
 
-                            if (before_obj != null) {
-                                before_list = objectMapper.convertValue(
-                                        before_obj, new TypeReference<List<SaleDetails>>() {});
-                            }
-                            if (after_obj != null) {
-                                after_list = objectMapper.convertValue(
-                                        after_obj, new TypeReference<List<SaleDetails>>() {});
-                            }
+                        List<SaleDetails> before_list = (before_details_obj != null)
+                                ? objectMapper.convertValue(before_details_obj, new TypeReference<List<SaleDetails>>() {})
+                                : Collections.emptyList();
+
+                        List<SaleDetails> after_list = (after_details_obj != null)
+                                ? objectMapper.convertValue(after_details_obj, new TypeReference<List<SaleDetails>>() {})
+                                : Collections.emptyList();
+
+                        sb.append("<h3 class=\"doc-section-title\">판매 수정 요청 내역</h3>");
+
+                        // (선택) 판매 기본 정보 변경 전/후
+                        if (before_sale != null || after_sale != null) {
+                            sb.append("<h4 class=\"doc-subtitle\">판매 기본 정보 변경</h4>");
+                            sb.append("<table id=\"sale_basic_diff_table\" class=\"doc-map-table\"><thead><tr>")
+                                    .append("<th>항목</th>")
+                                    .append("<th>변경 전</th>")
+                                    .append("<th>변경 후</th>")
+                                    .append("</tr></thead><tbody>");
+
+                            // 담당자
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">담당자 ID</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(before_sale == null ? "" : escape_html(String.valueOf(before_sale.getEmp_id())))
+                                    .append("</td>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(after_sale == null ? "" : escape_html(String.valueOf(after_sale.getEmp_id())))
+                                    .append("</td></tr>");
+
+                            // 거래처
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">거래처 ID</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(before_sale == null ? "" : escape_html(String.valueOf(before_sale.getAc_id())))
+                                    .append("</td>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(after_sale == null ? "" : escape_html(String.valueOf(after_sale.getAc_id())))
+                                    .append("</td></tr>");
+
+                            // 주문일
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">주문일</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(before_sale == null ? "" : escape_html(String.valueOf(before_sale.getOrder_date())))
+                                    .append("</td>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(after_sale == null ? "" : escape_html(String.valueOf(after_sale.getOrder_date())))
+                                    .append("</td></tr>");
+
+                            // 납기일
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">납기일</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(before_sale == null ? "" : escape_html(String.valueOf(before_sale.getDue_date())))
+                                    .append("</td>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(after_sale == null ? "" : escape_html(String.valueOf(after_sale.getDue_date())))
+                                    .append("</td></tr>");
+
+                            // 총 금액
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">총 금액</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(before_sale == null ? "" : escape_html(String.valueOf(before_sale.getTotal_price())))
+                                    .append("</td>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(after_sale == null ? "" : escape_html(String.valueOf(after_sale.getTotal_price())))
+                                    .append("</td></tr>");
+
+                            sb.append("</tbody></table>");
                         }
 
-                        sb.append("<h3 class=\"doc-section-title\">판매 상세 수정 내역</h3>");
-
-                        // 변경 전
+                        // 변경 전 상세
                         sb.append("<h4 class=\"doc-subtitle\">변경 전 상세 항목</h4>");
                         if (before_list == null || before_list.isEmpty()) {
                             sb.append("<p class=\"doc-info\">이전 상세 항목이 없습니다.</p>");
                         } else {
-                            sb.append("<table class=\"doc-list-table\">")
+                            sb.append("<table id=\"sale_before_details_table\" class=\"doc-list-table\">")
                                     .append("<thead><tr>")
                                     .append("<th>#</th>")
                                     .append("<th>재고 ID</th>")
@@ -215,12 +284,12 @@ public class DocumentBodyBuilder {
                             sb.append("</tbody></table>");
                         }
 
-                        // 변경 후
+                        // 변경 후 상세
                         sb.append("<h4 class=\"doc-subtitle\">변경 후 상세 항목</h4>");
                         if (after_list == null || after_list.isEmpty()) {
                             sb.append("<p class=\"doc-info\">변경 후 상세 항목이 없습니다.</p>");
                         } else {
-                            sb.append("<table class=\"doc-list-table\">")
+                            sb.append("<table id=\"sale_after_details_table\" class=\"doc-list-table\">")
                                     .append("<thead><tr>")
                                     .append("<th>#</th>")
                                     .append("<th>재고 ID</th>")
@@ -248,10 +317,12 @@ public class DocumentBodyBuilder {
                         }
                     }
 
+                    /*--------------------------- 구매 ---------------------------*/
                 } else if (tb_id == 1) {    //구매
 
+                    /*======== 구매 추가 / 삭제 (cd_id = 0, 2) ========*/
+                    if (cd_id == 0 || cd_id == 2) {
 
-                    if (cd_id == 0 || cd_id == 2) {  //추가 or 삭제
                         Object purchase_obj = payload_map.get("purchase");
                         Object details_obj  = payload_map.get("details");
 
@@ -270,7 +341,7 @@ public class DocumentBodyBuilder {
                         // 구매 기본 정보
                         if (purchase != null) {
                             sb.append("<h4 class=\"doc-subtitle\">구매 기본 정보</h4>");
-                            sb.append("<table class=\"doc-map-table\"><tbody>");
+                            sb.append("<table id=\"purchase_basic_table\" class=\"doc-map-table\"><tbody>");
 
                             sb.append("<tr>")
                                     .append("<th class=\"doc-data-label\">담당자 ID</th>")
@@ -310,7 +381,7 @@ public class DocumentBodyBuilder {
                         if (details_list == null || details_list.isEmpty()) {
                             sb.append("<p class=\"doc-info\">상세 항목이 없습니다.</p>");
                         } else {
-                            sb.append("<table class=\"doc-list-table\">")
+                            sb.append("<table id=\"purchase_details_table\" class=\"doc-list-table\">")
                                     .append("<thead><tr>")
                                     .append("<th>#</th>")
                                     .append("<th>재고 ID</th>")
@@ -322,7 +393,7 @@ public class DocumentBodyBuilder {
 
                             int row_index = 1;
                             for (PurchaseDetails d : details_list) {
-                                int purchase_qty =d.getPurchase_qty();
+                                int purchase_qty = d.getPurchase_qty();
                                 int qty          = d.getQty();
                                 double unit_price = d.getPrice_per_unit();
                                 double line_total = d.getTotal_price();
@@ -340,38 +411,100 @@ public class DocumentBodyBuilder {
                             sb.append("</tbody></table>");
                         }
 
-                    } else if (cd_id == 1) {  //수정
+                        /*======== 구매 수정 (cd_id = 1) ========*/
+                    } else if (cd_id == 1) {
 
+                        Object before_purchase_obj    = payload_map.get("before_purchase");
+                        Object before_details_obj     = payload_map.get("before_details");
+                        Object after_purchase_obj     = payload_map.get("after_purchase");
+                        Object after_details_obj      = payload_map.get("after_details");
 
-                        Object data_obj = payload_map.get("data");
-                        List<PurchaseDetails> before_list = Collections.emptyList();
-                        List<PurchaseDetails> after_list  = Collections.emptyList();
+                        Purchase before_purchase = (before_purchase_obj != null)
+                                ? objectMapper.convertValue(before_purchase_obj, Purchase.class)
+                                : null;
 
-                        if (data_obj != null) {
-                            Map<String, Object> data_map =
-                                    objectMapper.convertValue(data_obj, new TypeReference<Map<String, Object>>() {});
+                        Purchase after_purchase = (after_purchase_obj != null)
+                                ? objectMapper.convertValue(after_purchase_obj, Purchase.class)
+                                : null;
 
-                            Object before_obj = data_map.get("before");
-                            Object after_obj  = data_map.get("after");
+                        List<PurchaseDetails> before_list = (before_details_obj != null)
+                                ? objectMapper.convertValue(before_details_obj, new TypeReference<List<PurchaseDetails>>() {})
+                                : Collections.emptyList();
 
-                            if (before_obj != null) {
-                                before_list = objectMapper.convertValue(
-                                        before_obj, new TypeReference<List<PurchaseDetails>>() {});
-                            }
-                            if (after_obj != null) {
-                                after_list = objectMapper.convertValue(
-                                        after_obj, new TypeReference<List<PurchaseDetails>>() {});
-                            }
+                        List<PurchaseDetails> after_list = (after_details_obj != null)
+                                ? objectMapper.convertValue(after_details_obj, new TypeReference<List<PurchaseDetails>>() {})
+                                : Collections.emptyList();
+
+                        sb.append("<h3 class=\"doc-section-title\">구매 수정 요청 내역</h3>");
+
+                        // 기본 정보 변경 전/후
+                        if (before_purchase != null || after_purchase != null) {
+                            sb.append("<h4 class=\"doc-subtitle\">구매 기본 정보 변경</h4>");
+                            sb.append("<table id=\"purchase_basic_diff_table\" class=\"doc-map-table\"><thead><tr>")
+                                    .append("<th>항목</th>")
+                                    .append("<th>변경 전</th>")
+                                    .append("<th>변경 후</th>")
+                                    .append("</tr></thead><tbody>");
+
+                            // 담당자
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">담당자 ID</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(before_purchase == null ? "" : escape_html(String.valueOf(before_purchase.getEmp_id())))
+                                    .append("</td>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(after_purchase == null ? "" : escape_html(String.valueOf(after_purchase.getEmp_id())))
+                                    .append("</td></tr>");
+
+                            // 거래처
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">거래처 ID</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(before_purchase == null ? "" : escape_html(String.valueOf(before_purchase.getAc_id())))
+                                    .append("</td>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(after_purchase == null ? "" : escape_html(String.valueOf(after_purchase.getAc_id())))
+                                    .append("</td></tr>");
+
+                            // 주문일
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">주문일</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(before_purchase == null ? "" : escape_html(String.valueOf(before_purchase.getOrder_date())))
+                                    .append("</td>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(after_purchase == null ? "" : escape_html(String.valueOf(after_purchase.getOrder_date())))
+                                    .append("</td></tr>");
+
+                            // 입고일
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">예상 입고일</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(before_purchase == null ? "" : escape_html(String.valueOf(before_purchase.getDel_date())))
+                                    .append("</td>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(after_purchase == null ? "" : escape_html(String.valueOf(after_purchase.getDel_date())))
+                                    .append("</td></tr>");
+
+                            // 총 금액
+                            sb.append("<tr>")
+                                    .append("<th class=\"doc-data-label\">총 금액</th>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(before_purchase == null ? "" : escape_html(String.valueOf(before_purchase.getTotal_price())))
+                                    .append("</td>")
+                                    .append("<td class=\"doc-data-value\">")
+                                    .append(after_purchase == null ? "" : escape_html(String.valueOf(after_purchase.getTotal_price())))
+                                    .append("</td></tr>");
+
+                            sb.append("</tbody></table>");
                         }
 
-                        sb.append("<h3 class=\"doc-section-title\">구매 상세 수정 내역</h3>");
-
-                        // 변경 전
+                        // 변경 전 상세
                         sb.append("<h4 class=\"doc-subtitle\">변경 전 상세 항목</h4>");
                         if (before_list == null || before_list.isEmpty()) {
                             sb.append("<p class=\"doc-info\">이전 상세 항목이 없습니다.</p>");
                         } else {
-                            sb.append("<table class=\"doc-list-table\">")
+                            sb.append("<table id=\"purchase_before_details_table\" class=\"doc-list-table\">")
                                     .append("<thead><tr>")
                                     .append("<th>#</th>")
                                     .append("<th>재고 ID</th>")
@@ -401,12 +534,12 @@ public class DocumentBodyBuilder {
                             sb.append("</tbody></table>");
                         }
 
-                        // 변경 후
+                        // 변경 후 상세
                         sb.append("<h4 class=\"doc-subtitle\">변경 후 상세 항목</h4>");
                         if (after_list == null || after_list.isEmpty()) {
                             sb.append("<p class=\"doc-info\">변경 후 상세 항목이 없습니다.</p>");
                         } else {
-                            sb.append("<table class=\"doc-list-table\">")
+                            sb.append("<table id=\"purchase_after_details_table\" class=\"doc-list-table\">")
                                     .append("<thead><tr>")
                                     .append("<th>#</th>")
                                     .append("<th>재고 ID</th>")
@@ -437,6 +570,7 @@ public class DocumentBodyBuilder {
                         }
                     }
                 }
+
                 /*===============================생산 제조 관련=================================================*/
 
             } else if (cat_id == 2) { // 생산/제조

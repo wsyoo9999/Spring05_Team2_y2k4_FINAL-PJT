@@ -126,7 +126,7 @@ public class TransactionController {
         String query = objectMapper.writeValueAsString(payload);
         doc.setQuery(query);
             // (3) 문서 저장
-        documentsService.addDocument(doc);
+        //documentsService.addDocument(doc);
 
 
         return true;
@@ -208,7 +208,7 @@ public class TransactionController {
         String query = objectMapper.writeValueAsString(payload);
         doc.setQuery(query);
         // (3) 문서 저장
-        documentsService.addDocument(doc);
+        //documentsService.addDocument(doc);
 
         return true;
 
@@ -307,7 +307,7 @@ public class TransactionController {
         String query = objectMapper.writeValueAsString(payload);
         doc.setQuery(query);
         // (3) 문서 저장
-        documentsService.addDocument(doc);
+        //documentsService.addDocument(doc);
 
         return true;
 
@@ -377,7 +377,7 @@ public class TransactionController {
         payload.put("after_purchase", edit_purchase);
         payload.put("after_details", edit_purchaseDetail);  //after_**들은 해당 문서가 승인이 되면 기존의 정보들을 대체
         payload.put("cat_id", 1);   // 판매/구매
-        payload.put("tb_id", 0);    // 판매
+        payload.put("tb_id", 1);    // 판매
         payload.put("cd_id", 1);    // 수정
         payload.put("before_pk", before_purchase.getPurchase_id());
 
@@ -389,7 +389,7 @@ public class TransactionController {
         String query = objectMapper.writeValueAsString(payload);
         doc.setQuery(query);
         // (3) 문서 저장
-        documentsService.addDocument(doc);
+        //documentsService.addDocument(doc);
 
         return true;
     }

@@ -5,31 +5,33 @@
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.document.DocumentsMapper">
     <select id="list" resultType="com.multi.y2k4.vo.document.Documents">
-        SELECT * FROM documents
+        SELECT d.*, req.emp_name req_name, appr.emp_name appr_name FROM documents d
+            LEFT JOIN human_resource req ON req.emp_id = d.req_id
+            LEFT JOIN human_resource appr ON appr.emp_id   = d.appr_id
         <where>
             <if test="cat_id != null">
-                cat_id = #{cat_id}
+                AND cat_id = #{cat_id}
             </if>
             <if test="tb_id != null">
-                tb_id = #{tb_id}
+                AND tb_id = #{tb_id}
             </if>
             <if test="cd_id != null">
-                cd_id = #{cd_id}
+                AND cd_id = #{cd_id}
             </if>
             <if test="req_id != null">
-                req_id = #{req_id}
+                AND req_id = #{req_id}
             </if>
             <if test="req_date != null">
-                req_date != req_date
+                AND req_date = req_date
             </if>
             <if test="appr_id != null">
-                appr_id != #{appr_id}
+                AND appr_id = #{appr_id}
             </if>
             <if test="appr_date != null">
-                appr_date != #{appr_date}
+                AND appr_date = #{appr_date}
             </if>
             <if test="status != null">
-                status = #{status}
+                AND status = #{status}
             </if>
         </where>
     </select>
