@@ -42,10 +42,21 @@
         <h3>수정 항목</h3>
         <form id="updateForm">
             <label for="dept_name">부서명:</label>
-            <input type="text" id="dept_name" name="dept_name" required>
+            <select id="dept_name" name="dept_name" required>
+                <option value="미배정">미배정</option>
+                <option value="재무팀">재무팀</option>
+                <option value="인사팀">인사팀</option>
+                <option value="생산팀">생산팀</option>
+                <option value="판매팀">판매팀</option>
+                <option value="재고팀">재고팀</option>
+            </select>
 
             <label for="position">직급:</label>
-            <input type="text" id="position" name="position" required>
+            <select id="position" name="position" required>
+                <option value="미지정">미지정</option> <option value="사원">사원</option>
+                <option value="중간관리자">중간관리자</option>
+                <option value="최고관리자">최고관리자</option>
+            </select>
 
             <label for="status">재직 상태:</label>
             <select id="status" name="status" required>
