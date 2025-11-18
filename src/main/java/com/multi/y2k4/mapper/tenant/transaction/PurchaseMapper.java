@@ -22,4 +22,7 @@ public interface PurchaseMapper {
     public int editPurchaseStatus(Purchase purchase);
 
     public int deletePurchase(@Param("purchase_id")Integer purchase_id);
+
+    public Purchase searchById(@Param("purchase_id") Integer purchase_id);
+
 }

@@ -39,4 +39,8 @@ public class SaleService {
         saleDetailsMapper.deleteSaleDetails(sale_id);
         return saleMapper.deleteSale(sale_id);
     }
+
+    public Sale searchById(Integer sale_id) {
+        return saleMapper.searchById(sale_id);
+    }
 }

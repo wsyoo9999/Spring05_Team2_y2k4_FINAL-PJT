@@ -37,4 +37,8 @@ public class PurchaseService {
         purchaseDetailsMapper.deletePurchaseDetails(purchase_id);
         return purchaseMapper.deletePurchase(purchase_id);
     }
+
+    public Purchase searchById(Integer purchase_id) {
+        return purchaseMapper.searchById(purchase_id);
+    }
 }

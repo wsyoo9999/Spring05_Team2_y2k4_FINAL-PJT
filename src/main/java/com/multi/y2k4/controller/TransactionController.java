@@ -117,6 +117,8 @@ public class TransactionController {
         payload.put("tb_id", 0);    // 판매
         payload.put("cd_id", 0);    // 추가
         payload.put("pk", sale.getSale_id());
+        payload.put("sale", sale);
+        payload.put("details", saleDetails);
         //제목
         //기안자 emp_id(추후 세션에서 가져옴)
         //결재자 emp_id(추후 세션에서 자신의 emp_id를 통해 supervisor값을 저장),자신이 상위관리자라면 자기 자신의 emp_id
@@ -146,8 +148,8 @@ public class TransactionController {
                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
                             @RequestParam Integer[] stock_id,
                             @RequestParam Integer[] qty,
-                            @RequestParam Double[] price_per_unit){
-        List<Sale> before_sale = saleService.list(sale_id,null,null,null,null,null);    //실질적으로 한개만 검색, 추후 document를 위해 수정 전 값을 검색
+                            @RequestParam Double[] price_per_unit) throws JsonProcessingException {
+        Sale before_sale = saleService.searchById(sale_id);    //실질적으로 한개만 검색, 추후 document를 위해 수정 전 값을 검색
         List<SaleDetails> before_saleDetails = saleDetailsService.searchById(sale_id);  //추후 document를 위해 수정 전 값을 검색
 
         //내부적으로 판매 새부 정보의 수정은 기존의 상세 정보는 모두 삭제, 수정된 내용을 새로 insert
@@ -173,9 +175,41 @@ public class TransactionController {
 
         edit_sale.setTotal_price(total_price);
 
-        saleService.editSale(edit_sale);
-        saleDetailsService.deleteSaleDetails(sale_id);
-        saleDetailsService.addSaleDetails(edit_saleDetail);
+        /***********************이후론 계정의 등급에 따라 분기*******************************/
+        int authLevel = 0;
+        Documents doc = new Documents();
+
+        if(authLevel == 0){     //현재 계정의 등급이 문서화를 거칠 필요가 없을떄, 기존의 과정 그대로 진행
+            saleService.editSale(edit_sale);
+            saleDetailsService.deleteSaleDetails(sale_id);
+            saleDetailsService.addSaleDetails(edit_saleDetail);
+            doc.setStatus(1);       //DB의 변경이 일어나므로 기록으로는 남김, 자체 승인을 한 것이므로 문서 상태는 바로 1(승인)
+        }else{      //문서화가 필요할 때
+            before_sale.setStatus(99);
+            saleService.editSaleStatus(before_sale);    //아직 수정이 승인나지 않았으므로 기존의 수정 전 정보의 상태를 99로
+            doc.setStatus(0);   //처리를 대기중
+        }
+
+        HashMap<String, Object> payload = new HashMap<>();
+        payload.put("before_sale", before_sale);
+        payload.put("before_details", before_saleDetails);
+        payload.put("after_sale", edit_sale);
+        payload.put("after_details", edit_saleDetail);  //after_**들은 해당 문서가 승인이 되면 기존의 정보들을 대체
+        payload.put("cat_id", 1);   // 판매/구매
+        payload.put("tb_id", 0);    // 판매
+        payload.put("cd_id", 1);    // 수정
+        payload.put("before_pk", before_sale.getSale_id());
+
+
+        //제목
+        //기안자 emp_id(추후 세션에서 가져옴)
+        //결재자 emp_id(추후 세션에서 자신의 emp_id를 통해 supervisor값을 저장),자신이 상위관리자라면 자기 자신의 emp_id
+        doc.setReq_date(LocalDate.now());   //결재 올린 시간은 기본적으로 현재 시간
+        String query = objectMapper.writeValueAsString(payload);
+        doc.setQuery(query);
+        // (3) 문서 저장
+        documentsService.addDocument(doc);
+
         return true;
 
     }
@@ -214,7 +248,7 @@ public class TransactionController {
                                 @RequestParam Integer[] stock_id,
                                 @RequestParam Integer[] qty,
                                 @RequestParam Double[] price_per_unit,
-                           Model model){
+                           Model model) throws JsonProcessingException {
         double total_price = 0;
         List<PurchaseDetails> purchaseDetails = new ArrayList<>();
 
@@ -234,14 +268,47 @@ public class TransactionController {
         purchase.setOrder_date(order_date);
         purchase.setDel_date(del_date);
         purchase.setTotal_price(total_price);
-        purchase.setStatus(0);
-        purchaseService.addPurchase(purchase);
-        int id = purchase.getPurchase_id();
 
-        for(int i = 0; i < stock_id.length; i++){
-            purchaseDetails.get(i).setPurchase_id(id);
+        /***********************이후론 계정의 등급에 따라 분기*******************************/
+        int authLevel = 0;
+        Documents doc = new Documents();
+
+        if(authLevel == 0){     //현재 계정의 등급이 문서화를 거칠 필요가 없을떄
+            purchase.setStatus(0);
+            purchaseService.addPurchase(purchase);
+            int id = purchase.getPurchase_id();
+            for(int i = 0; i < stock_id.length; i++){
+                purchaseDetails.get(i).setPurchase_id(id);
+            }
+            purchaseDetailsService.addPurchaseDetails(purchaseDetails);
+            doc.setStatus(1);       //DB의 변경이 일어나므로 기록으로는 남김, 자체 승인을 한 것이므로 문서 상태는 바로 1(승인)
+        }else{      //문서화가 필요할 때
+            purchase.setStatus(99);
+            purchaseService.addPurchase(purchase);
+            int id = purchase.getPurchase_id();
+            for(int i = 0; i < stock_id.length; i++){
+                purchaseDetails.get(i).setPurchase_id(id);
+            }
+            purchaseDetailsService.addPurchaseDetails(purchaseDetails);
+            doc.setStatus(0);   //처리를 대기중
         }
-        purchaseDetailsService.addPurchaseDetails(purchaseDetails);
+
+        HashMap<String, Object> payload = new HashMap<>();
+        payload.put("cat_id", 1);   // 판매/구매
+        payload.put("tb_id", 1);    // 구매
+        payload.put("cd_id", 0);    // 추가
+        payload.put("pk", purchase.getPurchase_id());
+        payload.put("purchase", purchase);
+        payload.put("details", purchaseDetails);
+        //제목
+        //기안자 emp_id(추후 세션에서 가져옴)
+        //결재자 emp_id(추후 세션에서 자신의 emp_id를 통해 supervisor값을 저장),자신이 상위관리자라면 자기 자신의 emp_id
+        doc.setReq_date(LocalDate.now());   //결재 올린 시간은 기본적으로 현재 시간
+        String query = objectMapper.writeValueAsString(payload);
+        doc.setQuery(query);
+        // (3) 문서 저장
+        documentsService.addDocument(doc);
+
         return true;
 
     }
@@ -261,9 +328,9 @@ public class TransactionController {
                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate del_date,
                                 @RequestParam Integer[] stock_id,
                                 @RequestParam Integer[] qty,
-                                @RequestParam Double[] price_per_unit){
+                                @RequestParam Double[] price_per_unit) throws JsonProcessingException {
 
-        List<Purchase> before_purchase = purchaseService.list(purchase_id,null,null,null,null,null);    //실질적으로 한개만 검색, 추후 document를 위해 수정 전 값을 검색
+        Purchase before_purchase = purchaseService.searchById(purchase_id);    //실질적으로 한개만 검색, 추후 document를 위해 수정 전 값을 검색
         List<PurchaseDetails> before_purchaseDetails = purchaseDetailsService.searchById(purchase_id);  //추후 document를 위해 수정 전 값을 검색
 
         //내부적으로 판매 새부 정보의 수정은 기존의 상세 정보는 모두 삭제, 수정된 내용을 새로 insert
@@ -289,9 +356,41 @@ public class TransactionController {
 
         edit_purchase.setTotal_price(total_price);
 
-        purchaseService.editPurchase(edit_purchase);
-        purchaseDetailsService.deletePurchaseDetails(purchase_id);
-        purchaseDetailsService.addPurchaseDetails(edit_purchaseDetail);
+        /***********************이후론 계정의 등급에 따라 분기*******************************/
+        int authLevel = 0;
+        Documents doc = new Documents();
+
+        if(authLevel == 0){     //현재 계정의 등급이 문서화를 거칠 필요가 없을떄, 기존의 과정 그대로 진행
+            purchaseService.editPurchase(edit_purchase);
+            purchaseDetailsService.deletePurchaseDetails(purchase_id);
+            purchaseDetailsService.addPurchaseDetails(edit_purchaseDetail);
+            doc.setStatus(1);       //DB의 변경이 일어나므로 기록으로는 남김, 자체 승인을 한 것이므로 문서 상태는 바로 1(승인)
+        }else{      //문서화가 필요할 때
+            before_purchase.setStatus(99);
+            purchaseService.editPurchaseStatus(before_purchase);    //아직 수정이 승인나지 않았으므로 기존의 수정 전 정보의 상태를 99로
+            doc.setStatus(0);   //처리를 대기중
+        }
+
+        HashMap<String, Object> payload = new HashMap<>();
+        payload.put("before_purchase", before_purchase);
+        payload.put("before_details", before_purchaseDetails);
+        payload.put("after_purchase", edit_purchase);
+        payload.put("after_details", edit_purchaseDetail);  //after_**들은 해당 문서가 승인이 되면 기존의 정보들을 대체
+        payload.put("cat_id", 1);   // 판매/구매
+        payload.put("tb_id", 0);    // 판매
+        payload.put("cd_id", 1);    // 수정
+        payload.put("before_pk", before_purchase.getPurchase_id());
+
+
+        //제목
+        //기안자 emp_id(추후 세션에서 가져옴)
+        //결재자 emp_id(추후 세션에서 자신의 emp_id를 통해 supervisor값을 저장),자신이 상위관리자라면 자기 자신의 emp_id
+        doc.setReq_date(LocalDate.now());   //결재 올린 시간은 기본적으로 현재 시간
+        String query = objectMapper.writeValueAsString(payload);
+        doc.setQuery(query);
+        // (3) 문서 저장
+        documentsService.addDocument(doc);
+
         return true;
     }
     @PostMapping("/purchase/editPurchaseStatus")

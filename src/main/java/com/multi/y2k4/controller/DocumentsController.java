@@ -1,6 +1,7 @@
 package com.multi.y2k4.controller;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.multi.y2k4.service.document.DocumentsService;
 import com.multi.y2k4.service.hr.AttendanceService;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -73,7 +75,6 @@ public class DocumentsController {
             int cat_id = (int) map.get("cat_id");
             int tb_id = (int) map.get("tb_id");
             int cd_id = (int) map.get("cd_id");
-            int pk = (int) map.get("pk");
             /*===============================재무관련=================================================*/
             if (cat_id == 0) {    //  재무 관련 문서
 
@@ -136,95 +137,106 @@ public class DocumentsController {
             /*===============================판매 구매 관련=================================================*/
 
             } else if (cat_id == 1) { //판매 및 구매 관련
-                if (tb_id == 0) {  //판매
-
-
-                    if (cd_id == 0) {  //추가
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-                            Sale s =new Sale();
-                            s.setStatus(0);
-                            s.setSale_id(pk);
-                            saleService.editSaleStatus(s);
-
-                        } else if (status == 2) {  //결재 서류 반려
-                            saleService.deleteSale(pk);
-
-                        }
-
-                    } else if (cd_id == 1) {  //수정
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-                            saleDetailsService.deleteSaleDetails(pk);   //기존의 판매 세부 정보 삭제
-                            List<SaleDetails> sd = (List<SaleDetails>) map.get("data"); //변경할 정보들
-                            saleDetailsService.addSaleDetails(sd);
-                            Sale s =new Sale();
-                            s.setStatus(0);
-                            s.setSale_id(pk);
-                            saleService.editSaleStatus(s);  //수정 완료되었다고 status 변경
-
-                        } else if (status == 2) {  //결재 서류 반려
-                            Sale s =new Sale();
-                            s.setStatus(0);
-                            s.setSale_id(pk);
-                            saleService.editSaleStatus(s);  //기존의 정보를 유지
-                        }
-
-                    } else if (cd_id == 2) {  //삭제
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-                            saleService.deleteSale(pk);
-
-                        } else if (status == 2) {  //결재 서류 반려
-                            Sale s =new Sale();
-                            s.setStatus(0);
-                            s.setSale_id(pk);
-                            saleService.editSaleStatus(s);  //삭제 거부, 기존의 데이터 유지
-                        }
-
-                    }
-
-                } else if (tb_id == 1) {    //구매
-
-                    if (cd_id == 0) {  //추가
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-
-                            Purchase p = new Purchase();
-                            p.setStatus(0);
-                            p.setPurchase_id(pk);
-                            purchaseService.editPurchase(p);
-
-                        } else if (status == 2) {  //결재 서류 반려
-                            purchaseService.deletePurchase(pk); //미리 집어넣은 데이터 삭제
-                        }
-
-                    } else if (cd_id == 1) {  //수정
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-                            purchaseDetailsService.deletePurchaseDetails(pk);   //기존의 구매 세부 정보 삭제
-                            List<PurchaseDetails> pd = (List<PurchaseDetails>) map.get("data"); //변경할 정보들
-                            purchaseDetailsService.addPurchaseDetails(pd);
-                            Purchase p = new Purchase();
-                            p.setStatus(0);
-                            p.setPurchase_id(pk);
-                            purchaseService.editPurchase(p);
-
-                        } else if (status == 2) {  //결재 서류 반려
-                            Purchase p = new Purchase();
-                            p.setStatus(0);
-                            p.setPurchase_id(pk);
-                            purchaseService.editPurchase(p);    //수정 반려, 기존의 값 유지
-                        }
-
-                    } else if (cd_id == 2) {  //삭제
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-                            purchaseService.deletePurchase(pk);
-
-                        } else if (status == 2) {  //결재 서류 반려
-                            Purchase p = new Purchase();
-                            p.setStatus(0);
-                            p.setPurchase_id(pk);
-                            purchaseService.editPurchase(p);    //삭제 반려, 기존의 값 유지
-                        }
-
-                    }
-                }
+//                if (tb_id == 0) {  //판매
+//
+//
+//                    if (cd_id == 0) {  //추가
+//                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
+//                            Sale s =new Sale();
+//                            s.setStatus(0);
+//                            s.setSale_id(pk);
+//                            saleService.editSaleStatus(s);
+//
+//                        } else if (status == 2) {  //결재 서류 반려
+//                            saleService.deleteSale(pk);
+//
+//                        }
+//
+//                    } else if (cd_id == 1) {  //수정
+//                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
+//                            int before_pk = Integer.parseInt(map.get("before_pk").toString());
+//                            Object sale_obj = map.get("after_sale");
+//                            Object details_obj = map.get("after_details");
+//
+//                            Sale sale = (sale_obj != null)  //수정할 값
+//                                    ? objectMapper.convertValue(sale_obj, Sale.class)
+//                                    : null;
+//
+//                            List<SaleDetails> details_list = (details_obj != null)  //수정할(기존의 것 삭제하고 다시 넣을) 세부 정보들
+//                                    ? objectMapper.convertValue(details_obj, new TypeReference<List<SaleDetails>>() {})
+//                                    : Collections.emptyList();
+//
+//
+//                            saleDetailsService.deleteSaleDetails(before_pk);   //기존의 판매 세부 정보 삭제
+//
+//                            saleDetailsService.addSaleDetails(details_list);
+//
+//                            saleService.editSaleStatus(sale);  //수정 완료되었다고 status 변경
+//
+//                        } else if (status == 2) {  //결재 서류 반려
+//                            Sale s =new Sale();
+//                            s.setStatus(0);
+//                            s.setSale_id(pk);
+//                            saleService.editSaleStatus(s);  //기존의 정보를 유지
+//                        }
+//
+//                    } else if (cd_id == 2) {  //삭제
+//                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
+//                            saleService.deleteSale(pk);
+//
+//                        } else if (status == 2) {  //결재 서류 반려
+//                            Sale s =new Sale();
+//                            s.setStatus(0);
+//                            s.setSale_id(pk);
+//                            saleService.editSaleStatus(s);  //삭제 거부, 기존의 데이터 유지
+//                        }
+//
+//                    }
+//
+//                } else if (tb_id == 1) {    //구매
+//
+//                    if (cd_id == 0) {  //추가
+//                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
+//
+//                            Purchase p = new Purchase();
+//                            p.setStatus(0);
+//                            p.setPurchase_id(pk);
+//                            purchaseService.editPurchase(p);
+//
+//                        } else if (status == 2) {  //결재 서류 반려
+//                            purchaseService.deletePurchase(pk); //미리 집어넣은 데이터 삭제
+//                        }
+//
+//                    } else if (cd_id == 1) {  //수정
+//                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
+//                            purchaseDetailsService.deletePurchaseDetails(pk);   //기존의 구매 세부 정보 삭제
+//                            List<PurchaseDetails> pd = (List<PurchaseDetails>) map.get("data"); //변경할 정보들
+//                            purchaseDetailsService.addPurchaseDetails(pd);
+//                            Purchase p = new Purchase();
+//                            p.setStatus(0);
+//                            p.setPurchase_id(pk);
+//                            purchaseService.editPurchase(p);
+//
+//                        } else if (status == 2) {  //결재 서류 반려
+//                            Purchase p = new Purchase();
+//                            p.setStatus(0);
+//                            p.setPurchase_id(pk);
+//                            purchaseService.editPurchase(p);    //수정 반려, 기존의 값 유지
+//                        }
+//
+//                    } else if (cd_id == 2) {  //삭제
+//                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
+//                            purchaseService.deletePurchase(pk);
+//
+//                        } else if (status == 2) {  //결재 서류 반려
+//                            Purchase p = new Purchase();
+//                            p.setStatus(0);
+//                            p.setPurchase_id(pk);
+//                            purchaseService.editPurchase(p);    //삭제 반려, 기존의 값 유지
+//                        }
+//
+//                    }
+//                }
 
             /*===============================생산 제조 관련=================================================*/
 

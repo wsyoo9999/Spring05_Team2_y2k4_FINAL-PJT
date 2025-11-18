@@ -44,6 +44,10 @@
         </where>
     </select>
 
+    <select id="searchById" resultType="com.multi.y2k4.vo.transaction.Purchase">
+        SELECT * FROM purchase WHERE purchase_id = #{purchase_id}
+    </select>
+
     <insert id="addPurchase" parameterType="com.multi.y2k4.vo.transaction.Purchase" useGeneratedKeys="true" keyProperty="purchase_id" keyColumn="purchase_id">
         insert into purchase (emp_id, ac_id, order_date, del_date, total_price, status)
         values (#{emp_id}, #{ac_id}, #{order_date}, #{del_date}, #{total_price}, #{status})
