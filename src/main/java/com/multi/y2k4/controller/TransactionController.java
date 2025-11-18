@@ -313,6 +313,7 @@ public class TransactionController {
             total_price += purchaseDetail.getTotal_price();
         }
 
+
         Purchase purchase = new Purchase();
         purchase.setAc_id(ac_id);   //거래처
         purchase.setEmp_id(emp_id); //담당자
