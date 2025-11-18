@@ -14,7 +14,7 @@ import java.util.*;
 @RequiredArgsConstructor
 
 public class DocumentsService {
-    private DocumentsMapper documentsMapper;
+    private final DocumentsMapper documentsMapper;
     private final ObjectMapper objectMapper;
 
     public List<Documents> list(Integer doc_id,
