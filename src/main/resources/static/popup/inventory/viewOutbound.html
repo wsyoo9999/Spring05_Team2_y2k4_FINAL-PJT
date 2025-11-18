@@ -301,8 +301,12 @@
             }
             window.close();
         } catch (err) {
-            console.error('수정 실패:', err);
-            alert(`수정 실패 (status=${err?.status})\n${err?.responseText ?? ''}`);
+            if (err.responseJSON && err.responseJSON.message) {
+                alert(err.responseJSON.message);
+            } else {
+                console.error('수정 실패:', err);
+                alert(`수정 실패 (status=${err?.status})\n${err?.responseText ?? ''}`);
+            }
         }
     });
 
@@ -311,7 +315,7 @@
         const id = $('#outbound_id').val();
         if (!id) { alert('출고번호가 없습니다.'); return; }
         if (!confirm(`출고번호 ${id}를 삭제하시겠습니까?`)) return;
-        if (!confirm('⚠ 삭제된 데이터는 복구할 수 없습니다. 진행할까요?')) return;
+        if (!confirm('삭제된 데이터는 복구할 수 없습니다. 진행하시겠습니까?')) return;
 
         try {
             await $.ajax({
