@@ -41,11 +41,22 @@
         <div class="form-grid">
             <div class="form-group">
                 <label for="dept_name">부서</label>
-                <input type="text" id="dept_name" name="dept_name" placeholder="예: 인사팀">
+                <select id="dept_name" name="dept_name">
+                    <option value="">미배정</option>
+                    <option value="재무팀">재무팀</option>
+                    <option value="인사팀">인사팀</option>
+                    <option value="생산팀">생산팀</option>
+                    <option value="판매팀">판매팀</option>
+                    <option value="재고팀">재고팀</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="position">직급</label>
-                <input type="text" id="position" name="position" placeholder="예: 사원" required>
+                <select id="position" name="position" required>
+                    <option value="사원" selected>사원</option>
+                    <option value="중간관리자">중간관리자</option>
+                    <option value="최고관리자">최고관리자</option>
+                </select>
             </div>
         </div>
 

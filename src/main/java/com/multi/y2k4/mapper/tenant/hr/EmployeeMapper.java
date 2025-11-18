@@ -35,7 +35,7 @@ public interface EmployeeMapper {
     int updateEmployee(Employee employee);
 
     /**
-     * [추가] 신규 직원 등록
+     * 신규 직원 등록
      */
     int addEmployee(Employee employee);
 }

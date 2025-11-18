@@ -51,18 +51,32 @@ export function employees_search_form() {
                             <label>이름:
                                 <input type="text" name="search_name" placeholder="이름 검색" />
                             </label>
+                            
                             <label>부서:
-                                <input type="text" name="search_dept" placeholder="부서 검색" />
+                                <select name="search_dept">
+                                    <option value="">전체 부서</option>
+                                    <option value="재무팀">재무팀</option>
+                                    <option value="인사팀">인사팀</option>
+                                    <option value="생산팀">생산팀</option>
+                                    <option value="판매팀">판매팀</option>
+                                    <option value="재고팀">재고팀</option>
+                                    <option value="미배정">미배정</option>
+                                </select>
                             </label>
+
                             <label>직급:
-                                <input type="text" name="search_position" placeholder="직급 검색" />
+                                <select name="search_position">
+                                    <option value="">전체 직급</option>
+                                    <option value="사원">사원</option>
+                                    <option value="중간관리자">중간관리자</option>
+                                    <option value="최고관리자">최고관리자</option>
+                                </select>
                             </label>
                             
                             <button type="button" data-action="search" data-file="hr" data-fn="employees_list" class="search_btn">검색</button>
                         </form>`;
     return search_bar;
 }
-
 export async function employees_listAll() {
     const actionRow = `
             <div class="table-actions-header">
@@ -303,6 +317,11 @@ export function attendance_detail_popup(attendanceId) {
     const url = `./popup/attendanceEdit.html?attendanceId=${attendanceId}`;
     const features = 'width=500,height=500,resizable=yes,scrollbars=yes';
     window.open(url, `attendance_detail_${attendanceId}`, features);
+}
+export function request_vacation_popup() {
+    const url = `./popup/requestVacation.html`; // 새로 만들 팝업 HTML
+    const features = 'width=500,height=550,resizable=yes,scrollbars=yes';
+    window.open(url, `request_vacation`, features).focus();
 }
 
 

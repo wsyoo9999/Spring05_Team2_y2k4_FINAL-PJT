@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <title>휴가 신청</title>
+    <style>
+        /* (addEmployee.html 스타일과 유사하게 생략) */
+        body { font-family: 'Noto Sans KR', sans-serif; padding: 20px; background-color: #f8f8f8; }
+        .form-card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px 30px; max-width: 450px; margin: auto; }
+        h2 { border-bottom: 2px solid #4A90E2; padding-bottom: 10px; margin-bottom: 20px;}
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; }
+        .form-group input[type="date"], .form-group textarea {
+            width: 100%; padding: 10px; border: 1px solid #E0E0E0;
+            border-radius: 5px; font-size: 15px; box-sizing: border-box;
+        }
+        .form-group textarea { height: 100px; resize: vertical; }
+        .submit-button { background-color: #4A90E2; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="form-card">
+    <h2><i class="fas fa-paper-plane"></i> 휴가 신청</h2>
+    <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+        신청 내역은 관리자 승인 후 반영됩니다.
+    </p>
+
+    <form id="vacationForm">
+        <div class="form-group">
+            <label for="startDate">휴가 시작일</label>
+            <input type="date" id="startDate" name="startDate" required>
+        </div>
+        <div class="form-group">
+            <label for="endDate">휴가 종료일</label>
+            <input type="date" id="endDate" name="endDate" required>
+        </div>
+        <div class="form-group">
+            <label for="reason">신청 사유</label>
+            <textarea id="reason" name="reason" rows="4" placeholder="예: 개인 연차 사용" required></textarea>
+        </div>
+        <button type="submit" class="submit-button">
+            <i class="fas fa-check"></i> 신청서 제출
+        </button>
+    </form>
+</div>
+
+<script>
+    // 오늘 날짜 이전은 선택 못하게 min 속성 설정
+    (function setMinDate(){
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('startDate').value = today;
+        document.getElementById('startDate').min = today;
+        document.getElementById('endDate').value = today;
+        document.getElementById('endDate').min = today;
+    })();
+
+    // 폼 제출 (HRController의 API 호출)
+    $('#vacationForm').on('submit', async function(e) {
+        e.preventDefault();
+
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
+
+        if (startDate > endDate) {
+            alert('종료일은 시작일보다 빠를 수 없습니다.');
+            return;
+        }
+
+        try {
+            const result = await $.ajax({
+                url: '/api/hr/requestVacation', // HRController에 만든 API
+                method: 'POST',
+                dataType: 'json',
+                data: $(this).serialize() // 폼 데이터를 직렬화 (startDate, endDate, reason)
+            });
+
+            if (result === true) {
+                alert('✅ 휴가 신청서가 성공적으로 제출되었습니다.');
+
+                // (알림) 부모 창의 '알림' 아이콘에 표시가 뜨면 좋겠지만,
+                // 우선은 팝업을 닫는 것만 처리합니다.
+                if (window.opener) {
+                    // window.opener.showNotificationBadge(); // ( hypothetical function)
+                }
+                window.close();
+            } else {
+                alert('❌ 신청서 제출에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('휴가 신청 실패:', error);
+            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        }
+    });
+</script>
+
+</body>
+</html>
