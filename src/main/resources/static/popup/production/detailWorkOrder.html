@@ -107,6 +107,15 @@
             align-items: center;
             gap: 6px;
         }
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #888;       /* 기본 회색 */
+            cursor: pointer;
+            font-size: 16px;   /* 아이콘 크기 */
+            padding: 4px 8px;
+            transition: color 0.2s;
+        }
         .action-button:hover { transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .btn-primary { background-color: var(--primary-color); }
         .btn-primary:hover { background-color: #3A7BD5; }
@@ -269,6 +278,7 @@
                     <th>생산일</th>
                     <th>생산수량</th>
                     <th>불량수량</th>
+                    <th>관리</th>
                 </tr>
                 </thead>
                 <tbody id="lot-list-tbody">
@@ -635,14 +645,23 @@
                         lotsData.forEach(lot => {
                             const defectQty = defectMap[lot.lot_id] || 0;
                             const defectClass = defectQty > 0 ? 'color: #E95353; font-weight:bold;' : '';
+
+                            // 삭제 버튼이 포함된 행 생성
                             html += `
-                                <tr>
-                                    <td><strong>${lot.lot_id}</strong></td>
-                                    <td>${formatDate(lot.lot_date)}</td>
-                                    <td>${numberFormat(lot.lot_qty)}</td>
-                                    <td style="${defectClass}">${numberFormat(defectQty)}</td>
-                                </tr>
-                            `;
+                <tr>
+                    <td><strong>${lot.lot_id}</strong></td>
+                    <td>${formatDate(lot.lot_date)}</td>
+                    <td>${numberFormat(lot.lot_qty)}</td>
+                    <td style="${defectClass}">${numberFormat(defectQty)}</td>
+                    <td>
+                        <button type="button" class="btn-delete btn-delete-lot"
+                                data-lot-id="${lot.lot_id}"
+                                title="삭제">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
                         });
                     } else {
                         html = '<tr><td colspan="4" style="text-align:center; padding: 20px;">등록된 생산 실적이 없습니다.</td></tr>';
@@ -661,6 +680,34 @@
             // [8] Lot 목록 닫기
             $('#close-lot-list').on('click', function() {
                 $('#lot-list-container').hide();
+            });
+
+            $('#lot-list-tbody').on('click', '.btn-delete-lot', async function() {
+                const lotId = $(this).data('lot-id');
+
+                if (!confirm(`Lot 번호 [${lotId}] 실적을 삭제하시겠습니까?\n연결된 불량 내역도 함께 삭제됩니다.`)) {
+                    return;
+                }
+
+                try {
+                    const result = await $.ajax({
+                        url: `/api/production/lot/${lotId}`,
+                        method: 'DELETE',
+                        dataType: 'json'
+                    });
+
+                    if (result === true) {
+                        alert('✅ 삭제되었습니다.');
+                        // 목록을 닫았다가 다시 열거나, 새로고침하여 변경된 수량 반영
+                        // 여기서는 전체 새로고침을 하여 상단 진행률까지 갱신하는 것이 좋습니다.
+                        window.location.reload();
+                    } else {
+                        alert('❌ 삭제에 실패했습니다.');
+                    }
+                } catch (error) {
+                    console.error('삭제 중 오류:', error);
+                    alert('❌ 서버 통신 중 오류가 발생했습니다.');
+                }
             });
 
         } catch (error) {

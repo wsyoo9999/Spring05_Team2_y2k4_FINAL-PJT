@@ -231,4 +231,9 @@ public class ProductionController {
 
         return productionService.addDefect(defect);
     }
+
+    @DeleteMapping("/lot/{lot_id}")
+    public boolean deleteLot(@PathVariable Long lot_id) {
+        return productionService.deleteLot(lot_id);
+    }
 }
