@@ -159,10 +159,6 @@ public class HRController {
 //        return null;
 //    }
 
-    /**
-     * [신규] 휴가 신청 API
-     * requestVacation.html 팝업에서 호출됨
-     */
     @PostMapping("/requestVacation")
     public boolean requestVacation(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -171,42 +167,56 @@ public class HRController {
             HttpSession session) {
 
         try {
-            // 1. 기안자 정보 설정 (로그인한 사용자)
-            // TODO: 실제로는 세션에 저장된 로그인 ID를 통해 DB에서 emp_id와 emp_name을 조회해야 합니다.
-            // 현재는 테스트를 위해 임의의 값(1번 사원)을 사용합니다.
-            Long requesterEmpId = 1L;
-            String requesterName = (String) session.getAttribute("id");
-            if (requesterName == null) requesterName = "기안자";
+            // 1. 세션에서 내 정보 가져오기
+            String requesterId = (String) session.getAttribute("id");
+            String position = (String) session.getAttribute("position");
+            Integer empIdObj = (Integer) session.getAttribute("emp_id");
+            String empName = (String) session.getAttribute("emp_name");
 
-            // 2. 결재 문서 본문에 들어갈 데이터(JSON) 생성
+
+
+            if (empIdObj == null) return false; // 로그인 정보 오류
+            Long requesterEmpId = Long.valueOf(empIdObj);
+
+            // 2. JSON 데이터 생성 (결재 문서 본문용)
             Map<String, Object> payload = new HashMap<>();
-            payload.put("cat_id", 4);   // 카테고리: 4 (인사)
-            payload.put("tb_id", 0);    // 테이블: 0 (휴가/퇴직)
-            payload.put("cd_id", 0);    // 동작: 0 (추가/신청)
-
-            // 휴가 신청서 고유 데이터 담기
-            payload.put("requesterName", requesterName);
+            payload.put("cat_id", 4);
+            payload.put("tb_id", 0);
+            payload.put("cd_id", 0);
+            payload.put("requesterName", empName);
             payload.put("startDate", startDate.toString());
             payload.put("endDate", endDate.toString());
             payload.put("reason", reason);
 
-            // 3. 결재 문서(Documents) 객체 생성 및 설정
+            // 3. 문서 객체 생성
             Documents doc = new Documents();
-            doc.setTitle("[휴가신청] " + requesterName + " (" + startDate + " ~ " + endDate + ")");
+            doc.setTitle("[휴가신청] " + empName + " (" + startDate + " ~ " + endDate + ")");
             doc.setReq_id(requesterEmpId);
             doc.setReq_date(LocalDate.now());
-            doc.setStatus(0); // 0: 결재 대기 상태
+            doc.setQuery(objectMapper.writeValueAsString(payload));
 
-            // 4. 결재자 지정
-            // TODO: 실제로는 기안자의 부서장이나 상급자(supervisor)를 조회하여 설정해야 합니다.
-            doc.setAppr_id(1L); // 테스트용: 1번 사원에게 결재 요청
+            // 4. ★ 직급에 따른 분기 처리 ★
+            if ("최상위 관리자".equals(position)) {
+                // [Case A] 최상위 관리자 -> 자동 승인
+                doc.setStatus(1); // 1: 승인
+                doc.setAppr_id(requesterEmpId); // 본인 전결
+                doc.setAppr_date(LocalDate.now());
+                doc.setComments("자동 승인 (최상위 관리자)");
 
-            // 5. payload 맵을 JSON 문자열로 변환하여 query 필드에 저장
-            String query = objectMapper.writeValueAsString(payload);
-            doc.setQuery(query);
+                // (1) 문서 저장
+                documentsService.addDocument(doc);
 
-            // 6. DB에 결재 문서 저장 (이때 DocumentBodyBuilder가 호출되어 본문 HTML 생성)
-            documentsService.addDocument(doc);
+                // (2) 근태 테이블에 즉시 반영 (휴가 처리)
+                attendanceService.applyVacation(requesterEmpId.intValue(), startDate, endDate);
+
+            } else {
+                // [Case B] 일반 사원/중간 관리자 -> 결재 대기
+                doc.setStatus(0); // 0: 대기
+                doc.setAppr_id(null); // 결재자 미정 (누구든 권한 있는 사람이 승인 가능)
+
+                // (1) 문서 저장 (대기 상태)
+                documentsService.addDocument(doc);
+            }
 
             return true;
 
@@ -216,4 +226,3 @@ public class HRController {
         }
     }
 }
-

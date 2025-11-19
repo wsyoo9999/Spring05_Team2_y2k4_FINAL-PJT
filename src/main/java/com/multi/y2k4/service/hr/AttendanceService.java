@@ -73,4 +73,23 @@ public class AttendanceService {
     public int addBulkAttendance(List<Attendance> attendanceList) {
         return attendanceMapper.addBulkAttendance(attendanceList);
     }
+    public void applyVacation(Integer empId, LocalDate startDate, LocalDate endDate) {
+        List<Attendance> vacationList = new ArrayList<>();
+
+        // 시작일부터 종료일까지 하루씩 반복
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            Attendance att = new Attendance();
+            att.setEmp_id(empId);
+            att.setWork_date(date);
+            att.setCheck_in(date.atTime(9, 0));
+            att.setCheck_out(date.atTime(18, 0));
+            att.setAttendance_status("휴가");
+
+            vacationList.add(att);
+        }
+
+        if (!vacationList.isEmpty()) {
+            attendanceMapper.addBulkAttendance(vacationList);
+        }
+    }
 }
