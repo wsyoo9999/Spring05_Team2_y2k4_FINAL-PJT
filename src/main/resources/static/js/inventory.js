@@ -54,7 +54,6 @@ export async function stock_listAll() {
     });
 
 
-
     table += `</tbody></table>`;
 
     return actionRow + table ;
