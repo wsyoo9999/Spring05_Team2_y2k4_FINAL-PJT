@@ -378,27 +378,8 @@ public class DocumentsController {
                             LocalDate startDate = LocalDate.parse((String) map.get("startDate"));
                             LocalDate endDate = LocalDate.parse((String) map.get("endDate"));
 
-                            // 2. 휴가 기간만큼 근태 기록 생성
-                            java.util.List<com.multi.y2k4.vo.hr.Attendance> vacationList = new java.util.ArrayList<>();
-
-                            // 시작일부터 종료일까지 하루씩 증가하며 반복
-                            for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-                                com.multi.y2k4.vo.hr.Attendance att = new com.multi.y2k4.vo.hr.Attendance();
-                                att.setEmp_id(reqId);
-                                att.setWork_date(date);
-                                att.setCheck_in(date.atTime(9, 0));
-                                att.setCheck_out(date.atTime(18, 0));
-                                att.setAttendance_status("휴가"); // ★ 상태를 '휴가'로 설정
-
-                                vacationList.add(att);
-                            }
-
-                            // 3. 근태 테이블에 일괄 반영 (기존 기록이 있으면 덮어쓰기)
-                            if (!vacationList.isEmpty()) {
-                                attendanceService.generateDailyAttendance(); // (선택) 혹시 데이터가 없으면 생성 보장
-
-                            }
-
+                            // [수정] 서비스 메서드 호출로 간단하게 처리
+                            attendanceService.applyVacation(reqId, startDate, endDate);
                         } else if (status == 2) { // [반려]
                             // 반려 시 별도 DB 작업 없음 (문서 상태만 '반려'로 변경됨)
                         }

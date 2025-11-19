@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -70,6 +71,20 @@ public class MainController {
             // 5) 세션에 정보 등록
             httpSession.setAttribute("id", user.getId());
             httpSession.setAttribute("LOGIN_DB_NAME", dbName);
+
+            TenantContext.setCurrentDb(dbName);
+
+            List<Employee> empList = employeeService.getEmployeeList(user.getName(), null, null, null);
+            //같은 이름 처리?
+            if (!empList.isEmpty()) {
+                Employee me = empList.get(0);
+                httpSession.setAttribute("emp_id", me.getEmp_id());     // 내 사번
+                httpSession.setAttribute("position", me.getPosition()); // 내 직급
+                httpSession.setAttribute("emp_name", me.getEmp_name()); // 내 이름
+
+            } else {
+
+            }
             return "redirect:/";
         }
     }
@@ -108,14 +123,14 @@ public class MainController {
 
             // 3) DB 존재 여부 확인
             int exists = dbService.existsDatabase(dbName);
-            String defaultPosition = "중간 관리자"; // 기본값: 일반 사원
+            String defaultPosition = "사원"; // 기본값: 일반 사원
 
             if (exists == 0) {
                 // 4) DB 없으면 생성 (이 사용자가 이 회사의 첫 가입자)
                 dbService.createDatabase(dbName);
                 // 4-1) 테이블도 생성
                 tenantSchemaService.migrate(dbName);
-                defaultPosition = "관리자"; // 이 회사의 첫 가입자이므로 '관리자' 부여
+                defaultPosition = "최상위 관리자"; // 이 회사의 첫 가입자이므로 '관리자' 부여
             }
 
             // 5) EmployeeService가 올바른 DB를 바라보도록 현재 스레드에 DB 이름 설정

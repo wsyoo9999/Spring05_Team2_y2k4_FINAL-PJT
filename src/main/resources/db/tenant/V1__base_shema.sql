@@ -71,9 +71,9 @@ CREATE TABLE inbound (
                          ac_id       BIGINT UNSIGNED ,
                          emp_id      BIGINT UNSIGNED NOT NULL,
                          remark      varchar(200),
-                         approval tinyint NOT NULL
-                         CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
-                         CONSTRAINT fk_inb_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id),
+                         approval tinyint NOT NULL,
+                         CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id),
+                         CONSTRAINT fk_inb_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id)
 );
 
 CREATE TABLE outbound (
