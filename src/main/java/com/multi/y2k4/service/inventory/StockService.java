@@ -3,6 +3,7 @@ package com.multi.y2k4.service.inventory;
 import com.multi.y2k4.mapper.tenant.inventory.StockMapper;
 import com.multi.y2k4.vo.inventory.Stock;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,5 +31,55 @@ public class StockService {
 
     public List<Stock> list(Stock stock) {
         return stockMapper.list(stock);
+    }
+
+    public int manageStock(int stockId, int operationType, Integer quantity) {
+        switch (operationType) {
+            case 0: // 조회
+                return getStockQty(stockId);
+
+            case 1: // 증가
+                return updateStockQuantity(stockId, quantity);
+
+            case 2: // 감소
+                return updateStockQuantity(stockId, -quantity);
+
+            default:
+                throw new IllegalArgumentException("잘못된 호출 형태: " + operationType);
+        }
+    }
+
+
+    public int manageStock(int stockId, int operationType) {
+        if (operationType != 0) {
+            throw new IllegalArgumentException("증감 작업에는 수량이 필요합니다.");
+        }
+        return getStockQty(stockId);
+    }
+
+
+    public int getStockQty(int stockId) {
+        Stock stock = stockMapper.selectStockById(stockId);
+        return stock != null ? stock.getQty() : 0;
+    }
+
+
+    private int updateStockQuantity(int stockId, int qtyChange) {
+        Stock stock = stockMapper.selectStockById(stockId);
+
+        if (stock != null) {
+            int newQty = stock.getQty() + qtyChange;
+
+            stock.setQty(newQty);
+            stockMapper.updateStock(stock);
+
+            System.out.println("재고 수량 변경: stock_id=" + stockId +
+                    ", 변경량=" + qtyChange +
+                    ", 새 수량=" + newQty);
+
+            return newQty;
+        }
+
+        return 0;
     }
 }

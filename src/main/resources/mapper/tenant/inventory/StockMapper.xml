@@ -5,7 +5,7 @@
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.inventory.StockMapper">
 
-    <!-- 전체 목록 -->
+    <!--전체 목록-->
     <select id="list_all" resultType="com.multi.y2k4.vo.inventory.Stock">
         SELECT s.*, a.ac_name AS ac_name
         FROM stock s
@@ -14,7 +14,7 @@
         WHERE s.is_deleted = 0
     </select>
 
-    <!-- 조건 검색 -->
+    <!--조건 검색-->
     <select id="list" resultType="com.multi.y2k4.vo.inventory.Stock">
         SELECT s.*, a.ac_name AS ac_name
         FROM stock s
@@ -40,7 +40,7 @@
         </where>
     </select>
 
-    <!-- 등록 -->
+    <!--등록-->
     <insert id="addStock"
             parameterType="com.multi.y2k4.vo.inventory.Stock"
             useGeneratedKeys="true"
@@ -50,7 +50,7 @@
         VALUES (#{stock_name}, #{qty}, #{unit_price}, #{location}, #{type}, #{ac_id})
     </insert>
 
-    <!-- 단건 조회 -->
+    <!--단건 조회-->
     <select id="selectStockById" resultType="com.multi.y2k4.vo.inventory.Stock">
         SELECT
             s.*,
@@ -61,7 +61,7 @@
         WHERE s.stock_id = #{stock_id}
     </select>
 
-    <!-- 수정 -->
+    <!--수정-->
     <update id="updateStock" parameterType="com.multi.y2k4.vo.inventory.Stock">
         UPDATE stock
         <set>
@@ -75,7 +75,7 @@
         WHERE stock_id = #{stock_id}
     </update>
 
-    <!-- 삭제 -->
+    <!--삭제-->
     <update id="deleteStock" parameterType="com.multi.y2k4.vo.inventory.Stock">
         UPDATE stock
         SET is_deleted = 1,

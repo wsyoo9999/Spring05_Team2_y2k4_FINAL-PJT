@@ -38,42 +38,41 @@ public class InboundService {
         Integer oldApproval = oldInbound.getApproval();
         Integer newApproval = inbound.getApproval();
 
-        // 대기(0) >> 승인(1): 재고 증가
+        // 대기(0) > 승인(1): 재고 증가
         if (oldApproval != null && oldApproval == 0 &&
                 newApproval != null && newApproval == 1) {
-            updateStockQuantity(oldInbound.getStock_id(), oldInbound.getInbound_qty());
+            stockService.manageStock(
+                    oldInbound.getStock_id(),
+                    1,  // 증가
+                    oldInbound.getInbound_qty()
+            );
         }
 
-        // 승인(1) → 대기(0): 재고 감소 (취소)
+        // 승인(1) > 대기(0): 재고 감소 (취소)
         else if (oldApproval != null && oldApproval == 1 &&
                 newApproval != null && newApproval == 0) {
-            updateStockQuantity(oldInbound.getStock_id(), -oldInbound.getInbound_qty());
+            stockService.manageStock(
+                    oldInbound.getStock_id(),
+                    2,  // 감소
+                    oldInbound.getInbound_qty()
+            );
         }
 
-        // 승인(1) > (반려2): 재고 감소 (취소)
+        // 승인(1) > 반려(2): 재고 감소 (취소)
         else if (oldApproval != null && oldApproval == 1 &&
                 newApproval != null && newApproval == 2) {
-            updateStockQuantity(oldInbound.getStock_id(), -oldInbound.getInbound_qty());
+            stockService.manageStock(
+                    oldInbound.getStock_id(),
+                    2,  // 감소
+                    oldInbound.getInbound_qty()
+            );
         }
 
         // 입고 정보 수정
         return inboundMapper.updateInbound(inbound);
     }
-    // 재고 수량
-    private void updateStockQuantity(Integer stockId, Integer qtyChange) {
-        Stock stock = stockService.selectStockById(stockId);
 
-        if (stock != null) {
-            int newQty = stock.getQty() + qtyChange;
-
-            if (newQty < 0) {
-                newQty=0;
-            }
-
-            stock.setQty(newQty);
-            stockService.updateStock(stock);
-        }
-    }
+    // updateStockQuantity 메서드는 삭제
     public int deleteInbound(Inbound inbound) {return inboundMapper.deleteInbound(inbound);}
 
     // 검색 조건: inbound_date, stock_id, ac_id, emp_id, approval
