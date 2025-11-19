@@ -1,7 +1,6 @@
 package com.multi.y2k4.controller;
 
 
-
 import com.multi.y2k4.db.TenantContext;
 import com.multi.y2k4.service.db.DBService;
 import com.multi.y2k4.service.db.TenantSchemaService;
@@ -31,8 +30,11 @@ public class MainController {
 
 
     @GetMapping({"/"})
-    public String index() {
-
+    public String index(HttpSession httpSession) {
+        //추후 httpSession.getAttribute("id");를 통해 현재 로그인중인 사람의 정보 가져오는 기능 필요
+        httpSession.setAttribute("me", 1);
+        httpSession.setAttribute("supervisor", 2);
+        httpSession.setAttribute("authLevel", 1);
         return "main";
     }
 

@@ -32,8 +32,11 @@ public class DocumentBodyBuilder {
             int tb_id = (int) payload_map.get("tb_id");
             int cd_id = (int) payload_map.get("cd_id");
 
-            StringBuilder content_sb = new StringBuilder();
-            content_sb.append("<div class=\"doc-content\">");
+            System.out.println("cat_id : "+cat_id);
+            System.out.println("tb_id : "+tb_id);
+            System.out.println("cd_id : "+cd_id);
+
+            sb.append("<div class=\"doc-content\">");
 
             /*===============================재무관련=================================================*/
             if (cat_id == 0) {    //  재무 관련 문서
@@ -753,8 +756,8 @@ public class DocumentBodyBuilder {
                 }
             }
 
-            content_sb.append("</div>");
-            return content_sb.toString();
+            sb.append("</div>");
+            return sb.toString();
 
         } catch (Exception e) {
             throw new RuntimeException("결재 문서 본문 생성 중 오류가 발생했습니다.", e);

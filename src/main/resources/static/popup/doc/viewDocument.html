@@ -3,14 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <title>주문 상세 정보</title>
+  <title>결재 문서 정보</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f8f8; }
-    .detail-card {
-      background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      padding: 20px; max-width: 600px; margin: auto;
-    }
-
     /* 기본 리셋 */
     * {
       margin: 0;
@@ -19,16 +13,14 @@
     }
 
     :root {
-      --primary-color: #4A90E2; /* ERP의 주요 액션 색상 */
-      --secondary-color: #50B86C; /* 보조 색상 (예: 성공) */
-      --bg-light: #F8F9FA; /* 밝은 배경 */
-      --bg-dark: #343A40; /* 어두운 배경 (네비게이션 등) */
-      --text-dark: #333333; /* 본문 텍스트 */
-      --text-light: #FFFFFF; /* 밝은 텍스트 */
-      --border-color: #E0E0E0; /* 테두리 색상 */
+      --primary-color: #4A90E2;
+      --secondary-color: #50B86C;
+      --bg-light: #F8F9FA;
+      --bg-dark: #343A40;
+      --text-dark: #333333;
+      --text-light: #FFFFFF;
+      --border-color: #E0E0E0;
       --card-bg: #FFFFFF;
-      --nav-h: 64px;
-      --sidebar-w: 280px; /* 사이드바 너비 변수 추가 */
     }
 
     body {
@@ -37,62 +29,237 @@
       color: var(--text-dark);
       line-height: 1.6;
       min-height: 100vh;
+      padding: 20px;
     }
 
+    .detail-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
 
-    /* 표 스타일 */
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .doc-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .sub-meta {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .section-title {
       margin-top: 20px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      color: #374151;
     }
-    th, td {
+
+    /* 문서 정보 그리드 (2~3개 컬럼씩 한 줄) */
+    .info-grid {
+      margin-top: 8px;
+      padding: 12px;
+      border-radius: 6px;
       border: 1px solid var(--border-color);
-      padding: 12px 15px;
-      text-align: left;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .info-row {
+      display: grid;
+      gap: 8px 16px;
+    }
+
+    .info-row.two-cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .info-row.three-cols {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .info-item {
+      font-size: 13px;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 2px;
+    }
+
+    .info-value {
+      color: #111827;
       font-size: 14px;
     }
-    th {
-      background-color: var(--bg-light);
+
+    .body-box {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: #ffffff;
+      padding: 12px 14px;
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    /* content 부분은 HTML 그대로 렌더링 */
+    .content-box {
+      min-height: 80px;
+    }
+
+    /* comments는 줄바꿈 유지 */
+    .comments-box {
+      white-space: pre-wrap;
+      min-height: 60px;
+    }
+
+    .btn-wrap {
+      margin: 20px auto 0;
+      max-width: 720px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .submit-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background: var(--primary-color);
+      color: #fff;
+      font-size: 14px;
       font-weight: 600;
-      color: var(--text-dark);
+      cursor: pointer;
+      min-width: 80px;
     }
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
+
+    .submit-btn:hover {
+      filter: brightness(0.95);
     }
-    tr:hover {
-      background-color: #f1f1f1;
+
+    .submit-btn.reject {
+      background: #e74c3c;
+    }
+
+    .submit-btn.reject:hover {
+      filter: brightness(0.95);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
 
 <div class="detail-card">
-  <h2> 사원 정보</h2>
-
   <div id="doc-detail-content">
     데이터를 로드하는 중...
   </div>
-
 </div>
+
 <div class="btn-wrap">
   <button type="button" id="btn-approve" value="1" class="submit-btn">
     승인
   </button>
-  <button type="button" id="btn-reject" value="2" class="submit-btn">
+  <button type="button" id="btn-reject" value="2" class="submit-btn reject">
     반려
   </button>
 </div>
 
 <script>
-  // 숫자 포맷 함수 (hr.js에 있는 함수와 동일)
-  function numberFormat(num) {
-    if (num === null || num === undefined) return '0';
-    return parseInt(num).toLocaleString('ko-KR');
+  const DOC_CAT_LABELS = {
+    0: '재무',
+    1: '판매/구매',
+    2: '생산/제조',
+    3: '재고',
+    4: '인사'
+  };
+
+  const DOC_TB_LABELS = {
+    0: { // 재무
+      0: '회사 수익 관리',
+      1: '회사 지출 관리'
+    },
+    1: { // 판매/구매
+      0: '판매',
+      1: '구매'
+    },
+    2: { // 생산/제조
+      0: '작업 지시서'
+    },
+    3: { // 재고
+      0: '재고 관련'
+    },
+    4: { // 인사
+      0: '휴가/퇴직 처리'
+    }
+  };
+
+  const DOC_CD_LABELS = {
+    0: '생성',
+    1: '수정',
+    2: '삭제'
+  };
+
+  function getCatLabel(catRaw) {
+    const c = Number(catRaw);
+    return DOC_CAT_LABELS[c] ?? String(catRaw ?? '');
   }
 
-  // URL 쿼리 파라미터에서 salaryId 가져오기
+  function getTbLabel(catRaw, tbRaw) {
+    const c = Number(catRaw);
+    const t = Number(tbRaw);
+    if (DOC_TB_LABELS[c] && DOC_TB_LABELS[c][t]) {
+      return DOC_TB_LABELS[c][t];
+    }
+    return String(tbRaw ?? '');
+  }
 
+  function getCDLabel(cdRaw) {
+    const c = Number(cdRaw);
+    return DOC_CD_LABELS[c] ?? String(cdRaw ?? '');
+  }
+
+  function getStatusInfo(statusRaw) {
+    const s = Number(statusRaw);
+    switch (s) {
+      case 0:
+        return { text: '처리중', color: '#f39c12' };
+      case 1:
+        return { text: '승인', color: '#27ae60' };
+      case 2:
+        return { text: '반려', color: '#e74c3c' };
+      default:
+        return { text: String(statusRaw ?? ''), color: '#6b7280' };
+    }
+  }
 
   // API 호출하여 상세 데이터 로드
   async function loadDocument() {
@@ -100,33 +267,107 @@
     const contentDiv = document.getElementById('doc-detail-content');
 
     if (!doc_id) {
-      contentDiv.innerHTML=  '<p style="color: red;">🚨 오류: 문서 번호가 전달되지 않았습니다.</p>';
+      contentDiv.innerHTML = '<p style="color: red;">🚨 오류: 문서 번호가 전달되지 않았습니다.</p>';
       return;
     }
 
-
     try {
       const document = await $.ajax({
-        url: `/api/doc/searchById`,
+        url: '/api/doc/searchById',
         method: 'GET',
-        date:{
-          doc_id: doc_id
-        },
+        data: { doc_id: doc_id },   // ★ date → data
         dataType: 'json'
       });
 
-      // 만약 해당 문서가 없어서 null이면 처리
       if (!document) {
-        contentDiv.innerHTML =
-                '<p style="color:red;">해당 문서 정보를 찾을 수 없습니다.</p>';
+        contentDiv.innerHTML = '<p style="color:red;">해당 문서 정보를 찾을 수 없습니다.</p>';
         return;
       }
 
-      let body;
-      contentDiv.innerHTML= body;
+      const title       = document.title ?? '(제목 없음)';
+      const req_date    = document.req_date ?? '';
+      const appr_date   = document.appr_date ?? '';
+      const cat         = getCatLabel(document.cat_id);
+      const tb          = getTbLabel(document.cat_id, document.tb_id);
+      const cd          = getCDLabel(document.cd_id);
+      const statusObj   = getStatusInfo(document.status);
+      const req_name    = document.req_name ?? '';
+      const appr_name   = document.appr_name ?? '';
+      const contentHtml = document.content ?? '';
+      const comments    = document.comments ?? '';
+      contentDiv.innerHTML = `
+        <div class="detail-header">
+          <div>
+            <div class="doc-title">${title}</div>
+            <div class="sub-meta">
+              문서 번호: ${document.doc_id ?? ''} · 카테고리: ${cat} / ${tb} · 분류: ${cd}
+            </div>
+          </div>
+          <span class="status-badge" style="background-color:${statusObj.color};">
+            ${statusObj.text}
+          </span>
+        </div>
+
+        <div class="section-title">문서 정보</div>
+        <div class="info-grid">
+          <!-- 1줄: 기안자 / 결재자 -->
+          <div class="info-row two-cols">
+            <div class="info-item">
+              <div class="info-label">기안자</div>
+              <div class="info-value">${req_name} (${document.req_id ?? ''})</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">결재자</div>
+              <div class="info-value">${appr_name} (${document.appr_id ?? ''})</div>
+            </div>
+          </div>
+
+          <!-- 2줄: 작성일 / 결재일 -->
+          <div class="info-row two-cols">
+            <div class="info-item">
+              <div class="info-label">작성일</div>
+              <div class="info-value">${req_date}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">결재일</div>
+              <div class="info-value">${appr_date || '-'}</div>
+            </div>
+          </div>
+
+          <!-- 3줄: 카테고리 / 세부 카테고리 / 분류 -->
+          <div class="info-row three-cols">
+            <div class="info-item">
+              <div class="info-label">카테고리</div>
+              <div class="info-value">${cat}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">세부 카테고리</div>
+              <div class="info-value">${tb}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">분류</div>
+              <div class="info-value">${cd}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">본문</div>
+        <div class="body-box content-box">
+          ${contentHtml}   <!-- document.content: HTML 그대로 렌더 -->
+        </div>
+
+        <div class="section-title">비고</div>
+        <div class="body-box comments-box">
+          ${comments || '작성된 비고가 없습니다.'}
+        </div>
+      `;
 
 
-
+      const statusNum = Number(document.status);
+      if (statusNum === 1 || statusNum === 2) {
+        $('#btn-approve').prop('disabled', true);
+        $('#btn-reject').prop('disabled', true);
+      }
 
     } catch (err) {
       console.error("로딩 실패:", err);
@@ -142,8 +383,7 @@
     }
     const status = this.value;
 
-
-    try{
+    try {
       const result = await $.ajax({
         url: '/api/doc/editStatus',
         method: 'POST',
@@ -160,18 +400,17 @@
       } else {
         alert('상태 변경에 실패했습니다.');
       }
-    }catch(err){
+    } catch (err) {
       console.error('상태 변경 중 오류:', err);
       alert('상태 변경 중 오류가 발생했습니다.');
     }
   }
 
-  $(document).ready(function(){
+  $(document).ready(function() {
     loadDocument();
-
-    // 버튼 클릭 이벤트
     $('.submit-btn').on('click', changeStatus);
   });
 </script>
 </body>
 </html>
+

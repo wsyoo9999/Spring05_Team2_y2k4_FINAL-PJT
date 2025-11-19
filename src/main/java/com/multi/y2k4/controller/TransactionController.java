@@ -19,6 +19,7 @@ import com.multi.y2k4.vo.transaction.Purchase;
 import com.multi.y2k4.vo.transaction.PurchaseDetails;
 import com.multi.y2k4.vo.transaction.Sale;
 import com.multi.y2k4.vo.transaction.SaleDetails;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,19 +47,21 @@ public class TransactionController {
 
     @GetMapping("/sale/list")
     public List<Sale> saleList(@RequestParam(required = false) Integer sale_id,
-                       @RequestParam(required = false) Integer emp_id,
-                       @RequestParam(required = false) Integer ac_id,
-                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
-                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
-                       @RequestParam(required = false) Double total_price,
-                       @RequestParam(required = false) Integer status,
-                       Model model) {
+                               @RequestParam(required = false) Integer emp_id,
+                               @RequestParam(required = false) Integer ac_id,
+                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
+                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
+                               @RequestParam(required = false) Double total_price,
+                               @RequestParam(required = false) Integer status,
+                               Model model, HttpSession httpSession) {
 
         //테스트를 위한 수동 리스트 값 생성
         Map<String, Object> body = new HashMap<>();
         body.put("table", "transaction");
         body.put("method", "read");
         body.put("values", saleService.list(sale_id,emp_id,ac_id,order_date,due_date,status));
+        System.out.println("me :"+httpSession.getAttribute("me"));
+        System.out.println("supervisor :"+httpSession.getAttribute("supervisor"));
 
         try {
 
@@ -71,17 +74,21 @@ public class TransactionController {
 
     @PostMapping("/sale/add")
     @Transactional
-    public boolean addSale( @RequestParam(required = false) Integer emp_id,
-                            @RequestParam(required = false) Integer ac_id,
-                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
-                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
-                            @RequestParam Integer[] stock_id,
-                            @RequestParam Integer[] qty,
-                            @RequestParam Double[] price_per_unit,
-                            Model model) throws JsonProcessingException {
+    public boolean addSale(@RequestParam(required = false) Integer emp_id,
+                           @RequestParam(required = false) Integer ac_id,
+                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate order_date,
+                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
+                           @RequestParam Integer[] stock_id,
+                           @RequestParam Integer[] qty,
+                           @RequestParam Double[] price_per_unit,
+                           Model model, HttpSession httpSession) throws JsonProcessingException {
 
         double total_price = 0;
         List<SaleDetails> saleDetails = new ArrayList<>();
+
+        Integer me = (Integer)httpSession.getAttribute("me");
+        Integer sup = (Integer) httpSession.getAttribute("supervisor");
+        Integer authLevel = (Integer)httpSession.getAttribute("authLevel");
 
         for(int i = 0; i < stock_id.length; i++){
             SaleDetails saleDetail = new SaleDetails();
@@ -99,7 +106,7 @@ public class TransactionController {
         sale.setDue_date(due_date);
         sale.setTotal_price(total_price);
         /***********************이후론 계정의 등급에 따라 분기*******************************/
-        int authLevel = 0;
+//        int authLevel = (int) httpSession.getAttribute("authLevel");
         Documents doc = new Documents();
 
         if(authLevel == 0){     //현재 계정의 등급이 문서화를 거칠 필요가 없을떄
@@ -128,7 +135,7 @@ public class TransactionController {
             unpaid.setType(1);                    // 1 = 수익 쪽
             unpaid.setStatus(0);                  // 0 = 미정산
             unpaidService.upsertUnpaid(unpaid);
-
+            model.addAttribute("main_alert","권한이 낮아 결재 문서 처리 후에 확인 가능");
             doc.setStatus(0);   //처리를 대기중
         }
 
@@ -141,12 +148,17 @@ public class TransactionController {
         payload.put("details", saleDetails);
         //제목
         //기안자 emp_id(추후 세션에서 가져옴)
+
         //결재자 emp_id(추후 세션에서 자신의 emp_id를 통해 supervisor값을 저장),자신이 상위관리자라면 자기 자신의 emp_id
+
         doc.setReq_date(LocalDate.now());   //결재 올린 시간은 기본적으로 현재 시간
         String query = objectMapper.writeValueAsString(payload);
         doc.setQuery(query);
-            // (3) 문서 저장
-        //documentsService.addDocument(doc);
+
+        doc.setReq_id(me.longValue());
+        doc.setAppr_id(sup.longValue());
+        doc.setTitle("sale_add 테스트중 "+LocalDate.now());
+        documentsService.addDocument(doc);
 
 
         return true;
@@ -168,7 +180,8 @@ public class TransactionController {
                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate due_date,
                             @RequestParam Integer[] stock_id,
                             @RequestParam Integer[] qty,
-                            @RequestParam Double[] price_per_unit) throws JsonProcessingException {
+                            @RequestParam Double[] price_per_unit,
+                            HttpSession httpSession) throws JsonProcessingException {
         Sale before_sale = saleService.searchById(sale_id);    //실질적으로 한개만 검색, 추후 document를 위해 수정 전 값을 검색
         List<SaleDetails> before_saleDetails = saleDetailsService.searchById(sale_id);  //추후 document를 위해 수정 전 값을 검색
 
@@ -196,7 +209,7 @@ public class TransactionController {
         edit_sale.setTotal_price(total_price);
 
         /***********************이후론 계정의 등급에 따라 분기*******************************/
-        int authLevel = 0;
+        int authLevel = (int) httpSession.getAttribute("authLevel");
         Documents doc = new Documents();
 
         if(authLevel == 0){     //현재 계정의 등급이 문서화를 거칠 필요가 없을떄, 기존의 과정 그대로 진행
@@ -235,7 +248,9 @@ public class TransactionController {
         String query = objectMapper.writeValueAsString(payload);
         doc.setQuery(query);
         // (3) 문서 저장
-        //documentsService.addDocument(doc);
+        doc.setReq_id((long) httpSession.getAttribute("me"));
+        doc.setAppr_id((long) httpSession.getAttribute("supervisor"));
+        documentsService.addDocument(doc);
 
         return true;
 
@@ -299,7 +314,8 @@ public class TransactionController {
                                 @RequestParam Integer[] stock_id,
                                 @RequestParam Integer[] qty,
                                 @RequestParam Double[] price_per_unit,
-                           Model model) throws JsonProcessingException {
+                                Model model,
+                               HttpSession httpSession) throws JsonProcessingException {
         double total_price = 0;
         List<PurchaseDetails> purchaseDetails = new ArrayList<>();
 
@@ -322,7 +338,7 @@ public class TransactionController {
         purchase.setTotal_price(total_price);
 
         /***********************이후론 계정의 등급에 따라 분기*******************************/
-        int authLevel = 0;
+        int authLevel = (int) httpSession.getAttribute("authLevel");
         Documents doc = new Documents();
 
         if(authLevel == 0){     //현재 계정의 등급이 문서화를 거칠 필요가 없을떄
@@ -369,7 +385,9 @@ public class TransactionController {
         String query = objectMapper.writeValueAsString(payload);
         doc.setQuery(query);
         // (3) 문서 저장
-        //documentsService.addDocument(doc);
+        doc.setReq_id((long) httpSession.getAttribute("me"));
+        doc.setAppr_id((long) httpSession.getAttribute("supervisor"));
+        documentsService.addDocument(doc);
 
         return true;
 
@@ -390,7 +408,8 @@ public class TransactionController {
                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate del_date,
                                 @RequestParam Integer[] stock_id,
                                 @RequestParam Integer[] qty,
-                                @RequestParam Double[] price_per_unit) throws JsonProcessingException {
+                                @RequestParam Double[] price_per_unit,
+                                HttpSession httpSession) throws JsonProcessingException {
 
         Purchase before_purchase = purchaseService.searchById(purchase_id);    //실질적으로 한개만 검색, 추후 document를 위해 수정 전 값을 검색
         List<PurchaseDetails> before_purchaseDetails = purchaseDetailsService.searchById(purchase_id);  //추후 document를 위해 수정 전 값을 검색
@@ -419,7 +438,7 @@ public class TransactionController {
         edit_purchase.setTotal_price(total_price);
 
         /***********************이후론 계정의 등급에 따라 분기*******************************/
-        int authLevel = 0;
+        int authLevel = (int) httpSession.getAttribute("authLevel");
         Documents doc = new Documents();
 
         if(authLevel == 0){     //현재 계정의 등급이 문서화를 거칠 필요가 없을떄, 기존의 과정 그대로 진행
@@ -457,7 +476,9 @@ public class TransactionController {
         String query = objectMapper.writeValueAsString(payload);
         doc.setQuery(query);
         // (3) 문서 저장
-        //documentsService.addDocument(doc);
+        doc.setReq_id((long) httpSession.getAttribute("me"));
+        doc.setAppr_id((long) httpSession.getAttribute("supervisor"));
+        documentsService.addDocument(doc);
 
         return true;
     }

@@ -40,14 +40,13 @@
 
     <insert id="upsertUnpaid" parameterType="com.multi.y2k4.vo.finance.Unpaid">
         INSERT INTO unpaid
-            (cat_id, tb_id, ref_pk, last_doc_id, cost, type, status, unpaid_date)
+            (cat_id, tb_id, ref_pk, cost, type, status, unpaid_date)
         VALUES
-            (#{cat_id}, #{tb_id}, #{ref_pk}, #{last_doc_id}, #{cost}, #{type}, #{status}, NOW())
+            (#{cat_id}, #{tb_id}, #{ref_pk}, #{cost}, #{type}, #{status}, NOW())
             ON DUPLICATE KEY UPDATE
                                  cost        = VALUES(cost),
                                  type        = VALUES(type),
-                                 status      = VALUES(status),
-                                 last_doc_id = VALUES(last_doc_id)
+                                 status      = VALUES(status)
     </insert>
 
     <!-- 정산 완료 -->
