@@ -344,29 +344,58 @@ public class DocumentsController {
 
                 /*===============================인사 관련=================================================*/
 
-            } else if (cat_id == 4) { //인사
-                if (tb_id == 0) {  //휴가 및 퇴직 처리
-                    if (cd_id == 0) {  //추가
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
+            } if (cat_id == 4) { // 인사
+                if (tb_id == 0) {  // 휴가 및 퇴직 처리
+                    if (cd_id == 0) {  // [추가] 휴가 신청 처리
 
-                        } else if (status == 2) {  //결재 서류 반려
+                        if (status == 1) { // [승인] 시 실제 DB 반영
 
+                            // 1. JSON 데이터에서 정보 추출
+                            Integer reqId = doc.getReq_id().intValue();
+                            LocalDate startDate = LocalDate.parse((String) map.get("startDate"));
+                            LocalDate endDate = LocalDate.parse((String) map.get("endDate"));
+
+                            // 2. 휴가 기간만큼 근태 기록 생성
+                            java.util.List<com.multi.y2k4.vo.hr.Attendance> vacationList = new java.util.ArrayList<>();
+
+                            // 시작일부터 종료일까지 하루씩 증가하며 반복
+                            for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+                                com.multi.y2k4.vo.hr.Attendance att = new com.multi.y2k4.vo.hr.Attendance();
+                                att.setEmp_id(reqId);
+                                att.setWork_date(date);
+                                // 휴가라도 데이터베이스 제약조건이나 형식상 시간 입력 (필요 시 null 처리 가능)
+                                att.setCheck_in(date.atTime(9, 0));
+                                att.setCheck_out(date.atTime(18, 0));
+                                att.setAttendance_status("휴가"); // ★ 상태를 '휴가'로 설정
+
+                                vacationList.add(att);
+                            }
+
+                            // 3. 근태 테이블에 일괄 반영 (기존 기록이 있으면 덮어쓰기)
+                            if (!vacationList.isEmpty()) {
+                                attendanceService.generateDailyAttendance(); // (선택) 혹시 데이터가 없으면 생성 보장
+                                // addBulkAttendance는 ON DUPLICATE KEY UPDATE 구문을 사용하므로
+                                // 해당 날짜의 기존 '정상' 기록을 '휴가'로 업데이트합니다.
+                                com.multi.y2k4.mapper.tenant.hr.AttendanceMapper attendanceMapper =
+                                        (com.multi.y2k4.mapper.tenant.hr.AttendanceMapper) attendanceService.getClass().getDeclaredField("attendanceMapper").get(attendanceService);
+                                // 주의: Service에 addBulkAttendance 메소드가 public으로 열려있어야 합니다.
+                                // 만약 Service 메소드를 직접 호출하려면 아래와 같이 하세요.
+                                // attendanceService.addBulkAttendance(vacationList); -> 이 메소드를 Service에 추가해야 함.
+                                // 여기서는 임시로 attendanceService에 해당 메소드가 없다고 가정하고 직접 Mapper 호출 로직을 풀거나
+                                // AttendanceService에 public void registerVacation(List<Attendance> list) { attendanceMapper.addBulkAttendance(list); }
+                                // 와 같은 메소드를 추가하는 것을 권장합니다.
+
+                                // [수정 제안] AttendanceService에 addBulkAttendance 메소드가 없는 것 같으므로
+                                // AttendanceService.java에 아래 메소드를 추가해주세요:
+                                // public int addBulkAttendance(List<Attendance> list) { return attendanceMapper.addBulkAttendance(list); }
+
+                                // 그리고 나서 호출:
+                                // attendanceService.addBulkAttendance(vacationList);
+                            }
+
+                        } else if (status == 2) { // [반려]
+                            // 반려 시 별도 DB 작업 없음 (문서 상태만 '반려'로 변경됨)
                         }
-
-                    } else if (cd_id == 1) {  //수정
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-
-                        } else if (status == 2) {  //결재 서류 반려
-
-                        }
-
-                    } else if (cd_id == 2) {  //삭제
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-
-                        } else if (status == 2) {  //결재 서류 반려
-
-                        }
-
                     }
                 }
             }

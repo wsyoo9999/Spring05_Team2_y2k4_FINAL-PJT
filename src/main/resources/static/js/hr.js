@@ -216,13 +216,21 @@ function getAttendanceActionRow() {
                 <button class="action-button btn-primary" 
                         data-action="add" 
                         data-file="hr" 
+                        data-fn="request_vacation_popup"
+                        style="margin-right: 10px;"> 
+                    <i class="fas fa-plane"></i> 휴가 신청
+                </button>
+
+                <button class="action-button btn-primary" 
+                        data-action="add" 
+                        data-file="hr" 
                         data-fn="generate_daily_attendance"
-                        style="background-color: #50B86C;"> <i class="fas fa-calendar-check"></i> 오늘 날짜 근태 일괄 생성
+                        style="background-color: #50B86C;"> 
+                    <i class="fas fa-calendar-check"></i> 오늘 날짜 근태 일괄 생성
                 </button>
             </div>
         `;
 }
-
 export async function attendance_listAll() {
     const today = new Date().toISOString().substring(0, 10);
     const formData = { end_date: today };

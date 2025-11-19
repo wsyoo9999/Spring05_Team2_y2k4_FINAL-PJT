@@ -713,12 +713,37 @@ public class DocumentBodyBuilder {
 
                 /*===============================인사 관련=================================================*/
 
-            } else if (cat_id == 4) { //인사
-                if (tb_id == 0) {  //휴가 및 퇴직 처리
-                    if (cd_id == 0) {  //추가
+            }else if (cat_id == 4) { // 인사
+                if (tb_id == 0) {  // 휴가 및 퇴직 처리
+                    if (cd_id == 0) {  // [추가] 휴가 신청
 
+                        // 휴가 신청서 HTML 생성
+                        sb.append("<h3 class=\"doc-section-title\">휴가 신청서</h3>");
+                        sb.append("<table class=\"doc-map-table\"><tbody>");
 
-                    } else if (cd_id == 1) {  //수정
+                        sb.append("<tr>")
+                                .append("<th class=\"doc-data-label\">기안자</th>")
+                                .append("<td class=\"doc-data-value\">")
+                                .append(escape_html((String) payload_map.get("requesterName")))
+                                .append("</td></tr>");
+
+                        sb.append("<tr>")
+                                .append("<th class=\"doc-data-label\">휴가 기간</th>")
+                                .append("<td class=\"doc-data-value\">")
+                                .append(escape_html((String) payload_map.get("startDate")))
+                                .append(" ~ ")
+                                .append(escape_html((String) payload_map.get("endDate")))
+                                .append("</td></tr>");
+
+                        sb.append("<tr>")
+                                .append("<th class=\"doc-data-label\">신청 사유</th>")
+                                .append("<td class=\"doc-data-value\">")
+                                .append(escape_html((String) payload_map.get("reason")))
+                                .append("</td></tr>");
+
+                        sb.append("</tbody></table>");
+
+                    }else if (cd_id == 1) {  //수정
 
 
                     } else if (cd_id == 2) {  //삭제

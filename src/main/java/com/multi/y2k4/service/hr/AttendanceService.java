@@ -69,4 +69,8 @@ public class AttendanceService {
 
         return true;
     }
+
+    public int addBulkAttendance(List<Attendance> attendanceList) {
+        return attendanceMapper.addBulkAttendance(attendanceList);
+    }
 }
