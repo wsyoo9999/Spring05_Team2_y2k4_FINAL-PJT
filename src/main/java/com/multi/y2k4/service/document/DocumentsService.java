@@ -34,7 +34,7 @@ public class DocumentsService {
     };
 
 
-    int editStatus(Integer doc_id, Integer status){
+    public int editStatus(Integer doc_id, Integer status){
         return documentsMapper.editStatus(doc_id, status);
     };
 

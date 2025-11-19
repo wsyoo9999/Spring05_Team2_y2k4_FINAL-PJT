@@ -33,7 +33,7 @@ public class MainController {
     public String index(HttpSession httpSession) {
         //추후 httpSession.getAttribute("id");를 통해 현재 로그인중인 사람의 정보 가져오는 기능 필요
         httpSession.setAttribute("me", 1);
-        httpSession.setAttribute("supervisor", 2);
+        httpSession.setAttribute("supervisor", 1);
         httpSession.setAttribute("authLevel", 1);
         return "main";
     }
@@ -139,6 +139,7 @@ public class MainController {
             Employee newEmployee = new Employee();
             newEmployee.setEmp_name(userVO.getName()); // 회원가입 시 입력한 이름 사용
             newEmployee.setHire_date(LocalDate.now()); // 오늘 날짜로 자동 입사 처리
+            newEmployee.setLogin_id(userVO.getId());
             newEmployee.setStatus("재직"); // 재직 상태
             newEmployee.setPosition(defaultPosition); // 첫 사용자인지 여부에 따라 직급 부여
 

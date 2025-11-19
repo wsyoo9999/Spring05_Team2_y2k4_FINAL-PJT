@@ -6,6 +6,7 @@ import java.time.LocalDate;
 @Data
 public class Employee {
     private Integer emp_id;         // 사번
+    private String login_id;        //로그인한 아이디
     private String emp_name;        // 이름
     private String dept_name;       // 부서명
     private String position;        // 직급

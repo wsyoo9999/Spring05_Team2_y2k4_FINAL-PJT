@@ -29,7 +29,14 @@ export async function sale_listAll(){
     $.each(data, function (i, row){
         let edit;
         let editStatus;
-        if(row.status==1){
+        if(row.status==1){  //현재 주문 배송중 상태
+            edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSaleStatus">
+                                <i class="fas fa-gear"></i></button>`;
+            editStatus = `<button type="button"
+                                  onClick="alert('이미 배송을 시작한 주문은 수정 및 변경 불가합니다')">
+                                <i class="fas fa-edit"></i>
+                            </button>`
+        }else if(row.status==2){
             edit = `<button type="button"
                                   onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
                         <i class="fas fa-gear"></i>
@@ -38,11 +45,22 @@ export async function sale_listAll(){
                                   onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
                                 <i class="fas fa-edit"></i>
                             </button>`
-        }else{
-            edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSaleStatus">
+
+        }
+        else if(row.status==0){
+            editStatus = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSaleStatus">
                                 <i class="fas fa-gear"></i></button>`;
-            editStatus = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
+            edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
                                 <i class="fas fa-edit"></i></button>`
+        }else{
+            edit = `<button type="button"
+                                  onClick="alert('아직 결재 전')">
+                        <i class="fas fa-gear"></i>
+                        </button>`;
+            editStatus = `<button type="button"
+                                  onClick="alert('아직 결재 전')">
+                                <i class="fas fa-edit"></i>
+                            </button>`
         }
         tbody += `<tr>
                         <td class="emp-id"
@@ -79,10 +97,10 @@ export async function sale_listAll(){
                           상세 보기
                         </td>
                          <td  class = "actions">
-                            `+edit+`
+                            `+editStatus+`
                         </td> 
                          <td  class = "actions">
-                            `+editStatus+`
+                            `+edit+`
                         </td> 
                         </tr>`;
         })
@@ -142,20 +160,38 @@ export async function sale_list(formData){
     $.each(data, function (i, row){
         let edit;
         let editStatus;
-        if(row.status==1){
+        if(row.status==1){  //현재 주문 배송중 상태
+            edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSaleStatus">
+                                <i class="fas fa-gear"></i></button>`;
             editStatus = `<button type="button"
+                                  onClick="alert('이미 배송을 시작한 주문은 수정 및 변경 불가합니다')">
+                                <i class="fas fa-edit"></i>
+                            </button>`
+        }else if(row.status==2){
+            edit = `<button type="button"
                                   onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
                         <i class="fas fa-gear"></i>
                         </button>`;
-            edit = `<button type="button"
+            editStatus = `<button type="button"
                                   onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
                                 <i class="fas fa-edit"></i>
                             </button>`
-        }else{
+
+        }
+        else if(row.status==0){
             editStatus = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSaleStatus">
                                 <i class="fas fa-gear"></i></button>`;
             edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
                                 <i class="fas fa-edit"></i></button>`
+        }else{
+            edit = `<button type="button"
+                                  onClick="alert('아직 결재 전')">
+                        <i class="fas fa-gear"></i>
+                        </button>`;
+            editStatus = `<button type="button"
+                                  onClick="alert('아직 결재 전')">
+                                <i class="fas fa-edit"></i>
+                            </button>`
         }
         tbody += `<tr>
                         <td class="emp-id"
@@ -252,11 +288,20 @@ export async function purchase_listAll(){
                                   onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
                                 <i class="fas fa-edit"></i>
                             </button>`
-        }else{
+        }else if(row.status==0){
             editStatus = ` <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchaseStatus">
                                 <i class="fas fa-gear"></i>
                             </button>`;
             edit= `<button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
+                                <i class="fas fa-edit"></i>
+                            </button>`
+        }else{
+            editStatus = `<button type="button"
+                                  onClick="alert('아직 결재 전')">
+                        <i class="fas fa-gear"></i>
+                        </button>`;
+            edit = `<button type="button"
+                                  onClick="alert('아직 결재 전')">
                                 <i class="fas fa-edit"></i>
                             </button>`
         }
@@ -366,11 +411,20 @@ export async function purchase_list(formData){
                                   onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
                                 <i class="fas fa-edit"></i>
                             </button>`
-        }else{
+        }else if(row.status==0){
             editStatus = ` <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchaseStatus">
                                 <i class="fas fa-gear"></i>
                             </button>`;
             edit= `<button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
+                                <i class="fas fa-edit"></i>
+                            </button>`
+        }else{
+            editStatus = `<button type="button"
+                                  onClick="alert('아직 결재 전')">
+                        <i class="fas fa-gear"></i>
+                        </button>`;
+            edit = `<button type="button"
+                                  onClick="alert('아직 결재 전')">
                                 <i class="fas fa-edit"></i>
                             </button>`
         }

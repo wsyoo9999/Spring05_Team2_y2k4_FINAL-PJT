@@ -5,7 +5,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <title>주문 상세 정보</title>
     <style>
-        /* 기본 리셋 */
+
         * {
             margin: 0;
             padding: 0;
@@ -98,19 +98,58 @@
         데이터를 로드하는 중...
     </div>
 
-    <!-- ▼ 여기 버튼 추가 ▼ -->
+
     <div class="btn-wrap">
-        <button type="button" id="btn-change-arrived" class="submit-btn">
-            도착으로 변경
+        <button type="button" id="btn-change-status" class="submit-btn">
+
         </button>
     </div>
 </div>
 
 <script>
-    // 숫자 포맷 함수 (사용 안 하면 나중에 지워도 됨)
-    function numberFormat(num) {
-        if (num === null || num === undefined) return '0';
-        return parseInt(num).toLocaleString('ko-KR');
+
+    async function initStatusButton() {
+        const sale_id = new URLSearchParams(location.search).get('sale_id');
+        const $btn = $('#btn-change-status');
+
+        if (!sale_id) {
+            $btn.text('sale_id 없음');
+            $btn.prop('disabled', true);
+            return;
+        }
+
+        try {
+            const status = await $.ajax({
+                url: '/api/transaction/sale/searchById',
+                method: 'GET',
+                dataType: 'json',
+                data: { sale_id: sale_id }
+            });
+
+
+            let s;
+            if (status.status === 0) {
+
+                s = 1;
+            } else {
+
+                s = 2;
+            }
+
+            // ★ s 값에 따라 버튼 문구 변경
+            if (s === 1) {
+
+                $btn.text('상태를 "상품 발송"으로 변경');
+            } else if (s === 2) {
+
+                $btn.text('상태를 "도착"으로 변경');
+            }
+
+        } catch (e) {
+            console.error('버튼 상태 초기화 중 오류:', e);
+            $btn.text('상태 조회 실패');
+            $btn.prop('disabled', true);
+        }
     }
 
     // 상세 데이터 로드
@@ -134,7 +173,7 @@
                             </tr>
                             </thead>
                         `;
-        let tbody = `<tbody>`;   <!-- ★ 초기값 설정 -->
+        let tbody = `<tbody>`;
 
         try {
             const datas = await $.ajax({
@@ -148,21 +187,11 @@
 
             $.each(datas, function (i, data){
                 tbody +=`<tr>
-                        <td>
-                          ${data.sale_id}
-                        </td>
-                        <td>
-                          ${data.stock_name}
-                        </td>
-                        <td>
-                            ${data.qty}
-                        </td>
-                        <td>
-                            ${data.price_per_unit}
-                        </td>
-                        <td>
-                            ${data.total_price}
-                        </td>
+                        <td>${data.sale_id}</td>
+                        <td>${data.stock_name}</td>
+                        <td>${data.qty}</td>
+                        <td>${data.price_per_unit}</td>
+                        <td>${data.total_price}</td>
                         </tr>`;
             });
             tbody += `</tbody></table>`;
@@ -174,7 +203,7 @@
         }
     }
 
-    // 상태를 "도착"으로 변경하는 함수
+    // 상태를 "도착"으로 변경하는 함수 (기존 그대로 사용)
     async function changeStatusToArrived() {
         const sale_id = new URLSearchParams(location.search).get('sale_id');
         if (!sale_id) {
@@ -182,25 +211,45 @@
             return;
         }
 
-
         try{
+            const status = await $.ajax({
+                url: '/api/transaction/sale/searchById',
+                method: 'GET',
+                dataType: 'json',
+                data: {
+                    sale_id: sale_id
+                }
+            });
+
+            let s;
+            if (status.status === 0) {
+                s = 1;
+            } else {
+                s = 2;
+            }
+
             const result = await $.ajax({
                 url: '/api/transaction/sale/editSaleStatus',
                 method: 'POST',
                 dataType: 'json',
                 data: {
                     sale_id: sale_id,
-                    status: 1          // ★ 요청한대로 1과 sale_id 전송
+                    status: s
                 }
             });
 
             if (result === true || result?.success) {
-                alert('상태가 "도착"으로 변경되었습니다.');
-                window.close?.();
+                if (s === 1) {
+                    alert('상태가 "상품 발송"으로 변경되었습니다.');
+                    window.close?.();
+                } else if (s === 2) {
+                    alert('상태가 "도착"으로 변경되었습니다.');
+                    window.close?.();
+                }
             } else {
                 alert('상태 변경에 실패했습니다.');
             }
-        }catch(err){
+        } catch(err){
             console.error('상태 변경 중 오류:', err);
             alert('상태 변경 중 오류가 발생했습니다.');
         }
@@ -208,9 +257,8 @@
 
     $(document).ready(function(){
         loadSaleDetail();
-
-        // 버튼 클릭 이벤트
-        $('#btn-change-arrived').on('click', changeStatusToArrived);
+        initStatusButton();
+        $('#btn-change-status').on('click', changeStatusToArrived);
     });
 </script>
 </body>

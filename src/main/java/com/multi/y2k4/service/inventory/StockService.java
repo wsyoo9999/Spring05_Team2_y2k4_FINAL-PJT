@@ -2,10 +2,13 @@ package com.multi.y2k4.service.inventory;
 
 import com.multi.y2k4.mapper.tenant.inventory.StockMapper;
 import com.multi.y2k4.vo.inventory.Stock;
+import lombok.Locked;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -48,7 +51,59 @@ public class StockService {
                 throw new IllegalArgumentException("잘못된 호출 형태: " + operationType);
         }
     }
+    @Locked
+    public List<Integer> manageStock(List<Integer> stockId , List<Integer> quantity, int operationType) {
+        switch (operationType) {
+            case 0: // 조회
+                if(stockId.size() != quantity.size()){
+                    return null;
+                }else{
+                    List<Integer> result = new ArrayList<>();
+                    for(int i = 0; i < quantity.size(); i++){
+                        result.add(stockId.get(i));
+                    }
+                    return result;
+                }
 
+            case 1: // 증가
+                if(stockId.size() != quantity.size()){
+                    return null;
+                }else{
+                    for(int i = 0; i < quantity.size(); i++){
+                        updateStockQuantity(stockId.get(i), quantity.get(i));
+                    }
+                    return Collections.singletonList(0);
+                }
+
+            case 2: // 감소
+                if(stockId.size() != quantity.size()){
+                    return null;
+                }else{
+                    for(int i = 0; i < quantity.size(); i++){
+                        updateStockQuantity(stockId.get(i), -quantity.get(i));
+                    }
+                    return Collections.singletonList(0);
+                }
+
+            case 3: //체크 후 감소
+                if(stockId.size() != quantity.size()){
+                    return null;
+                }else{
+                    for(int i = 0; i < quantity.size(); i++){
+                        if(getStockQty(stockId.get(i)) - quantity.get(i) < 0){
+                            return null;
+                        }
+                    }
+                    for(int i = 0; i < quantity.size(); i++){
+                        updateStockQuantity(stockId.get(i), -quantity.get(i));
+                    }
+                    return Collections.singletonList(0);
+                }
+
+            default:
+                throw new IllegalArgumentException("잘못된 호출 형태: " + operationType);
+        }
+    }
 
     public int manageStock(int stockId, int operationType) {
         if (operationType != 0) {

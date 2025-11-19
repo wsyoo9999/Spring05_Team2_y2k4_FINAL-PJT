@@ -18,12 +18,13 @@ CREATE TABLE stock (
                        ac_id        BIGINT UNSIGNED,
                        type         tinyint,
                        is_deleted TINYINT(1) NOT NULL DEFAULT 0,
-                       CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
+                       CONSTRAINT fk_st_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
 );
 
 
 CREATE TABLE human_resource (
                                 emp_id       BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+                                login_id VARCHAR(200) UNIQUE,
                                 emp_name     VARCHAR(50) NOT NULL,
                                 supervisor   BIGINT UNSIGNED,
                                 dept_name    VARCHAR(50),
@@ -230,3 +231,4 @@ CREATE TABLE unpaid (
 
                         UNIQUE KEY uq_unpaid_business (cat_id, tb_id, ref_pk)
 );
+

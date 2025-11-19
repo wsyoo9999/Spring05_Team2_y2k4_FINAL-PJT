@@ -12,6 +12,7 @@
         FROM purchase p
         LEFT JOIN human_resource hr ON hr.emp_id = p.emp_id
         LEFT JOIN accounts a ON a.ac_id   = p.ac_id
+        WHERE p.status != 99
     </select>
 
     <select id="list" resultType="com.multi.y2k4.vo.transaction.Purchase">
@@ -41,6 +42,7 @@
             <if test="status!=null">
                 AND p.status = #{status}
             </if>
+            AND p.status != 99
         </where>
     </select>
 

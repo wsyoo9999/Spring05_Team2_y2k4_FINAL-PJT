@@ -16,9 +16,9 @@ spring:
       # EC2에 올라간 MySQL 도커가 리스닝하는 곳
       # - EC2에 MySQL 도커만 있고, 앱은 로컬에서 돌리니까
       #   여기에는 "EC2 퍼블릭 IP 또는 탄력 IP"를 적어준다.
-      url: jdbc:mysql://13.36.30.225:3306/userDB?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=utf8
+      url: jdbc:mysql://13.36.27.122:3306/userDB?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=utf8
       username: root          # docker-compose에서 설정한 계정
-      password: 5678     # docker-compose의 MYSQL_ROOT_PASSWORD와 일치
+      password: 1234     # docker-compose의 MYSQL_ROOT_PASSWORD와 일치
       driver-class-name: com.mysql.cj.jdbc.Driver
       hikari:
         maximum-pool-size: 5
@@ -40,10 +40,10 @@ mybatis:
 app:
   mysql:
     # 여기 역시 EC2 퍼블릭 IP 또는 DNS
-    host: 13.36.30.225
+    host: 13.36.27.122
     port: 3306
     username: root
-    password: 5678
+    password: 1234
     # dbName만 바꿔 끼우는 JDBC URL 패턴
     urlPattern: jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=utf8
 

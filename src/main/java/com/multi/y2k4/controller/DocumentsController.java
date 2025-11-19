@@ -190,7 +190,7 @@ public class DocumentsController {
 
                             saleDetailsService.deleteSaleDetails(before_pk);   //기존의 판매 세부 정보 삭제
                             saleDetailsService.addSaleDetails(details_list);
-
+                            sale.setStatus(0);
                             saleService.editSale(sale);
 
 
@@ -268,7 +268,7 @@ public class DocumentsController {
                             purchaseDetailsService.deletePurchaseDetails(before_pk);   //기존의 판매 세부 정보 삭제
 
                             purchaseDetailsService.addPurchaseDetails(details_list);
-
+                            purchase.setStatus(0);
                             purchaseService.editPurchase(purchase);  // emp, ac, 날짜, total_price 수정
 
 
@@ -387,6 +387,7 @@ public class DocumentsController {
                 }
             }
         } catch (Exception e) {e.printStackTrace();}
+        documentsService.editStatus(doc_id, status);
         return true;
     }
 
