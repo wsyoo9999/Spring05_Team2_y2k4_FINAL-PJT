@@ -43,4 +43,6 @@ public interface ProductionMapper {
     int addDefect(Defect defect);
     int deleteDefectsByWorkOrderId(@Param("work_order_id") Long work_order_id);
     int deleteLotsByWorkOrderId(@Param("work_order_id") Long work_order_id);
+    int deleteDefectsByLotId(@Param("lot_id") Long lot_id);
+    int deleteLot(@Param("lot_id") Long lot_id);
 }

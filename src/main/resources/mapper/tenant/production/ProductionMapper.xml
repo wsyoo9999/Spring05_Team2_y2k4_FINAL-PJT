@@ -230,4 +230,12 @@
         VALUES (#{lot_id}, #{defect_code}, #{defect_qty}, #{defect_date})
     </insert>
 
+    <delete id="deleteDefectsByLotId">
+        DELETE FROM defect WHERE lot_id = #{lot_id}
+    </delete>
+
+    <delete id="deleteLot">
+        DELETE FROM lot WHERE lot_id = #{lot_id}
+    </delete>
+
 </mapper>

@@ -132,4 +132,27 @@ public class ProductionService {
         return false;
     }
 
+    @Transactional
+    public boolean deleteLot(Long lot_id) {
+        // 1. 삭제할 Lot 정보 조회 (삭제 후 상태 갱신을 위해 work_order_id가 필요함)
+        Lot targetLot = productionMapper.getLotById(lot_id);
+        if (targetLot == null) {
+            return false; // 존재하지 않는 Lot
+        }
+        Long workOrderId = targetLot.getWork_order_id();
+
+        // 2. 해당 Lot에 연결된 불량 내역(Defect) 먼저 삭제 (FK 제약조건 해결)
+        productionMapper.deleteDefectsByLotId(lot_id);
+
+        // 3. Lot 삭제
+        int result = productionMapper.deleteLot(lot_id);
+
+        // 4. 작업지시서 상태(수량, 진행률) 재계산 및 갱신
+        if (result > 0) {
+            refreshWorkOrderState(workOrderId);
+            return true;
+        }
+        return false;
+    }
+
 }
