@@ -368,29 +368,40 @@ public class DocumentsController {
 
                 /*===============================인사 관련=================================================*/
 
-            } else if (cat_id == 4) { //인사
-                if (tb_id == 0) {  //휴가 및 퇴직 처리
-                    if (cd_id == 0) {  //추가
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
+            } if (cat_id == 4) { // 인사
+                if (tb_id == 0) {  // 휴가 및 퇴직 처리
+                    if (cd_id == 0) {  // [추가] 휴가 신청 처리
 
-                        } else if (status == 2) {  //결재 서류 반려
+                        if (status == 1) { // [승인] 시 실제 DB 반영
 
+                            Integer reqId = doc.getReq_id().intValue();
+                            LocalDate startDate = LocalDate.parse((String) map.get("startDate"));
+                            LocalDate endDate = LocalDate.parse((String) map.get("endDate"));
+
+                            // 2. 휴가 기간만큼 근태 기록 생성
+                            java.util.List<com.multi.y2k4.vo.hr.Attendance> vacationList = new java.util.ArrayList<>();
+
+                            // 시작일부터 종료일까지 하루씩 증가하며 반복
+                            for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+                                com.multi.y2k4.vo.hr.Attendance att = new com.multi.y2k4.vo.hr.Attendance();
+                                att.setEmp_id(reqId);
+                                att.setWork_date(date);
+                                att.setCheck_in(date.atTime(9, 0));
+                                att.setCheck_out(date.atTime(18, 0));
+                                att.setAttendance_status("휴가"); // ★ 상태를 '휴가'로 설정
+
+                                vacationList.add(att);
+                            }
+
+                            // 3. 근태 테이블에 일괄 반영 (기존 기록이 있으면 덮어쓰기)
+                            if (!vacationList.isEmpty()) {
+                                attendanceService.generateDailyAttendance(); // (선택) 혹시 데이터가 없으면 생성 보장
+
+                            }
+
+                        } else if (status == 2) { // [반려]
+                            // 반려 시 별도 DB 작업 없음 (문서 상태만 '반려'로 변경됨)
                         }
-
-                    } else if (cd_id == 1) {  //수정
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-
-                        } else if (status == 2) {  //결재 서류 반려
-
-                        }
-
-                    } else if (cd_id == 2) {  //삭제
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-
-                        } else if (status == 2) {  //결재 서류 반려
-
-                        }
-
                     }
                 }
             }
