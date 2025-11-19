@@ -10,11 +10,7 @@ import java.util.List;
 @Mapper
 public interface InboundMapper {
     public List<Inbound> list_all();
-    public List<Inbound> list(@Param("inbound_date") LocalDate inbound_date,
-                              @Param("stock_id")Integer stock_id,
-                              @Param("ac_id")Integer ac_id,
-                              @Param("emp_id")Integer emp_id,
-                              @Param("approval")Integer approval);
+    public List<Inbound> list(Inbound inbound);
     public int addInbound(Inbound inbound);
     public Inbound selectInboundById(int inbound_id);
     public int updateInbound(Inbound inbound);

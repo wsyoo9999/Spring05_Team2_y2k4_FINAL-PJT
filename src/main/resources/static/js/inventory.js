@@ -20,6 +20,7 @@ export async function stock_listAll() {
                     <th>수량(개)</th>
                     <th>단가(원)</th>
                     <th>보관 위치</th>
+                    <th>판매자</th>
                     <th>구분</th>
                     <th>관리</th>                    
                 </tr>
@@ -41,6 +42,7 @@ export async function stock_listAll() {
                 <td>${Number(row.qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${row.location}</td>
+                <td>${row.ac_name ?? '-'}</td>
                 <td>${convertGubun(row.type)}</td>
                 <td class="actions">                    
                     <button id="stock_edit" data-value="${row.stock_id}">
@@ -77,6 +79,7 @@ export async function stock_list(formData) {
                     <th>수량(개)</th>
                     <th>단가(원)</th>
                     <th>보관 위치</th>
+                    <th>판매자</th>
                     <th>구분</th>
                     <th>관리</th>                     
                 </tr>
@@ -99,6 +102,7 @@ export async function stock_list(formData) {
                 <td>${Number(row.qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${row.location}</td>
+                <td>${row.ac_name ?? '-'}</td>
                 <td>${convertGubun(row.type)}</td>
                 <td class="actions">                    
                     <button id="stock_edit" data-value="${row.stock_id}">
@@ -199,7 +203,6 @@ export async function inbound_listAll() {
                     <th>수량(개)</th>
                     <th>단가(원)</th>
                     <th>총액</th>
-                    <th>공급업체</th>
                     <th>담당자</th>
                     <th>관리</th>                    
                 </tr>
@@ -229,8 +232,7 @@ export async function inbound_listAll() {
                 <td>${Number(row.inbound_qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${Number(total_price).toLocaleString()}</td>
-                <td>${row.ac_id}</td>  <!--조인하기-->
-                <td>${row.emp_id}</td>  <!--조인하기-->
+                <td>${row.emp_name}</td>  
                 <td class="actions">
                     <button id="inbound_edit" data-value="${row.inbound_id}">
                         <i class="fas fa-edit"></i>
@@ -271,7 +273,6 @@ export async function inbound_list(formData) {
                     <th>수량(개)</th>
                     <th>단가(원)</th>
                     <th>총액</th>
-                    <th>공급업체</th>
                     <th>담당자</th>
                     <th>관리</th>            
                 </tr>
@@ -295,8 +296,7 @@ export async function inbound_list(formData) {
                 <td>${Number(row.inbound_qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${Number(total_price).toLocaleString()}</td>
-                <td>${row.ac_id}</td>  <!--조인하기-->
-                <td>${row.emp_id}</td>  <!--조인하기-->
+                <td>${row.emp_name}</td>  
                 <td class="actions">
                     <button id="inbound_edit" data-value="${row.inbound_id}">
                         <i class="fas fa-edit"></i>
@@ -319,13 +319,8 @@ export function inbound_search_form() {
           </label>
         </div> 
         <div class="form-group">
-            <label for="ac_id">공급업체
-            <input type="text" id="ac_id" name="ac_id" placeholder="검색" />
-            </label>
-        </div>
-        <div class="form-group">
-            <label for="emp_id">담당자
-            <input type="text" id="emp_id" name="emp_id" placeholder="검색" />
+            <label for="emp_name">담당자
+            <input type="text" id="emp_name" name="emp_name" placeholder="검색" />
             </label>
         </div>
         <div class="form-group">
@@ -416,8 +411,8 @@ export async function outbound_listAll() {
                         ${row.stock_id}
                 </td>
                 <td>${row.outbound_qty}</td>
-                <td>${row.ac_id}</td>  <!--조인하기-->
-                <td>${row.emp_id}</td>  <!--조인하기-->
+                <td>${row.ac_name}</td>  
+                <td>${row.emp_name}</td>  
                 <td class="actions">
                     <button id="outbound_edit" data-value="${row.outbound_id}">
                         <i class="fas fa-edit"></i>
@@ -476,8 +471,8 @@ export async function outbound_list(formData) {
                         ${row.stock_id}
                 </td>
                 <td>${row.outbound_qty}</td>
-                <td>${row.emp_id}</td>  <!--조인하기-->
-                <td>${row.ac_id}</td>  <!--조인하기-->
+                <td>${row.ac_name}</td>  
+                <td>${row.emp_name}</td>  
                 <td>${row.outbound_date}</td>
                 <td class="actions">
                     <button id="outbound_edit" data-value="${row.outbound_id}">
@@ -501,13 +496,13 @@ export function outbound_search_form() {
               </label>
             </div> 
             <div class="form-group">
-                <label for="ac_id">공급업체
-                <input type="text" id="ac_id" name="ac_id" placeholder="검색" />
+                <label for="ac_name">출고처
+                <input type="text" id="ac_name" name="ac_name" placeholder="검색" />
                 </label>
             </div>
             <div class="form-group">
-                <label for="emp_id">담당자
-                <input type="text" id="emp_id" name="emp_id" placeholder="검색" />
+                <label for="emp_name">담당자
+                <input type="text" id="emp_name" name="emp_name" placeholder="검색" />
                 </label>
             </div>
             <div class="form-group">

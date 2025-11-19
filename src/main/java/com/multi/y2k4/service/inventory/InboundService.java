@@ -67,24 +67,17 @@ public class InboundService {
             int newQty = stock.getQty() + qtyChange;
 
             if (newQty < 0) {
-                throw new IllegalStateException("재고 수량이 음수가 될 수 없습니다.");
+                newQty=0;
             }
 
             stock.setQty(newQty);
             stockService.updateStock(stock);
-            System.out.println("재고 수량 변경: stock_id=" + stockId +
-                    ", 변경량=" + qtyChange +
-                    ", 새 수량=" + newQty);
         }
     }
     public int deleteInbound(Inbound inbound) {return inboundMapper.deleteInbound(inbound);}
 
     // 검색 조건: inbound_date, stock_id, ac_id, emp_id, approval
-    public List<Inbound> list(LocalDate inbound_date,
-                              Integer stock_id,
-                              Integer ac_id,
-                              Integer emp_id,
-                              Integer approval) {
-        return inboundMapper.list(inbound_date, stock_id, ac_id, emp_id, approval);
+    public List<Inbound> list(Inbound inbound) {
+        return inboundMapper.list(inbound);
     }
 }

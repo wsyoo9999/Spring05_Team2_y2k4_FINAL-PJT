@@ -104,32 +104,38 @@
     <h2><i class="fas fa-pen-to-square"></i> 재고 보기/수정</h2>
 
     <form id="stockForm" autocomplete="off">
+        <div class="form-group">
+            <label for="stock_id">재고번호</label>
+            <input id="stock_id" name="stock_id" type="number" />
+        </div>
+
         <div class="form-grid">
-            <div class="form-group">
-                <label for="stock_id">재고번호</label>
-                <input id="stock_id" name="stock_id" type="number" />
-            </div>
             <div class="form-group">
                 <label for="stock_name">재고명</label>
                 <input id="stock_name" name="stock_name" type="text" />
             </div>
+            <div class="form-group">
+                <label for="qty">수량(개)</label>
+                <input id="qty" name="qty" type="number" readonly/>
+            </div>
         </div>
 
         <div class="form-grid">
-            <div class="form-group">
-                <label for="qty">수량(개)</label>
-                <input id="qty" name="qty" type="number" />
-            </div>
             <div class="form-group">
                 <label for="unit_price">단가(원)</label>
                 <input id="unit_price" name="unit_price" type="number" />
             </div>
+            <div class="form-group">
+                <label for="location">보관 위치</label>
+                <input id="location" name="location" type="text" />
+            </div>
         </div>
 
         <div class="form-grid">
             <div class="form-group">
-                <label for="location">보관 위치</label>
-                <input id="location" name="location" type="text" />
+                <label for="ac_name">공급업체</label>
+                <input id="ac_name" name="ac_name" type="text" readonly />
+                <input id="ac_id" name="ac_id" type="hidden" />
             </div>
             <div class="form-group">
                 <label for="type">구분</label>
@@ -200,6 +206,8 @@
             setById('qty',              s.qty);
             setById('unit_price',       s.unit_price);
             setById('location',         s.location);
+            setById('ac_id',            s.ac_id);
+            setById('ac_name',          s.ac_name);
             setById('type',             s.type);
             // 서버 키 호환: stock_status 없으면 item_status 사용
 

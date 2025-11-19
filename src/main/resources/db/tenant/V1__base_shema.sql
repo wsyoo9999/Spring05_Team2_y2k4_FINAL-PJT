@@ -12,11 +12,13 @@ CREATE TABLE accounts (
 CREATE TABLE stock (
                        stock_id     BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
                        stock_name   VARCHAR(100) NOT NULL,
-                       qty          INT UNSIGNED NOT NULL DEFAULT 0,
+                       qty          INT NOT NULL DEFAULT 0,
                        unit_price   DECIMAL(15,2) NOT NULL DEFAULT 0.00,
                        location     VARCHAR(30),
+                       ac_id        BIGINT UNSIGNED,
                        type         tinyint,
                        is_deleted TINYINT(1) NOT NULL DEFAULT 0,
+                       CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
 );
 
 
@@ -66,11 +68,11 @@ CREATE TABLE inbound (
                          stock_id        BIGINT UNSIGNED NOT NULL,
                          inbound_qty             INT UNSIGNED NOT NULL,
                          unit_price      DECIMAL(15,2) DEFAULT 0.00,
-                         ac_id       BIGINT UNSIGNED,
+                         ac_id       BIGINT UNSIGNED ,
                          emp_id      BIGINT UNSIGNED NOT NULL,
                          remark      varchar(200),
                          approval tinyint NOT NULL
-                             CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
+                         CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
                          CONSTRAINT fk_inb_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id),
 );
 

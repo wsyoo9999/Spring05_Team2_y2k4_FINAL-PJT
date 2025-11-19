@@ -11,11 +11,7 @@ import java.util.List;
 @Mapper
 public interface OutboundMapper {
     public List<Outbound> list_all();
-    public List<Outbound> list(@Param("outbound_date") LocalDate outbound_date,
-                              @Param("stock_id")Integer stock_id,
-                              @Param("ac_id")Integer ac_id,
-                              @Param("emp_id")Integer emp_id,
-                              @Param("approval")Integer approval);
+    public List<Outbound> list(Outbound outbound);
     public int addOutbound(Outbound outbound);
     public Outbound selectOutboundById(int outbound_id);
     public int updateOutbound(Outbound outbound);

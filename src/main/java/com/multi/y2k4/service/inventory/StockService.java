@@ -26,11 +26,7 @@ public class StockService {
         return stockMapper.updateStock(stock);
     }
 
-    public int deleteStock(Stock stock) {
-        System.out.println("Service - deleteStock 호출: " + stock);
-        int result = stockMapper.deleteStock(stock);
-        System.out.println("Service - 결과: " + result);
-        return result;}
+    public int deleteStock(Stock stock) {return stockMapper.deleteStock(stock);}
 
     public List<Stock> list(Stock stock) {
         return stockMapper.list(stock);
