@@ -381,11 +381,12 @@
                 재무/회계 <i class="fas fa-chevron-right"></i>
             </button>
             <div class="accordion-content">
-                <button class="menu" data-file="finance" data-fn="documents_listAll" data-table="documents">결재 문서 관리</button>
 
-                <button class="menu" data-file="finance" data-fn="profit_listAll" data-table="profit">회사 수익 관리</button>
+                <button class="menu" data-file="finance" data-fn="profit_listAll" data-table="profit">회사 수익</button>
 
-                <button class="menu" data-file="finance" data-fn="spend_listAll" data-table="spend">회사 지출 관리</button>
+                <button class="menu" data-file="finance" data-fn="spend_listAll" data-table="spend">회사 지출</button>
+
+                <button class="menu" data-file="finance" data-fn="unpaid_listAll" data-table="unpaid">회사 미정산액</button>
             </div>
         </div>
 <!--        documents는 유지하고, profit, spend로 변경 및 <i class="fas fa-chevron-right"></i> 추가 -->
@@ -714,7 +715,7 @@
     (function() {
         const map = {
             dashboard: { file: 'inventory', fn: 'stock_listAll' },
-            finance:  { file: 'finance', fn: 'documents_listAll' },
+            finance:  { file: 'finance', fn: 'profit_listAll' },
             sales:    { file: 'transaction', fn: 'sale_listAll' },
             production: { file: 'production', fn: 'work_order_listAll' },
             inventory:  { file: 'inventory', fn: 'stock_listAll' },
