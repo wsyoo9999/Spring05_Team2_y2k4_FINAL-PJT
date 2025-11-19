@@ -29,7 +29,6 @@ public class MainController {
     private final EmployeeService employeeService;
 
 
-
     @GetMapping({"/"})
     public String index(HttpSession httpSession) {
         //추후 httpSession.getAttribute("id");를 통해 현재 로그인중인 사람의 정보 가져오는 기능 필요
