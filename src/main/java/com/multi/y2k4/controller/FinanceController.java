@@ -30,7 +30,20 @@ public class FinanceController {
                                    @RequestParam(required = false) Integer tb_id,
                                    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from_date,
                                    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to_date){
-        return profitService.list(profit_id, cat_id, tb_id, from_date.atStartOfDay(), to_date.atStartOfDay());
+        LocalDateTime from = null;
+        LocalDateTime to   = null;
+
+
+        if (from_date != null) {
+            from = from_date.atStartOfDay();
+        }
+
+        if (to_date != null) {
+            to = to_date.atTime(23, 59, 59);
+        }
+
+
+        return profitService.list(profit_id, cat_id, tb_id, from, to);
     }
 
     @GetMapping("/profit/searchById")
@@ -45,7 +58,22 @@ public class FinanceController {
                                  @RequestParam(required = false) Integer tb_id,
                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from_date,
                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to_date){
-        return spendService.list(spend_id, cat_id, tb_id, from_date.atStartOfDay(), to_date.atStartOfDay());
+
+        LocalDateTime from = null;
+        LocalDateTime to   = null;
+
+
+        if (from_date != null) {
+            from = from_date.atStartOfDay();
+        }
+
+
+        if (to_date != null) {
+            to = to_date.atTime(23, 59, 59);
+        }
+
+
+        return spendService.list(spend_id, cat_id, tb_id, from, to);
     }
 
     @GetMapping("/spend/searchById")
@@ -65,7 +93,6 @@ public class FinanceController {
     public Unpaid unpaidSearchById(@RequestParam Long unpaid_id){
         return unpaidService.searchById(unpaid_id);
     }
-
 
 
 }
