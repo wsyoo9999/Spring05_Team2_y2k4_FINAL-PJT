@@ -5,34 +5,44 @@
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.inventory.OutboundMapper">
 
-    <!-- 전체 조회 -->
+    <!-- 전체 조회: ac_name, emp_name 조인 -->
     <select id="list_all" resultType="com.multi.y2k4.vo.inventory.Outbound">
-        SELECT outbound_id, outbound_date, stock_id, outbound_qty, ac_id, emp_id, remark, approval
-        FROM outbound
+        SELECT o.*,
+            a.ac_name      AS ac_name,
+            h.emp_name     AS emp_name
+        FROM outbound o
+                 LEFT JOIN accounts a
+                           ON a.ac_id = o.ac_id
+                 LEFT JOIN human_resource h
+                           ON h.emp_id = o.emp_id
     </select>
 
-    <!-- 조건 조회 -->
+    <!-- 조건 조회: ac_name, emp_name 조인 + alias 사용 -->
     <select id="list" resultType="com.multi.y2k4.vo.inventory.Outbound">
-        SELECT outbound_id, outbound_date, stock_id, outbound_qty, ac_id, emp_id, remark, approval
-        FROM outbound
+        SELECT o.*,
+        a.ac_name      AS ac_name,
+        h.emp_name     AS emp_name
+        FROM outbound o
+        LEFT JOIN accounts a
+        ON a.ac_id = o.ac_id
+        LEFT JOIN human_resource h
+        ON h.emp_id = o.emp_id
         <where>
-            <!-- 날짜만 비교(파라미터가 'yyyy-MM-dd' 형태일 때) -->
             <if test="outbound_date != null">
-                AND DATE(outbound_date) = DATE(#{outbound_date})
+                AND DATE(o.outbound_date) = DATE(#{outbound_date})
             </if>
 
-            <!-- 숫자는 정확 일치 -->
             <if test="stock_id != null">
-                AND stock_id = #{stock_id}
+                AND o.stock_id = #{stock_id}
             </if>
             <if test="ac_id != null">
-                AND ac_id = #{ac_id}
+                AND o.ac_id = #{ac_id}
             </if>
             <if test="emp_id != null">
-                AND emp_id = #{emp_id}
+                AND o.emp_id = #{emp_id}
             </if>
             <if test="approval != null">
-                AND approval = #{approval}
+                AND o.approval = #{approval}
             </if>
         </where>
     </select>
@@ -40,14 +50,27 @@
     <!-- 등록 -->
     <insert id="addOutbound"
             parameterType="com.multi.y2k4.vo.inventory.Outbound"
-            useGeneratedKeys="true" keyProperty="outbound_id" keyColumn="outbound_id">
-        INSERT INTO outbound (outbound_date, stock_id, outbound_qty, ac_id, emp_id, remark, approval)
-        VALUES (#{outbound_date}, #{stock_id}, #{outbound_qty}, #{ac_id}, #{emp_id}, #{remark}, #{approval})
+            useGeneratedKeys="true"
+            keyProperty="outbound_id"
+            keyColumn="outbound_id">
+        INSERT INTO outbound
+        (outbound_date, stock_id, outbound_qty, ac_id, emp_id, remark, approval)
+        VALUES
+            (#{outbound_date}, #{stock_id}, #{outbound_qty},
+             #{ac_id}, #{emp_id}, #{remark}, #{approval})
     </insert>
 
+    <!-- 단건 조회: ac_name, emp_name 조인 -->
     <select id="selectOutboundById" resultType="com.multi.y2k4.vo.inventory.Outbound">
-        SELECT * FROM outbound
-        WHERE outbound_id = #{outbound_id}
+        SELECT o.*,
+            a.ac_name      AS ac_name,
+            h.emp_name     AS emp_name
+        FROM outbound o
+                 LEFT JOIN accounts a
+                           ON a.ac_id = o.ac_id
+                 LEFT JOIN human_resource h
+                           ON h.emp_id = o.emp_id
+        WHERE o.outbound_id = #{outbound_id}
     </select>
 
     <!-- 수정 -->

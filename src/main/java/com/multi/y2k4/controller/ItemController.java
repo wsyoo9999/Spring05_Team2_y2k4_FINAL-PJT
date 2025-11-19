@@ -48,7 +48,8 @@ public class ItemController {
                             @RequestParam Integer qty,
                             @RequestParam Integer unit_price,
                             @RequestParam String  location,
-                            @RequestParam Integer type) {
+                            @RequestParam Integer type,
+                            @RequestParam Integer ac_id){
 
         Stock stock = new Stock();
         stock.setStock_name(stock_name);
@@ -56,6 +57,7 @@ public class ItemController {
         stock.setUnit_price(unit_price);
         stock.setLocation(location);
         stock.setType(type);
+        stock.setAc_id(ac_id);
 
         int affected = stockService.addStock(stock);
         return affected == 1;
@@ -97,21 +99,16 @@ public class ItemController {
     // =============================================입고=============================================
 
     @GetMapping("/inbound")
-    public List<Inbound> listInbound(@RequestParam(required=false) LocalDate inbound_date,
-                            @RequestParam(required=false) Integer stock_id,
-                            @RequestParam(required=false) Integer ac_id,
-                            @RequestParam(required=false) Integer emp_id,
-                            @RequestParam(required=false) Integer approval) {
+    public List<Inbound> listInbound(@ModelAttribute Inbound inbound) {
 
-        boolean noFilter = (inbound_date == null)
-                && (stock_id == null)
-                && (ac_id == null)
-                && (emp_id == null)
-                && (approval == null);
+        boolean noFilter = (inbound.getInbound_date()== null)
+                && (inbound.getStock_id() == null)
+                && (inbound.getEmp_name() == null)
+                && (inbound.getApproval() == null);
 
         return noFilter
                 ? inboundService.list_all()
-                : inboundService.list(inbound_date, stock_id, ac_id, emp_id, approval);
+                : inboundService.list(inbound);
     }
 
     // 재고 목록 추가
@@ -121,7 +118,6 @@ public class ItemController {
                               @RequestParam Integer stock_id,
                               @RequestParam Integer inbound_qty,
                               @RequestParam Integer unit_price,
-                              @RequestParam Integer ac_id,
                               @RequestParam Integer emp_id,
                               @RequestParam String remark,
                               @RequestParam(required=false, defaultValue = "0") Integer approval) {
@@ -131,7 +127,6 @@ public class ItemController {
         inbound.setStock_id(stock_id);
         inbound.setInbound_qty(inbound_qty);
         inbound.setUnit_price(unit_price);
-        inbound.setAc_id(ac_id);
         inbound.setEmp_id(emp_id);
         inbound.setRemark(remark);
         inbound.setApproval(approval);
@@ -173,21 +168,17 @@ public class ItemController {
     // =============================================출고=============================================
 
     @GetMapping("/outbound")
-    public List<Outbound> listOutbound(@RequestParam(required=false) LocalDate outbound_date,
-                                     @RequestParam(required=false) Integer stock_id,
-                                     @RequestParam(required=false) Integer ac_id,
-                                     @RequestParam(required=false) Integer emp_id,
-                                     @RequestParam(required=false) Integer approval) {
+    public List<Outbound> listOutbound(@ModelAttribute Outbound outbound) {
 
-        boolean noFilter = (outbound_date == null)
-                && (stock_id == null)
-                && (ac_id == null)
-                && (emp_id == null)
-                && (approval == null);
+        boolean noFilter = (outbound.getOutbound_date() == null)
+                && (outbound.getStock_id() == null)
+                && (outbound.getAc_id() == null)
+                && (outbound.getEmp_id() == null)
+                && (outbound.getApproval() == null);
 
         return noFilter
                 ? outboundService.list_all()
-                : outboundService.list(outbound_date, stock_id, ac_id, emp_id, approval);
+                : outboundService.list(outbound);
     }
 
     // 재고 목록 추가

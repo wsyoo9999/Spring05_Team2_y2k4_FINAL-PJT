@@ -127,14 +127,19 @@
             </div>
             <div class="form-group">
                 <label for="ac_id">출고처</label>
-                <input id="ac_id" name="ac_id" type="number"/>
+                <select id="ac_id" name="ac_id" required>
+                    <option value="">출고처 선택</option>
+                </select>
             </div>
         </div>
 
         <div class="form-grid">
+
             <div class="form-group">
                 <label for="emp_id">담당자</label>
-                <input id="emp_id" name="emp_id" type="number"/>
+                <select id="emp_id" name="emp_id" required>
+                    <option value="">담당자 선택</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="approval">승인상태</label>
@@ -172,12 +177,12 @@
         const params = new URLSearchParams(location.search);
         const outboundId = params.get('outbound_id');
 
-        // 2) 응답 정규화
+        // 응답 정규화
         function normalize(data) {
             if (!data) return null;
             if (!Array.isArray(data) && typeof data === 'object') {
-                if (Array.isArray(data.rows)) data = data.rows;
-                else if (Array.isArray(data.data)) data = data.data;
+                if (Array.isArray(data.rows))        data = data.rows;
+                else if (Array.isArray(data.data))    data = data.data;
                 else if (Array.isArray(data.content)) data = data.content;
                 else return data; // 단건
             }
@@ -189,14 +194,83 @@
             if (el) el.value = (v ?? '');
         }
 
+        async function loadAccountsSelect(selectedAcId) {
+            try {
+                const list = await $.ajax({
+                    url: '/api/account/list',   // [{ac_id, ac_name}, ...] 리턴한다고 가정
+                    method: 'GET',
+                    dataType: 'json'
+                });
+
+                const $sel = $('#ac_id');
+                $sel.empty();
+
+                let options = '<option value="">출고처를 선택하세요</option>';
+                list.forEach(function (ac) {
+                    const selected =
+                        selectedAcId != null &&
+                        String(ac.ac_id) === String(selectedAcId)
+                            ? 'selected'
+                            : '';
+                    options += `
+                        <option value="${ac.ac_id}" ${selected}>
+                            ${ac.ac_name}
+                        </option>`;
+                });
+
+                $sel.html(options);
+            } catch (err) {
+                console.error('출고처 목록 조회 실패:', err);
+                alert('출고처(거래처) 목록을 불러오지 못했습니다.');
+            }
+        }
+
+        async function loadEmployeesSelect(selectedEmpId) {
+            try {
+                const list = await $.ajax({
+                    url: '/api/hr/employees',   // [{emp_id, emp_name}, ...] 리턴한다고 가정
+                    method: 'GET',
+                    dataType: 'json'
+                });
+
+                const $sel = $('#emp_id');
+                $sel.empty();
+
+                let options = '<option value="">담당자를 선택하세요</option>';
+                list.forEach(function (emp) {
+                    const selected =
+                        selectedEmpId != null &&
+                        String(emp.emp_id) === String(selectedEmpId)
+                            ? 'selected'
+                            : '';
+                    options += `
+                        <option value="${emp.emp_id}" ${selected}>
+                            ${emp.emp_name}
+                        </option>`;
+                });
+
+                $sel.html(options);
+            } catch (err) {
+                console.error('직원 목록 조회 실패:', err);
+                alert('직원 목록을 불러오지 못했습니다.');
+            }
+        }
+
         // 3) 로드 & 채우기
         async function loadOutbound(id) {
             const url = `${API_BASE}/${encodeURIComponent(id)}`;
             try {
                 const data = await $.ajax({ url, method:'GET', dataType:'json' });
                 const s = normalize(data);
-                if (s) { fillForm(s); return; }
-            } catch (e) { console.error('로드 실패:', e); }
+                if (s) {
+                    await loadAccountsSelect(s.ac_id);
+                    await loadEmployeesSelect(s.emp_id);
+                    fillForm(s);
+                    return;
+                }
+            } catch (e) {
+                console.error('로드 실패:', e);
+            }
             alert('데이터를 불러오지 못했습니다.');
         }
 
@@ -204,8 +278,7 @@
             setById('outbound_id',  s.outbound_id);
             setById('stock_id',     s.stock_id);
             setById('outbound_qty', s.outbound_qty);
-            setById('ac_id',        s.ac_id);
-            setById('emp_id',       s.emp_id);
+            // ac_id, emp_id는 select에서 이미 맞춰놨으니 여기서 setById 생략해도 됨
             setById('remark',       s.remark);
 
             const approvalEl = document.getElementById('approval');
@@ -214,7 +287,9 @@
             // 날짜(YYYY-MM-DD)
             if (s.outbound_date) {
                 const d = new Date(s.outbound_date);
-                const iso = isNaN(d) ? String(s.outbound_date).slice(0,10) : d.toISOString().slice(0,10);
+                const iso = isNaN(d)
+                    ? String(s.outbound_date).slice(0,10)
+                    : d.toISOString().slice(0,10);
                 setById('outbound_date', iso);
             }
 
@@ -223,8 +298,11 @@
             if (pk) pk.readOnly = true;
         }
 
-        if (outboundId) loadOutbound(outboundId);
-        else alert('출고번호가 없습니다.');
+        if (outboundId) {
+            loadOutbound(outboundId);
+        } else {
+            alert('출고번호가 없습니다.');
+        }
     })();
 
     // 승인 상태 변경시 UI 피드백
@@ -262,8 +340,10 @@
                 alert('반려 처리(삭제) 완료');
                 if (window.opener && !window.opener.closed) {
                     try {
-                        if (typeof window.opener.reloadOutboundList === 'function') window.opener.reloadOutboundList();
-                        else window.opener.location.reload();
+                        if (typeof window.opener.reloadOutboundList === 'function')
+                            window.opener.reloadOutboundList();
+                        else
+                            window.opener.location.reload();
                     } catch(_) {}
                 }
                 window.close();
@@ -279,8 +359,8 @@
             outbound_date: $('#outbound_date').val(),
             stock_id:      Number($('#stock_id').val()),
             outbound_qty:  Number($('#outbound_qty').val()),
-            ac_id:         Number($('#ac_id').val()),
-            emp_id:        Number($('#emp_id').val()),
+            ac_id:         Number($('#ac_id').val()),   // select에서 선택된 출고처
+            emp_id:        Number($('#emp_id').val()),  // select에서 선택된 담당자
             approval:      approvalValue,
             remark:        $('#remark').val()
         };
@@ -295,18 +375,16 @@
             alert('수정 완료');
             if (window.opener && !window.opener.closed) {
                 try {
-                    if (typeof window.opener.reloadOutboundList === 'function') window.opener.reloadOutboundList();
-                    else window.opener.location.reload();
+                    if (typeof window.opener.reloadOutboundList === 'function')
+                        window.opener.reloadOutboundList();
+                    else
+                        window.opener.location.reload();
                 } catch(_) {}
             }
             window.close();
         } catch (err) {
-            if (err.responseJSON && err.responseJSON.message) {
-                alert(err.responseJSON.message);
-            } else {
-                console.error('수정 실패:', err);
-                alert(`수정 실패 (status=${err?.status})\n${err?.responseText ?? ''}`);
-            }
+            console.error('수정 실패:', err);
+            alert(`수정 실패 (status=${err?.status})\n${err?.responseText ?? ''}`);
         }
     });
 
@@ -315,7 +393,7 @@
         const id = $('#outbound_id').val();
         if (!id) { alert('출고번호가 없습니다.'); return; }
         if (!confirm(`출고번호 ${id}를 삭제하시겠습니까?`)) return;
-        if (!confirm('삭제된 데이터는 복구할 수 없습니다. 진행하시겠습니까?')) return;
+        if (!confirm('삭제된 데이터는 복구할 수 없습니다.\n정말 진행할까요?')) return;
 
         try {
             await $.ajax({
@@ -326,8 +404,10 @@
             alert('삭제 완료');
             if (window.opener && !window.opener.closed) {
                 try {
-                    if (typeof window.opener.reloadOutboundList === 'function') window.opener.reloadOutboundList();
-                    else window.opener.location.reload();
+                    if (typeof window.opener.reloadOutboundList === 'function')
+                        window.opener.reloadOutboundList();
+                    else
+                        window.opener.location.reload();
                 } catch(_) {}
             }
             window.close();
@@ -337,6 +417,8 @@
         }
     });
 </script>
+
+
 
 </body>
 </html>

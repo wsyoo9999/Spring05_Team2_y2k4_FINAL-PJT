@@ -5,34 +5,39 @@
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.inventory.InboundMapper">
 
+    <!-- 전체 목록: emp_name 조인 -->
     <select id="list_all" resultType="com.multi.y2k4.vo.inventory.Inbound">
-        SELECT *
-        FROM inbound
+        SELECT i.*, e.emp_name AS emp_name
+        FROM inbound i
+                 LEFT JOIN human_resource e
+                           ON e.emp_id = i.emp_id
     </select>
 
+    <!-- 조건 검색: emp_name 조인 + 조건에 alias 붙이기 -->
     <select id="list" resultType="com.multi.y2k4.vo.inventory.Inbound">
-        SELECT *
-        FROM inbound
+        SELECT i.*, e.emp_name AS emp_name
+        FROM inbound i
+        LEFT JOIN human_resource e
+        ON e.emp_id = i.emp_id
         <where>
-            <!-- inbound_date를 LocalDate로 받는다면 DATE()로 매칭 -->
             <if test="inbound_date != null">
-                AND DATE(inbound_date) = #{inbound_date}
+                AND DATE(i.inbound_date) = #{inbound_date}
             </if>
 
             <if test="stock_id != null">
-                AND stock_id = #{stock_id}
+                AND i.stock_id = #{stock_id}
             </if>
 
             <if test="ac_id != null">
-                AND ac_id = #{ac_id}
+                AND i.ac_id = #{ac_id}
             </if>
 
             <if test="emp_id != null">
-                AND emp_id = #{emp_id}
+                AND i.emp_id = #{emp_id}
             </if>
 
             <if test="approval != null">
-                AND approval = #{approval}
+                AND i.approval = #{approval}
             </if>
         </where>
     </select>
@@ -43,12 +48,17 @@
         INSERT INTO inbound
         (inbound_date, stock_id, inbound_qty, unit_price, ac_id, emp_id, remark, approval)
         VALUES
-            (#{inbound_date}, #{stock_id}, #{inbound_qty}, #{unit_price}, #{ac_id}, #{emp_id}, #{remark}, #{approval})
+            (#{inbound_date}, #{stock_id}, #{inbound_qty}, #{unit_price},
+             #{ac_id}, #{emp_id}, #{remark}, #{approval})
     </insert>
 
+    <!-- 단건 조회: emp_name 조인 -->
     <select id="selectInboundById" resultType="com.multi.y2k4.vo.inventory.Inbound">
-        SELECT * FROM inbound
-        WHERE inbound_id = #{inbound_id}
+        SELECT i.*, e.emp_name AS emp_name
+        FROM inbound i
+                 LEFT JOIN human_resource e
+                           ON e.emp_id = i.emp_id
+        WHERE i.inbound_id = #{inbound_id}
     </select>
 
     <update id="updateInbound" parameterType="com.multi.y2k4.vo.inventory.Inbound">
@@ -58,7 +68,6 @@
             <if test="stock_id     != null"> stock_id     = #{stock_id},     </if>
             <if test="inbound_qty  != null"> inbound_qty  = #{inbound_qty},  </if>
             <if test="unit_price   != null"> unit_price   = #{unit_price},   </if>
-            <if test="ac_id        != null"> ac_id        = #{ac_id},        </if>
             <if test="emp_id       != null"> emp_id       = #{emp_id},       </if>
             remark = #{remark},
             <if test="approval     != null"> approval     = #{approval},     </if>

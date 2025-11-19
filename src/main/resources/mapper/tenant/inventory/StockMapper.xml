@@ -4,69 +4,88 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.multi.y2k4.mapper.tenant.inventory.StockMapper">
+
+    <!-- 전체 목록 -->
     <select id="list_all" resultType="com.multi.y2k4.vo.inventory.Stock">
-        select * from stock where is_deleted = 0
+        SELECT s.*, a.ac_name AS ac_name
+        FROM stock s
+        LEFT JOIN accounts a
+        ON a.ac_id = s.ac_id
+        WHERE s.is_deleted = 0
     </select>
 
+    <!-- 조건 검색 -->
     <select id="list" resultType="com.multi.y2k4.vo.inventory.Stock">
-        SELECT *
-        FROM stock
+        SELECT s.*, a.ac_name AS ac_name
+        FROM stock s
+        LEFT JOIN accounts a
+        ON a.ac_id = s.ac_id
         <where>
             <if test="stock_name != null and stock_name != ''">
-                AND stock_name LIKE CONCAT('%', #{stock_name}, '%')
+                AND s.stock_name LIKE CONCAT('%', #{stock_name}, '%')
             </if>
             <if test="qty != null">
-                AND qty = #{qty}
+                AND s.qty = #{qty}
             </if>
             <if test="unit_price != null">
-                AND unit_price = #{unit_price}
+                AND s.unit_price = #{unit_price}
             </if>
             <if test="location != null and location != ''">
-                AND location LIKE CONCAT('%', #{location}, '%')
+                AND s.location LIKE CONCAT('%', #{location}, '%')
             </if>
             <if test="type != null">
-                AND type = #{type}
+                AND s.type = #{type}
             </if>
-            <if test="is_deleted != null">
-                AND is_deleted = 0
-            </if>
+            AND s.is_deleted = 0
         </where>
     </select>
 
-
-    <insert id="addStock" parameterType="com.multi.y2k4.vo.inventory.Stock" useGeneratedKeys="true" keyProperty="stock_id" keyColumn="stock_id">
-        insert into stock (stock_name, qty, unit_price, location, type)
-        values (#{stock_name}, #{qty}, #{unit_price}, #{location}, #{type})
+    <!-- 등록 -->
+    <insert id="addStock"
+            parameterType="com.multi.y2k4.vo.inventory.Stock"
+            useGeneratedKeys="true"
+            keyProperty="stock_id"
+            keyColumn="stock_id">
+        INSERT INTO stock (stock_name, qty, unit_price, location, type, ac_id)
+        VALUES (#{stock_name}, #{qty}, #{unit_price}, #{location}, #{type}, #{ac_id})
     </insert>
 
+    <!-- 단건 조회 -->
     <select id="selectStockById" resultType="com.multi.y2k4.vo.inventory.Stock">
-        SELECT * FROM stock
-        WHERE stock_id = #{stock_id}
+        SELECT
+            s.*,
+            a.ac_name AS ac_name
+        FROM stock s
+        LEFT JOIN accounts a
+        ON a.ac_id = s.ac_id
+        WHERE s.stock_id = #{stock_id}
     </select>
 
+    <!-- 수정 -->
     <update id="updateStock" parameterType="com.multi.y2k4.vo.inventory.Stock">
         UPDATE stock
         <set>
             <if test="stock_name  != null"> stock_name  = #{stock_name},  </if>
             <if test="qty        != null"> qty         = #{qty},        </if>
-            <if test="unit_price  != null"> unit_price  = #{unit_price},  </if>
+            <if test="unit_price != null"> unit_price  = #{unit_price},  </if>
             <if test="location   != null"> location    = #{location},   </if>
             <if test="type       != null"> type        = #{type},       </if>
+            <if test="ac_id      != null"> ac_id       = #{ac_id},      </if>
         </set>
         WHERE stock_id = #{stock_id}
     </update>
 
-
-    <!--삭제-->
+    <!-- 삭제 -->
     <update id="deleteStock" parameterType="com.multi.y2k4.vo.inventory.Stock">
         UPDATE stock
         SET is_deleted = 1,
-            stock_name = '-',     -- VARCHAR
-            qty        = 0,       -- INT
-            unit_price = 0,       -- INT
-            location   = '-',     -- VARCHAR
-            type       = 0        -- INT (예: 기본값)
+            stock_name = '-',
+            qty        = 0,
+            unit_price = 0,
+            location   = '-',
+            type       = 0
         WHERE stock_id = #{stock_id}
           AND is_deleted = 0
     </update>
+
 </mapper>

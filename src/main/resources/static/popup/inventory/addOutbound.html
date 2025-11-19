@@ -108,12 +108,16 @@
 
         <div class="form-grid">
             <div class="form-group">
-                <label for="ac_id">공급업체</label>
-                <input type="number" id="ac_id" name="ac_id" required>
+                <label for="ac_id">출고처</label>
+                <select id="ac_id" name="ac_id" required>
+                    <option value="">출고처 선택</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="emp_id">담당자</label>
-                <input type="number" id="emp_id" name="emp_id" required>
+                <select id="emp_id" name="emp_id" required>
+                    <option value="">담당자 선택</option>
+                </select>
             </div>
         </div>
 
@@ -128,12 +132,52 @@
     </form>
 </div>
 <script>
-    $(document).ready(async function() {
-        // 오늘 날짜 설정
-        const today = new Date().toISOString().split('T')[0];
-        $('#outbound_date').val(today);
+    // 직원 로드
+    $(document).ready(function() {
+        $.ajax({
+            url: '/api/hr/employees',
+            method: 'GET',
+            dataType: 'json'
+        }).done(function(list) {
+            const $sel = $('#emp_id');
+            list.forEach(function(emp) {
+                $sel.append(
+                    $('<option>', {
+                        value: emp.emp_id,
+                        text: emp.emp_name
+                    })
+                );
+            });
+        }).fail(function(err) {
+            console.error('직원 목록 조회 실패:', err);
+            alert('직원 목록을 불러오지 못했습니다.');
+        });
+    });
 
-        // 재고 목록 불러오기
+    // 출고처 로드
+    $(document).ready(function() {
+        $.ajax({
+            url: '/api/account/list',
+            method: 'GET',
+            dataType: 'json'
+        }).done(function(list) {
+            const $sel = $('#ac_id');
+            list.forEach(function(acc) {
+                $sel.append(
+                    $('<option>', {
+                        value: acc.ac_id,
+                        text: acc.ac_name
+                    })
+                );
+            });
+        }).fail(function(err) {
+            console.error('판매자 목록 조회 실패:', err);
+            alert('판매자 목록을 불러오지 못했습니다.');
+        });
+    });
+
+    // 재고 로드
+    $(document).ready(async function() {
         try {
             const stocks = await $.ajax({
                 url: '/api/inventory/stock',
@@ -144,10 +188,12 @@
             let options = '<option value="">재고를 선택하세요</option>';
 
             $.each(stocks, function(i, stock) {
+                // 삭제된 재고는 제외
                 if (stock.is_deleted === 0) {
-                    options += `<option value="${stock.stock_id}">
-                [${stock.stock_id}] ${stock.stock_name} (수량: ${stock.qty}개)
-            </option>`;
+                    options += `
+                        <option value="${stock.stock_id}" data-price="${stock.unit_price}">
+                            ${stock.stock_id} - ${stock.stock_name}
+                        </option>`;
                 }
             });
 
@@ -158,83 +204,101 @@
         }
     });
 
-    // 출고 등록
-    $('#form').on('submit', async function(e) {
+    // 출고일 기본값: 오늘
+    (function setToday(){
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth()+1).padStart(2,'0');
+        const day = String(d.getDate()).padStart(2,'0');
+        document.getElementById('outbound_date').value = `${y}-${m}-${day}`;
+    })();
+
+    const form = document.getElementById("form");
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        if (!$('#stock_id').val()) {
-            alert('재고를 선택하세요.');
+        const stockId     = $('#stock_id').val();
+        const outboundQty = Number($('#outbound_qty').val());
+
+        if (!stockId) {
+            alert('재고를 선택해주세요.');
+            return;
+        }
+        if (!outboundQty || outboundQty <= 0) {
+            alert('출고 수량을 올바르게 입력해주세요.');
             return;
         }
 
-        const stockId = Number($('#stock_id').val());
-        const outboundQty = Number($('#outbound_qty').val());
-
-        // 재고 체크
         try {
+            // 1) 선택된 재고의 현재 수량 조회
             const stock = await $.ajax({
-                url: `/api/inventory/stock/${stockId}`,
+                url: `/api/inventory/stock/${encodeURIComponent(stockId)}`,
                 method: 'GET',
                 dataType: 'json'
             });
 
-            if (stock.qty < outboundQty) {
-                const shortageQty = outboundQty - stock.qty;
+            const currentQty = Number(stock.qty ?? 0);
 
-                const goToInbound = confirm(
-                    '출고 수량이 현재 재고 수량보다 많습니다.\n\n' +
-                    '현재 재고: ' + stock.qty + '개\n' +
-                    '출고 수량: ' + outboundQty + '개\n' +
-                    '부족 수량: ' + shortageQty + '개\n\n' +
-                    '입고 등록 화면으로 이동하시겠습니까?\n' +
-                    '(취소 시 출고가 등록됩니다)'
+            // 2) 재고 부족 시: 출고 막고 입고 팝업 여부 확인
+            if (outboundQty > currentQty) {
+                const diff = outboundQty - currentQty;
+
+                const wantInbound = confirm(
+                    `현재 재고(${currentQty})보다 출고 수량(${outboundQty})이 많습니다.\n` +
+                    `부족 수량 ${diff}개에 대해 입고 등록 창을 여시겠습니까?\n` +
+                    `취소를 선택할 시 계속해서 출고를 등록합니다`
                 );
 
-                if (goToInbound) {
-                    window.location.href = `/popup/inventory/addInbound.html`;
+                if (wantInbound) {
+                    if (window.opener && !window.opener.closed &&
+                        typeof window.opener.addInbound === 'function') {
+                        window.opener.addInbound();
+                    } else {
+                        // 혹시 모를 대비용 fallback: 직접 팝업 오픈
+                        const url = './../inventory/addInbound.html'; // 경로는 프로젝트 구조에 맞게
+                        const features = 'width=570,height=620,resizable=no,scrollbars=yes';
+                        window.open(url,'add_inbound',features).focus();
+                    }
+
+                    // ✅ 입고창을 연 경우에만 출고 등록 중단
                     return;
                 }
 
-                // 취소 시 출고 등록 진행
+                // ❌ 취소를 누른 경우엔 return 하지 않음 → 아래 출고 등록 로직으로 진행
             }
-        } catch (err) {
-            console.error('재고 조회 실패:', err);
-            alert('재고 정보를 확인할 수 없습니다.');
-            return;
-        }
-        // 출고 등록 진행
-        try {
+
+            // 3) 재고가 충분하거나, 부족해도 사용자가 "취소"를 선택한 경우 → 출고 등록 진행
             const result = await $.ajax({
-                url: '/api/inventory/outbound/add',
+                url: form.action,           // /api/inventory/outbound/add
                 method: 'POST',
                 dataType: 'json',
-                data: $(this).serialize()
+                data: $(form).serialize()
             });
 
-            const ok = (result === true) || (result && (result.success === true || result.result === true));
+            const ok =
+                (result === true) ||
+                (result && (result.success === true || result.result === true));
+
             if (ok) {
                 alert('출고가 성공적으로 등록되었습니다.');
-
                 if (window.opener && !window.opener.closed) {
-                    try {
-                        if (typeof window.opener.reloadOutboundList === 'function') {
-                            window.opener.reloadOutboundList();
-                        } else {
-                            window.opener.location.reload();
-                        }
-                    } catch(_) {}
+                    const menu = window.opener.document.querySelector(
+                        '.menu[data-file="inventory"][data-fn="outbound_listAll"]'
+                    );
+                    if (menu) menu.click();
+                    else window.opener.location.reload();
                 }
                 window.close();
             } else {
                 alert('입력에 실패했습니다.');
             }
+
         } catch (error) {
-            console.error('등록 실패:', error);
-            alert('서버 통신 중 오류가 발생했습니다.');
+            console.error('등록/재고 체크 실패:', error);
+            alert('재고 확인 또는 출고 등록 중 오류가 발생했습니다.');
         }
     });
-
-
 </script>
+
 </body>
 </html>
