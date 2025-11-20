@@ -36,24 +36,14 @@ export async function stock_listAll() {
     });
 
     $.each(data, function (i, row) {
-
-        const rawQty = Number(row.qty??0);
-        let displayQty = rawQty;
-        let requestQty = 0;
-
-        if(rawQty < 0){
-            displayQty = 0;
-            requestQty = (-rawQty);
-        }
-
         table += `
             <tr>
                 <td> ${row.stock_id}</td>
                 <td>${row.stock_name}</td>
-                <td>${Number(displayQty).toLocaleString()}</td>
+                <td>${Number(qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${row.location}</td>
-                <td>${Number(requestQty).toLocaleString()}</td>
+                <td>${Number(row.acquired_qty).toLocaleString()}</td>
                 <td>${row.ac_name ?? '-'}</td>
                 <td>${convertGubun(row.type)}</td>
                 <td class="actions">                    
@@ -107,23 +97,14 @@ export async function stock_list(formData) {
     });
 
     $.each(data, function (i, row) {
-        const rawQty = Number(row.qty??0);
-        let displayQty;
-        let requestQty = 0;
-
-        if(rawQty < 0){
-            displayQty = 0;
-            requestQty = (-rawQty);
-        }
-
         table += `
             <tr>
                 <td> ${row.stock_id}</td>
                 <td>${row.stock_name}</td>
-                <td>${Number(displayQty).toLocaleString()}</td>
+                <td>${Number(qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${row.location}</td>
-                <td>${Number(requestQty).toLocaleString()}</td>
+                <td>${Number(row.acquired_qty).toLocaleString()}</td>
                 <td>${row.ac_name ?? '-'}</td>
                 <td>${convertGubun(row.type)}</td>
                 <td class="actions">                    

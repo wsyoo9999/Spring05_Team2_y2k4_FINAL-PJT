@@ -68,6 +68,7 @@
             <if test="stock_name  != null"> stock_name  = #{stock_name},  </if>
             <if test="qty        != null"> qty         = #{qty},        </if>
             <if test="unit_price != null"> unit_price  = #{unit_price},  </if>
+            <if test="acquired_qty != null">acquired_qty = #{acquired_qty}</if>
             <if test="location   != null"> location    = #{location},   </if>
             <if test="type       != null"> type        = #{type},       </if>
             <if test="ac_id      != null"> ac_id       = #{ac_id},      </if>
@@ -82,6 +83,7 @@
             stock_name = '-',
             qty        = 0,
             unit_price = 0,
+            acquired_qty = 0,
             location   = '-',
             type       = 0
         WHERE stock_id = #{stock_id}
