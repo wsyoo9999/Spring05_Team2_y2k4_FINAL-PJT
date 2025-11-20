@@ -112,7 +112,6 @@ public class StockService {
         return getAcquiredAty(stockId);
     }
 
-
     public int getAcquiredAty(int stockId) {
         Stock stock = stockMapper.selectStockById(stockId);
         return stock != null ? stock.getAcquired_qty() : 0;
