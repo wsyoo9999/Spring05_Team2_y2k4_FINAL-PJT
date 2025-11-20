@@ -33,16 +33,16 @@ public class StockService {
         return stockMapper.list(stock);
     }
 
-    public int manageStock(int stockId, int operationType, Integer quantity) {
+    public int manageAcquiredAty(int stockId, int operationType, Integer quantity) {
         switch (operationType) {
             case 0: // 조회
-                return getStockQty(stockId);
+                return getAcquiredAty(stockId);
 
             case 1: // 증가
-                return updateStockQuantity(stockId, quantity);
+                return updateAcquiredAty(stockId, quantity);
 
             case 2: // 감소
-                return updateStockQuantity(stockId, -quantity);
+                return updateAcquiredAty(stockId, -quantity);
 
             default:
                 throw new IllegalArgumentException("잘못된 호출 형태: " + operationType);
@@ -50,32 +50,28 @@ public class StockService {
     }
 
 
-    public int manageStock(int stockId, int operationType) {
+    public int manageAcquiredAty(int stockId, int operationType) {
         if (operationType != 0) {
             throw new IllegalArgumentException("증감 작업에는 수량이 필요합니다.");
         }
-        return getStockQty(stockId);
+        return getAcquiredAty(stockId);
     }
 
 
-    public int getStockQty(int stockId) {
+    public int getAcquiredAty(int stockId) {
         Stock stock = stockMapper.selectStockById(stockId);
-        return stock != null ? stock.getQty() : 0;
+        return stock != null ? stock.getAcquired_qty() : 0;
     }
 
 
-    private int updateStockQuantity(int stockId, int qtyChange) {
+    private int updateAcquiredAty(int stockId, int qtyChange) {
         Stock stock = stockMapper.selectStockById(stockId);
 
         if (stock != null) {
-            int newQty = stock.getQty() + qtyChange;
+            int newQty = stock.getAcquired_qty() + qtyChange;
 
-            stock.setQty(newQty);
+            stock.setAcquired_qty(newQty);
             stockMapper.updateStock(stock);
-
-            System.out.println("재고 수량 변경: stock_id=" + stockId +
-                    ", 변경량=" + qtyChange +
-                    ", 새 수량=" + newQty);
 
             return newQty;
         }

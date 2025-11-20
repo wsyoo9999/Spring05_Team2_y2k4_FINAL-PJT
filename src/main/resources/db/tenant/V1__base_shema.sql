@@ -12,8 +12,9 @@ CREATE TABLE accounts (
 CREATE TABLE stock (
                        stock_id     BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
                        stock_name   VARCHAR(100) NOT NULL,
-                       qty          INT NOT NULL DEFAULT 0,
+                       qty          INT UNSIGNED NOT NULL DEFAULT 0,
                        unit_price   DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+                       aquired_qty  INT NOT NULL DEFAULT 0,
                        location     VARCHAR(30),
                        ac_id        BIGINT UNSIGNED,
                        type         tinyint,

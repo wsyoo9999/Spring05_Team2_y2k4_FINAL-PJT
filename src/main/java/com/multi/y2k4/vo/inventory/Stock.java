@@ -9,6 +9,7 @@ public class Stock {
     private String stock_name;           // 재고명
     private Integer qty;               // 수량
     private Integer unit_price;             // 단가
+    private Integer acquired_qty;       // 요청 단가
     private String location;    // 보관위치
     private Integer ac_id;
     private String ac_name;
