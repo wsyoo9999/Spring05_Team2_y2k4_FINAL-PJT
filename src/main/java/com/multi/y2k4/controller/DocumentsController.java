@@ -339,13 +339,18 @@ public class DocumentsController {
                         int pk = Integer.parseInt(map.get("pk").toString());
 
                         if (status == 1) {
-                            // [승인] 1: 이미 저장된 데이터의 상태를 '0'(대기)으로 변경하여 활성화
+                            // [승인]
+                            // 1. 상태를 '0'(대기)으로 변경하여 활성화
                             productionService.updateWorkOrderStatus((long)pk, 0);
 
+                            // 2. [추가됨] 재고(acquired_qty) 변동 사항 반영
+                            productionService.confirmWorkOrderCreation((long)pk);
+
                         } else if (status == 2) {
-                            // [반려] 2: 이미 저장된 임시 데이터를 삭제
+                            // [반려] 임시 저장된 데이터 삭제
                             productionService.deleteWorkOrder((long)pk);
                         }
+
 
 
                     } else if (cd_id == 2) {  // [삭제] 요청 처리
