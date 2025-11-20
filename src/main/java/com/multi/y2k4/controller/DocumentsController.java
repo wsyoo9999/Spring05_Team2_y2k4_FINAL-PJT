@@ -51,7 +51,6 @@ public class DocumentsController {
     private final AttendanceService attendanceService;
     private final UnpaidService unpaidService;
 
-
     @GetMapping("/list")
     public List<Documents> list(@RequestParam(required = false) Integer doc_id,
                                 @RequestParam(required = false) Integer cat_id,
