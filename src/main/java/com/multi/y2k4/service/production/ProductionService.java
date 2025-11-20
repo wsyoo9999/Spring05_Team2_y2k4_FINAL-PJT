@@ -1,12 +1,14 @@
 package com.multi.y2k4.service.production;
 
 import com.multi.y2k4.mapper.tenant.production.ProductionMapper;
+import com.multi.y2k4.service.inventory.StockService;
 import com.multi.y2k4.vo.production.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +16,7 @@ import java.util.List;
 public class ProductionService {
 
     private final ProductionMapper productionMapper;
+    private final StockService stockService;
 
     // --- 작업지시서 (Work Order) ---
 
@@ -109,9 +112,41 @@ public class ProductionService {
 
     @Transactional
     public boolean addLot(Lot lot) {
+        // 1. 작업지시서 정보 조회 (완제품 ID 확인용)
+        WorkOrder wo = productionMapper.getWorkOrderDetail(lot.getWork_order_id());
+        if (wo == null) return false;
+
+        // 2. BOM 조회 (필요한 자재 목록)
+        List<BOM> bomList = productionMapper.getBOMListByParentId(wo.getStock_id());
+
+        // 3. 자재 재고 체크 및 차감
+        if (bomList != null && !bomList.isEmpty()) {
+            List<Integer> childStockIds = new ArrayList<>();
+            List<Integer> quantities = new ArrayList<>();
+
+            for (BOM bom : bomList) {
+                childStockIds.add(bom.getChild_stock_id().intValue());
+                // 소요량 = BOM필요수량 * 생산수량
+                quantities.add(bom.getRequired_qty() * lot.getLot_qty());
+            }
+
+            // operationType 3: 재고 부족 시 null 반환, 충분하면 차감 수행
+            List<Integer> result = stockService.manageStock(childStockIds, quantities, 3);
+
+            if (result == null) {
+                System.out.println("🚨 Lot 등록 실패: 원자재 재고 부족");
+                return false; // 재고 부족으로 등록 중단
+            }
+        }
+
+        // 4. Lot 등록 (실적 저장)
         int result = productionMapper.addLot(lot);
+
         if (result > 0) {
-            // 등록 후 상태 갱신 호출
+            // 5. 완제품 재고 증가 (operationType 1: 증가)
+            stockService.manageStock(wo.getStock_id().intValue(), 1, lot.getLot_qty());
+
+            // 6. 작업지시서 상태 갱신 (진행률 등)
             refreshWorkOrderState(lot.getWork_order_id());
             return true;
         }

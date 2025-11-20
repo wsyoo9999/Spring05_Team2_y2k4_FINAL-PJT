@@ -3,8 +3,10 @@ package com.multi.y2k4.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.multi.y2k4.service.document.DocumentsService;
 import com.multi.y2k4.service.production.ProductionService;
+import com.multi.y2k4.service.inventory.StockService;
 import com.multi.y2k4.vo.document.Documents;
 import com.multi.y2k4.vo.production.*;
+import com.multi.y2k4.vo.inventory.Stock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ public class ProductionController {
 
     private final ProductionService productionService;
     private final DocumentsService documentsService;
+    private final StockService stockService;
     private final ObjectMapper objectMapper;
 
     // 1. 작업지시서 목록 조회
@@ -91,6 +94,8 @@ public class ProductionController {
 
             // DB에 저장 (insert)
             productionService.addWorkOrder(newWorkOrder);
+            String stockName = "제품명 미상";
+            Stock stock = stockService.selectStockById(stock_id.intValue());
 
             // 2. 결재 문서용 JSON 데이터 생성
             Map<String, Object> payload = new HashMap<>();
@@ -106,10 +111,13 @@ public class ProductionController {
 
             // 3. 결재 문서 객체 생성
             Documents doc = new Documents();
-            doc.setTitle("[생산] 작업지시서 등록 요청 - " + start_date);
+            doc.setTitle("작업지시서 등록 요청 - " + stockName);
             doc.setReq_id(emp_id);
             doc.setReq_date(LocalDate.now());
             doc.setStatus(0); // 대기
+            doc.setCat_id(2); // 생산/제조
+            doc.setTb_id(0);  // 작업지시서
+            doc.setCd_id(0);  // 추가
 
             String query = objectMapper.writeValueAsString(payload);
             doc.setQuery(query);
@@ -141,13 +149,14 @@ public class ProductionController {
             payload.put("tb_id", 0);    // 테이블: 작업지시서
             payload.put("cd_id", 2);    // 동작: 삭제 (Delete)
 
+            payload.put("pk", work_order_id);
             // DocumentBodyBuilder가 데이터를 읽을 수 있도록 "workOrder" 키에 객체 저장
             payload.put("workOrder", targetWo);
 
             // 3. 결재 문서 객체 생성 및 정보 설정
             Documents doc = new Documents();
             // 문서 제목 설정 (예: [생산] 작업지시서 삭제 요청 - 제품명)
-            String title = "[생산] 작업지시서 삭제 요청 - " +
+            String title = "작업지시서 삭제 요청 - " +
                     (targetWo.getStock_name() != null ? targetWo.getStock_name() : "ID:" + work_order_id);
             doc.setTitle(title);
 
@@ -155,6 +164,9 @@ public class ProductionController {
             doc.setReq_id(targetWo.getEmp_id());
             doc.setReq_date(LocalDate.now());
             doc.setStatus(0); // 결재 상태: 0(대기)
+            doc.setCat_id(2); // 생산/제조
+            doc.setTb_id(0);  // 작업지시서
+            doc.setCd_id(2);  // 삭제
 
             // JSON 변환 및 쿼리 저장
             String query = objectMapper.writeValueAsString(payload);
