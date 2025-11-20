@@ -33,16 +33,16 @@ public class StockService {
         return stockMapper.list(stock);
     }
 
-    public int manageAcquiredAty(int stockId, int operationType, Integer quantity) {
+    public int manageStockQty(int stockId, int operationType, Integer quantity) {
         switch (operationType) {
             case 0: // 조회
-                return getAcquiredAty(stockId);
+                return getStockQty(stockId);
 
             case 1: // 증가
-                return updateAcquiredAty(stockId, quantity);
+                return updateStockQuantity(stockId, quantity);
 
             case 2: // 감소
-                return updateAcquiredAty(stockId, -quantity);
+                return updateStockQuantity(stockId, -quantity);
 
             default:
                 throw new IllegalArgumentException("잘못된 호출 형태: " + operationType);
@@ -50,27 +50,27 @@ public class StockService {
     }
 
 
-    public int manageAcquiredAty(int stockId, int operationType) {
+    public int manageStockQty(int stockId, int operationType) {
         if (operationType != 0) {
             throw new IllegalArgumentException("증감 작업에는 수량이 필요합니다.");
         }
-        return getAcquiredAty(stockId);
+        return getStockQty(stockId);
     }
 
 
-    public int getAcquiredAty(int stockId) {
+    public int getStockQty(int stockId) {
         Stock stock = stockMapper.selectStockById(stockId);
-        return stock != null ? stock.getAcquired_qty() : 0;
+        return stock != null ? stock.getQty() : 0;
     }
 
 
-    private int updateAcquiredAty(int stockId, int qtyChange) {
+    private int updateStockQuantity(int stockId, int qtyChange) {
         Stock stock = stockMapper.selectStockById(stockId);
 
         if (stock != null) {
-            int newQty = stock.getAcquired_qty() + qtyChange;
+            int newQty = stock.getQty() + qtyChange;
 
-            stock.setAcquired_qty(newQty);
+            stock.setQty(newQty);
             stockMapper.updateStock(stock);
 
             return newQty;

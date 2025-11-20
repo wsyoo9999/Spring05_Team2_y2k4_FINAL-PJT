@@ -9,6 +9,6 @@
     </select>
 
     <insert id="addUser" parameterType="com.multi.y2k4.vo.user.UserVO">
-        INSERT INTO user (id,password,name,email,company_id) VALUES (#{id}, #{password}, #{name}, #{email}, #{company_id})
+        INSERT INTO user (id,password,name,email,company_id, birthday, phone) VALUES (#{id}, #{password}, #{name}, #{email}, #{company_id}, #{birthday}, #{phone})
     </insert>
 </mapper>

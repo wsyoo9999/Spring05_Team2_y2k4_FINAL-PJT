@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
+
 @Controller
 @RequiredArgsConstructor
 
@@ -74,15 +76,20 @@ public class MainController {
                           @RequestParam("password") String password,
                           @RequestParam("email") String email,
                           @RequestParam("name") String name,
-                          @RequestParam("company_id") String company_id, Model model){
+                          @RequestParam("company_id") String company_id,
+                          @RequestParam("birthday") LocalDate birthday,
+                          @RequestParam("phone") String phone,
+                          Model model){
 
 
         UserVO userVO = new UserVO();
         userVO.setId(id);
         userVO.setPassword(password);
         userVO.setEmail(email);
-        userVO.setCompany_id(company_id);
         userVO.setName(name);
+        userVO.setCompany_id(company_id);
+        userVO.setBirthday(birthday);
+        userVO.setPhone(phone);
         int result = userService.addUser(userVO);
         if (result != 1){
             model.addAttribute("login_alert","로그인에 실패했습니다.");

@@ -16,9 +16,9 @@ spring:
       # EC2에 올라간 MySQL 도커가 리스닝하는 곳
       # - EC2에 MySQL 도커만 있고, 앱은 로컬에서 돌리니까
       #   여기에는 "EC2 퍼블릭 IP 또는 탄력 IP"를 적어준다.
-      url: jdbc:mysql://13.36.30.225:3306/userDB?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=utf8
+      url: jdbc:mysql://13.36.27.122:3306/userDB?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=utf8
       username: root          # docker-compose에서 설정한 계정
-      password: 5678     # docker-compose의 MYSQL_ROOT_PASSWORD와 일치
+      password: 1234     # docker-compose의 MYSQL_ROOT_PASSWORD와 일치
       driver-class-name: com.mysql.cj.jdbc.Driver
 
   # 여러 DataSource/빈들을 직접 등록하고 있어서 충돌 나지 않도록 허용
