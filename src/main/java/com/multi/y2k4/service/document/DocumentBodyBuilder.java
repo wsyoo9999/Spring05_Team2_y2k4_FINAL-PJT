@@ -747,7 +747,29 @@ public class DocumentBodyBuilder {
                         sb.append("</tbody></table>");
 
                     }else if (cd_id == 1) {  //수정
+                        sb.append("<h3 class=\"doc-section-title\">인사 발령(퇴직) 요청서</h3>");
+                        sb.append("<table class=\"doc-map-table\"><tbody>");
 
+                        sb.append("<tr>")
+                                .append("<th class=\"doc-data-label\">대상자</th>")
+                                .append("<td class=\"doc-data-value\">")
+                                .append(escape_html((String) payload_map.get("targetEmpName")))
+                                .append(" (사번: ").append(payload_map.get("targetEmpId")).append(")")
+                                .append("</td></tr>");
+
+                        sb.append("<tr>")
+                                .append("<th class=\"doc-data-label\">변경 구분</th>")
+                                .append("<td class=\"doc-data-value\">")
+                                .append("재직 상태 변경 ( → ").append(escape_html((String) payload_map.get("newStatus"))).append(")")
+                                .append("</td></tr>");
+
+                        sb.append("<tr>")
+                                .append("<th class=\"doc-data-label\">사유/비고</th>")
+                                .append("<td class=\"doc-data-value\">")
+                                .append(escape_html((String) payload_map.get("reason")))
+                                .append("</td></tr>");
+
+                        sb.append("</tbody></table>");
 
                     } else if (cd_id == 2) {  //삭제
 

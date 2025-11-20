@@ -13,4 +13,5 @@ public class Employee {
     private LocalDate hire_date;    // 입사일
     private String status;          // 재직상태 (재직, 휴직, 퇴사)
     private String phone_number;    // 연락처
+    private Integer supervisor;     //직속상사 사번
 }

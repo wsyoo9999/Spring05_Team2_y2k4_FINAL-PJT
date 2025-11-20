@@ -387,6 +387,21 @@ public class DocumentsController {
                         }
                     }
                 }
+                else if (tb_id == 1) {
+                    if (cd_id == 1) { // 수정
+                        if (status == 1) { // 승인 시
+                            int targetEmpId = Integer.parseInt(String.valueOf(map.get("targetEmpId")));
+                            String newStatus = (String) map.get("newStatus");
+
+                            com.multi.y2k4.vo.hr.Employee emp = new com.multi.y2k4.vo.hr.Employee();
+                            emp.setEmp_id(targetEmpId);
+                            emp.setStatus(newStatus);
+
+                            // 수정된 Mapper가 null이 아닌 필드(status)만 업데이트함
+                            employeeService.updateEmployee(emp);
+                        }
+                    }
+                }
             }
         } catch (Exception e) {e.printStackTrace();}
         documentsService.editStatus(doc_id, status);

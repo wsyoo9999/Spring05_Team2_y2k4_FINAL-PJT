@@ -108,6 +108,17 @@ async function employees_fetch_data(formData) {
     const search_dept = formData.search_dept || '';
     const search_position = formData.search_position || '';
 
+    // 1. [핵심] 상사 이름 매핑을 위해 전체 직원 목록을 먼저 가져옵니다 (ID -> 이름 매핑용)
+    // (실무에선 데이터가 많으면 별도 API를 쓰지만, 여기선 기존 API 활용)
+    let nameMap = {};
+    try {
+        const allEmps = await $.ajax({ url: `${API_BASE_URL}/employees`, method: 'GET', dataType: 'json' });
+        if(allEmps) {
+            allEmps.forEach(e => { nameMap[e.emp_id] = e.emp_name; });
+        }
+    } catch(e) { console.error("매핑 데이터 로드 실패"); }
+
+    // 2. 실제 검색 결과 가져오기
     let table = `<table>
                     <thead>
                         <tr>
@@ -115,7 +126,7 @@ async function employees_fetch_data(formData) {
                             <th>이름</th>
                             <th>부서</th>
                             <th>직급</th>
-                            <th>입사일</th>
+                            <th>직속 상사</th> <th>입사일</th>
                             <th>재직상태</th>
                             <th>연락처</th>
                             <th>관리</th>
@@ -138,12 +149,18 @@ async function employees_fetch_data(formData) {
 
         if (data && data.length > 0) {
             $.each(data, function (i, row) {
+                // [핵심] supervisor ID를 이용해 nameMap에서 이름을 찾습니다.
+                let supervisorName = '-';
+                if (row.supervisor && nameMap[row.supervisor]) {
+                    supervisorName = nameMap[row.supervisor];
+                }
+
                 tbody += `<tr>
                 <td>${row.emp_id || ''}</td>
                 <td>${row.emp_name || ''}</td>
                 <td>${row.dept_name || ''}</td>
                 <td>${row.position || ''}</td>
-                <td>${formatDate(row.hire_date) || ''}</td>
+                <td>${supervisorName}</td> <td>${formatDate(row.hire_date) || ''}</td>
                 <td>${row.status || ''}</td>
                 <td>${row.phone_number || ''}</td>
                 <td class="actions">
@@ -158,13 +175,13 @@ async function employees_fetch_data(formData) {
               </tr>`;
             });
         } else {
-            tbody += '<tr><td colspan="7" style="text-align:center;">데이터가 없습니다.</td></tr>';
+            tbody += '<tr><td colspan="9" style="text-align:center;">데이터가 없습니다.</td></tr>';
         }
         tbody += `</tbody></table>`;
         return table + tbody;
     } catch (err) {
         console.error("employees_list 로딩 실패:", err);
-        return table + `<tbody><tr><td colspan="7" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
+        return table + `<tbody><tr><td colspan="9" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
     }
 }
 

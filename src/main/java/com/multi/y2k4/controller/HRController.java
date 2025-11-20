@@ -75,7 +75,8 @@ public class HRController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hire_date,
             @RequestParam String status,
             @RequestParam(required = false) String dept_name,
-            @RequestParam(required = false) String phone_number
+            @RequestParam(required = false) String phone_number,
+            @RequestParam(required = false) Integer supervisor
     ) {
         try {
             Employee newEmployee = new Employee();
@@ -85,6 +86,7 @@ public class HRController {
             newEmployee.setStatus(status);
             newEmployee.setDept_name(dept_name);
             newEmployee.setPhone_number(phone_number);
+            newEmployee.setSupervisor(supervisor);
 
             return employeeService.addEmployee(newEmployee) > 0;
         } catch (Exception e) {
@@ -168,12 +170,9 @@ public class HRController {
 
         try {
             // 1. 세션에서 내 정보 가져오기
-            String requesterId = (String) session.getAttribute("id");
-            String position = (String) session.getAttribute("position");
+            // String position = (String) session.getAttribute("position"); // 직급 확인 로직 제거
             Integer empIdObj = (Integer) session.getAttribute("emp_id");
             String empName = (String) session.getAttribute("emp_name");
-
-
 
             if (empIdObj == null) return false; // 로그인 정보 오류
             Long requesterEmpId = Long.valueOf(empIdObj);
@@ -195,28 +194,60 @@ public class HRController {
             doc.setReq_date(LocalDate.now());
             doc.setQuery(objectMapper.writeValueAsString(payload));
 
-            // 4. ★ 직급에 따른 분기 처리 ★
-            if ("최상위 관리자".equals(position)) {
-                // [Case A] 최상위 관리자 -> 자동 승인
-                doc.setStatus(1); // 1: 승인
-                doc.setAppr_id(requesterEmpId); // 본인 전결
-                doc.setAppr_date(LocalDate.now());
-                doc.setComments("자동 승인 (최상위 관리자)");
+            // 4. ★ 수정됨: 모든 신청을 '결재 대기' 상태로 생성 ★
+            // 기존의 "최상위 관리자" 자동 승인 로직을 제거하고 무조건 대기로 설정합니다.
 
-                // (1) 문서 저장
-                documentsService.addDocument(doc);
+            doc.setStatus(0);     // 0: 대기 (승인 전)
+            doc.setAppr_id(null); // 결재자 미지정 (누구든 권한 있는 사람이 승인 가능)
 
-                // (2) 근태 테이블에 즉시 반영 (휴가 처리)
-                attendanceService.applyVacation(requesterEmpId.intValue(), startDate, endDate);
+            // (1) 문서 저장 (이 시점에는 근태 DB에 반영되지 않음)
+            documentsService.addDocument(doc);
 
-            } else {
-                // [Case B] 일반 사원/중간 관리자 -> 결재 대기
-                doc.setStatus(0); // 0: 대기
-                doc.setAppr_id(null); // 결재자 미정 (누구든 권한 있는 사람이 승인 가능)
+            return true;
 
-                // (1) 문서 저장 (대기 상태)
-                documentsService.addDocument(doc);
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * [추가] 퇴직 처리 결재 요청
+     */
+    @PostMapping("/employees/request-resignation")
+    public boolean requestResignation(@RequestBody Map<String, Object> reqData, HttpSession session) {
+        try {
+            // 1. 세션 정보 (기안자)
+            Integer requesterId = (Integer) session.getAttribute("emp_id");
+            String requesterName = (String) session.getAttribute("emp_name");
+            if (requesterId == null) return false;
+
+            // 2. 클라이언트에서 보낸 데이터 (대상 직원 ID, 이름)
+            Integer targetEmpId = Integer.parseInt(reqData.get("emp_id").toString());
+            String targetEmpName = (String) reqData.get("emp_name");
+            String reason = (String) reqData.get("reason"); // 사유 (선택)
+
+            // 3. JSON Payload 생성 (결재 승인 시 사용할 데이터)
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("cat_id", 4);   // 인사
+            payload.put("tb_id", 1);    // 1: 인사 발령(상태 변경)으로 정의
+            payload.put("cd_id", 1);    // 1: 수정(Update)
+            payload.put("targetEmpId", targetEmpId);
+            payload.put("targetEmpName", targetEmpName);
+            payload.put("newStatus", "퇴사"); // 변경할 상태
+            payload.put("reason", reason);
+
+            // 4. 문서 생성
+            Documents doc = new Documents();
+            doc.setTitle("[퇴직신청] " + targetEmpName + " 퇴사 처리 요청");
+            doc.setReq_id(Long.valueOf(requesterId));
+            doc.setReq_date(LocalDate.now());
+            doc.setQuery(objectMapper.writeValueAsString(payload));
+            doc.setStatus(0);      // 대기
+            doc.setAppr_id(null);  // 결재자 미지정
+
+            // 5. 저장
+            documentsService.addDocument(doc);
 
             return true;
 
