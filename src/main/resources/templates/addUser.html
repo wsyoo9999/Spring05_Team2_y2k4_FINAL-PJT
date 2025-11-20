@@ -147,17 +147,17 @@
                 <input type="text" id="company_display" placeholder="회사 찾기를 눌러주세요" disabled>
                 <button type="button" onclick="find_Company()">회사 찾기</button>
             </div>
-            <input type="hidden" name="company_id" id="company_id_hidden">
+            <input type="hidden" name="company_id" id="company_id_hidden" required >
         </div>
 
         <div>
             <label>생년월일</label>
-            <input type="number" name="birthday" maxlength="8" placeholder="생년월일 8자리 (YYYYMMDD)" required>
+            <input type="date" name="birthday" maxlength="8" placeholder="생년월일 8자리 (YYYYMMDD)" required>
         </div>
 
         <div>
             <label>휴대전화 번호</label>
-            <input type="number" name="phone" maxlength="11" placeholder="휴대전화 번호 (숫자만)" required>
+            <input type="text" name="phone" maxlength="11" placeholder="휴대전화 번호 (숫자만)" required>
         </div>
 
         <button type="submit">회원 등록</button>
@@ -180,7 +180,6 @@
             alert('아이디는 최소 4자 이상이어야 합니다.');
             return;
         }
-
         // --- Mockup 결과 ---
         const isDuplicated = userId === 'testuser' || userId === 'admin';
 

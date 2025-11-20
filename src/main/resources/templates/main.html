@@ -56,6 +56,7 @@
             font-weight: 700;
             font-size: 22px;
             color: var(--primary-color);
+            cursor: pointer;
         }
         .nav-brand .nav-logo {
             width: 32px; height: 32px; border-radius: 8px;
@@ -83,6 +84,7 @@
             font-size: 15px;
             font-weight: 500;
             transition: background 0.2s, color 0.2s;
+            gap: 8px;
         }
         .nav-link:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
         .nav-link.active { color: var(--text-light); background: var(--primary-color); }
@@ -349,8 +351,8 @@
 </head>
 <body>
 <header class="nav-bar">
-    <div class="nav-brand">
-        <span class="nav-logo" aria-hidden="true"><i class="fas fa-cube"></i></span>
+    <div class="nav-brand" onclick="window.location.href='/'">
+        <span class="nav-logo" aria-hidden="true" ><i class="fas fa-cube"></i></span>
         <span>Y2K4 ERP</span>
     </div>
 
@@ -368,8 +370,8 @@
     </nav>
 
     <div class="nav-right">
-        <button class="nav-icon-btn" title="알림" aria-label="알림" onclick="window.location.href='/alerts'">🔔</button>
-        <button class="nav-icon-btn" title="프로필" aria-label="프로필"><i class="fas fa-user-circle"></i></button>
+        <button class="nav-icon-btn" title="알림" aria-label="알림" onclick="window.location.href='/alerts'"><i class="fas fa-bell"></i></button>
+        <button class="nav-icon-btn" title="프로필" aria-label="프로필" onclick="window.location.href='/mypage'"><i class="fas fa-user-circle"></i></button>
     </div>
 </header>
 

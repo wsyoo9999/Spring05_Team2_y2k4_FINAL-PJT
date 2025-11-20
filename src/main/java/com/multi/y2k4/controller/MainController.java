@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.util.List;
 
+
+
 @Controller
 @RequiredArgsConstructor
 public class MainController {
@@ -43,7 +45,6 @@ public class MainController {
         return "login";
     }
 
-    // ▼ [수정] login 메소드
     @PostMapping("/login")
     public String login(@RequestParam("id") String id, @RequestParam("password") String password, HttpSession httpSession, Model model) {
         UserVO user = userService.checkLogin(id, password);
@@ -55,14 +56,14 @@ public class MainController {
             // dbName 이 null 이거나 비어있으면 임시로 하나 지정 (테스트용)
             dbName = "db_" + dbName;
 
-            // 3) DB 존재 여부 확인 (DB가 없으면 생성 및 마이그레이션)
-            //    (회원가입 시 이미 생성되었어야 하지만, 안전장치로 확인)
+
+            // 3) DB 존재 여부 확인
             int exists = dbService.existsDatabase(dbName);
 
             if (exists == 0) {
-                // 4) DB 없으면 생성 (직원 등록은 회원가입시 처리)
+                // 4) DB 없으면 생성
                 dbService.createDatabase(dbName);
-                // 4-1) 테이블 생성
+                // 4-1) 테이블도 생성
                 tenantSchemaService.migrate(dbName);
                 System.out.println(dbName + " 데이터베이스가 존재하지 않아 새로 생성했습니다.");
             }
@@ -98,19 +99,21 @@ public class MainController {
                           @RequestParam("password") String password,
                           @RequestParam("email") String email,
                           @RequestParam("name") String name,
-                          @RequestParam("company_id") String company_id, Model model){
+                          @RequestParam("company_id") String company_id,
+                          @RequestParam("birthday") LocalDate birthday,
+                          @RequestParam("phone") String phone,
+                          Model model){
 
 
         UserVO userVO = new UserVO();
         userVO.setId(id);
         userVO.setPassword(password);
         userVO.setEmail(email);
-        userVO.setCompany_id(company_id);
         userVO.setName(name);
-
-        // 1. 관리 DB(userDB)에 사용자 추가
+        userVO.setCompany_id(company_id);
+        userVO.setBirthday(birthday);
+        userVO.setPhone(phone);
         int result = userService.addUser(userVO);
-
         if (result != 1){
             model.addAttribute("login_alert","회원가입에 실패했습니다.");
             return "login";
