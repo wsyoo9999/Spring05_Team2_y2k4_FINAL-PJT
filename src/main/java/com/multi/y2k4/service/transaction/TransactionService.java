@@ -86,6 +86,8 @@ public class TransactionService {
             int id = sale.getSale_id();
             for (SaleDetails d : saleDetails) {
                 d.setSale_id(id);
+                stockService.manageAcquiredAty(d.getStock_id(),1,d.getQty());
+
             }
             saleDetailsService.addSaleDetails(saleDetails);
 
@@ -150,8 +152,18 @@ public class TransactionService {
         Integer sup = (Integer) httpSession.getAttribute("supervisor");
         Integer authLevel = (Integer) httpSession.getAttribute("authLevel");
 
+        List<Integer> before_stocks = new ArrayList<>();
+        List<Integer> after_stocks = new ArrayList<>();
+        List<Integer> before_qty = new ArrayList<>();
+        List<Integer> after_qty = new ArrayList<>();
+
         Sale before_sale = saleService.searchById(sale_id);
         List<SaleDetails> before_saleDetails = saleDetailsService.searchById(sale_id);
+
+        for (SaleDetails saleDetail : before_saleDetails) {
+            before_stocks.add(saleDetail.getStock_id());
+            before_qty.add(saleDetail.getQty());
+        }
 
         Sale edit_sale = new Sale();
         edit_sale.setSale_id(sale_id);
@@ -170,6 +182,8 @@ public class TransactionService {
             saleDetail.setPrice_per_unit(price_per_unit[i]);
             saleDetail.setTotal_price(price_per_unit[i] * qty[i]);
             edit_saleDetail.add(saleDetail);
+            after_stocks.add(saleDetail.getStock_id());
+            after_qty.add(saleDetail.getStock_id());
             total_price += saleDetail.getTotal_price();
         }
         edit_sale.setTotal_price(total_price);
@@ -177,6 +191,15 @@ public class TransactionService {
         Documents doc = new Documents();
 
         if (authLevel == 0) {   // 바로 수정 반영
+
+            for(int  i = 0; i < before_stocks.size(); i++){     //수정 전의 요청 수량을 원래대로
+                stockService.manageAcquiredAty(before_stocks.get(i),2,before_qty.get(i));
+            }
+
+            for(int  i = 0; i < after_stocks.size(); i++){
+                stockService.manageAcquiredAty(after_stocks.get(i),1,after_qty.get(i));
+            }
+
             saleService.editSale(edit_sale);
             saleDetailsService.deleteSaleDetails(sale_id);
             saleDetailsService.addSaleDetails(edit_saleDetail);
@@ -233,7 +256,7 @@ public class TransactionService {
 
         List<Integer> result;
         if (status == 1) {    // 배송 시작 -> 재고 체크
-            result = stockService.manageStock(stock_id, qty, 3); // null이 아니면 성공
+            result = stockService.manageStock(stock_id, qty,qty, 2); // null이 아니면 성공
             if (result != null) {
                 saleService.editSaleStatus(sale);
             } else {
@@ -452,7 +475,7 @@ public class TransactionService {
         }
 
         // 기존 코드 그대로: 결과값은 사용하지 않음
-        stockService.manageStock(stocks, arr_qty, 1);
+        stockService.manageStock(stocks, arr_qty, null,1);
 
         Purchase origin = purchaseService.searchById(purchase_id);
         if (origin == null) return false;

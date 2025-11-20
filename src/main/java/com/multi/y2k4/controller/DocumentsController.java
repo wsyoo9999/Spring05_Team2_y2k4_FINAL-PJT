@@ -7,6 +7,7 @@ import com.multi.y2k4.service.document.DocumentsService;
 import com.multi.y2k4.service.finance.UnpaidService;
 import com.multi.y2k4.service.hr.AttendanceService;
 import com.multi.y2k4.service.hr.EmployeeService;
+import com.multi.y2k4.service.inventory.StockService;
 import com.multi.y2k4.service.production.ProductionService;
 import com.multi.y2k4.service.transaction.PurchaseDetailsService;
 import com.multi.y2k4.service.transaction.PurchaseService;
@@ -50,6 +51,9 @@ public class DocumentsController {
     private final EmployeeService employeeService;
     private final AttendanceService attendanceService;
     private final UnpaidService unpaidService;
+    
+    /*************재고 수정 관련**********/
+    private final StockService stockService;
 
 
     @GetMapping("/list")
@@ -157,6 +161,12 @@ public class DocumentsController {
                             saleService.editSaleStatus(s);
 
                             Sale sale = saleService.searchById(pk);
+                            List<SaleDetails> saleDetails = saleDetailsService.searchById(pk);
+
+                            for (SaleDetails d : saleDetails) {
+                                stockService.manageAcquiredAty(d.getStock_id(),1,d.getQty());   //해당 판매에 필요한 주문의 요구수량을 증가
+                            }
+                            
                             unpaid.setCat_id(cat_id);
                             unpaid.setTb_id(tb_id);
                             unpaid.setRef_pk((long) pk);
@@ -186,6 +196,16 @@ public class DocumentsController {
                             List<SaleDetails> details_list = (details_obj != null)  //수정할(기존의 것 삭제하고 다시 넣을) 세부 정보들
                                     ? objectMapper.convertValue(details_obj, new TypeReference<List<SaleDetails>>() {})
                                     : Collections.emptyList();
+
+                            List<SaleDetails> before_details = saleDetailsService.searchById(before_pk);
+
+                            for (SaleDetails beforeDetail : before_details) {     //수정 전의 요청 수량을 원래대로
+                                stockService.manageAcquiredAty(beforeDetail.getStock_id(), 2, beforeDetail.getQty());
+                            }
+
+                            for (SaleDetails details_lists : details_list) {     //수정 후의 요청 수량을 반영
+                                stockService.manageAcquiredAty(details_lists.getStock_id(), 1, details_lists.getQty());
+                            }
 
 
                             saleDetailsService.deleteSaleDetails(before_pk);   //기존의 판매 세부 정보 삭제
