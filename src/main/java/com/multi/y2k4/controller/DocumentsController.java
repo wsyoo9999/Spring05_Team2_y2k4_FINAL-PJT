@@ -55,7 +55,6 @@ public class DocumentsController {
     /*************재고 수정 관련**********/
     private final StockService stockService;
 
-
     @GetMapping("/list")
     public List<Documents> list(@RequestParam(required = false) Integer doc_id,
                                 @RequestParam(required = false) Integer cat_id,
@@ -405,6 +404,21 @@ public class DocumentsController {
                             attendanceService.applyVacation(reqId, startDate, endDate);
                         } else if (status == 2) { // [반려]
                             // 반려 시 별도 DB 작업 없음 (문서 상태만 '반려'로 변경됨)
+                        }
+                    }
+                }
+                else if (tb_id == 1) {
+                    if (cd_id == 1) { // 수정
+                        if (status == 1) { // 승인 시
+                            int targetEmpId = Integer.parseInt(String.valueOf(map.get("targetEmpId")));
+                            String newStatus = (String) map.get("newStatus");
+
+                            com.multi.y2k4.vo.hr.Employee emp = new com.multi.y2k4.vo.hr.Employee();
+                            emp.setEmp_id(targetEmpId);
+                            emp.setStatus(newStatus);
+
+                            // 수정된 Mapper가 null이 아닌 필드(status)만 업데이트함
+                            employeeService.updateEmployee(emp);
                         }
                     }
                 }
