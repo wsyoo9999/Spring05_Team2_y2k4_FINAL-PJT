@@ -55,12 +55,12 @@ public class StockService {
     public List<Integer> manageStock(List<Integer> stockId , List<Integer> quantity, int operationType) {
         switch (operationType) {
             case 0: // 조회
-                if(stockId.size() != quantity.size()){
+                if(stockId==null){
                     return null;
                 }else{
                     List<Integer> result = new ArrayList<>();
                     for(int i = 0; i < quantity.size(); i++){
-                        result.add(stockId.get(i));
+                        result.add(getStockQty(stockId.get(i)));
                     }
                     return result;
                 }
@@ -70,7 +70,7 @@ public class StockService {
                     return null;
                 }else{
                     for(int i = 0; i < quantity.size(); i++){
-                        updateStockQuantity(stockId.get(i), quantity.get(i));
+                        updateStockQuantity((stockId.get(i)), quantity.get(i));
                     }
                     return Collections.singletonList(0);
                 }
