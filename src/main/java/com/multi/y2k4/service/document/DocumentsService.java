@@ -34,8 +34,8 @@ public class DocumentsService {
     };
 
 
-    public int editStatus(Integer doc_id, Integer status){
-        return documentsMapper.editStatus(doc_id, status);
+    public int editStatus(Integer doc_id, Integer status, String comments){
+        return documentsMapper.editStatus(doc_id, status,comments);
     };
 
     @Transactional

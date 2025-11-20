@@ -29,6 +29,8 @@ export async function sale_listAll(){
     $.each(data, function (i, row){
         let edit;
         let editStatus;
+        let statusColor;
+        let statusText;
         if(row.status==1){  //현재 주문 배송중 상태
             edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSaleStatus">
                                 <i class="fas fa-gear"></i></button>`;
@@ -36,6 +38,8 @@ export async function sale_listAll(){
                                   onClick="alert('이미 배송을 시작한 주문은 수정 및 변경 불가합니다')">
                                 <i class="fas fa-edit"></i>
                             </button>`
+            statusText = `배송중`
+            statusColor = '#f39c12'
         }else if(row.status==2){
             edit = `<button type="button"
                                   onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
@@ -45,6 +49,8 @@ export async function sale_listAll(){
                                   onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
                                 <i class="fas fa-edit"></i>
                             </button>`
+            statusText = `도착 완료`
+            statusColor = '#27ae60'
 
         }
         else if(row.status==0){
@@ -52,6 +58,8 @@ export async function sale_listAll(){
                                 <i class="fas fa-gear"></i></button>`;
             edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
                                 <i class="fas fa-edit"></i></button>`
+            statusText = `배송 준비중`
+            statusColor = '#e74c3c'
         }else{
             edit = `<button type="button"
                                   onClick="alert('아직 결재 전')">
@@ -61,6 +69,9 @@ export async function sale_listAll(){
                                   onClick="alert('아직 결재 전')">
                                 <i class="fas fa-edit"></i>
                             </button>`
+
+            statusText = `결재 전`
+            statusColor = '#e74c3c'
         }
         tbody += `<tr>
                         <td class="emp-id"
@@ -85,8 +96,8 @@ export async function sale_listAll(){
                         <td>
                             ${row.due_date}
                         </td>
-                        <td>
-                            ${row.status}
+                        <td style="color:${statusColor}; font-weight:600;">
+                        ${statusText}
                         </td>
                         <td class="ac-id"
                             data-value="${row.sale_id}"
@@ -160,6 +171,8 @@ export async function sale_list(formData){
     $.each(data, function (i, row){
         let edit;
         let editStatus;
+        let statusColor;
+        let statusText;
         if(row.status==1){  //현재 주문 배송중 상태
             edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSaleStatus">
                                 <i class="fas fa-gear"></i></button>`;
@@ -167,6 +180,8 @@ export async function sale_list(formData){
                                   onClick="alert('이미 배송을 시작한 주문은 수정 및 변경 불가합니다')">
                                 <i class="fas fa-edit"></i>
                             </button>`
+            statusText = `배송중`
+            statusColor = '#f39c12'
         }else if(row.status==2){
             edit = `<button type="button"
                                   onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
@@ -176,6 +191,8 @@ export async function sale_list(formData){
                                   onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
                                 <i class="fas fa-edit"></i>
                             </button>`
+            statusText = `도착 완료`
+            statusColor = '#27ae60'
 
         }
         else if(row.status==0){
@@ -183,6 +200,8 @@ export async function sale_list(formData){
                                 <i class="fas fa-gear"></i></button>`;
             edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
                                 <i class="fas fa-edit"></i></button>`
+            statusText = `배송 준비중`
+            statusColor = '#e74c3c'
         }else{
             edit = `<button type="button"
                                   onClick="alert('아직 결재 전')">
@@ -192,6 +211,9 @@ export async function sale_list(formData){
                                   onClick="alert('아직 결재 전')">
                                 <i class="fas fa-edit"></i>
                             </button>`
+
+            statusText = `결재 전`
+            statusColor = '#e74c3c'
         }
         tbody += `<tr>
                         <td class="emp-id"
@@ -216,8 +238,8 @@ export async function sale_list(formData){
                         <td>
                             ${row.due_date}
                         </td>
-                        <td>
-                            ${row.status}
+                        <td style="color:${statusColor}; font-weight:600;">
+                        ${statusText}
                         </td>
                         <td class="ac-id"
                             data-value="${row.sale_id}"
@@ -279,6 +301,8 @@ export async function purchase_listAll(){
     $.each(data, function (i, row){
         let edit;
         let editStatus;
+        let statusText;
+        let statusColor;
         if(row.status==1){
             editStatus = `<button type="button"
                                   onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
@@ -288,6 +312,8 @@ export async function purchase_listAll(){
                                   onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
                                 <i class="fas fa-edit"></i>
                             </button>`
+            statusText = `도착 완료`
+            statusColor = '#27ae60'
         }else if(row.status==0){
             editStatus = ` <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchaseStatus">
                                 <i class="fas fa-gear"></i>
@@ -295,6 +321,9 @@ export async function purchase_listAll(){
             edit= `<button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
                                 <i class="fas fa-edit"></i>
                             </button>`
+
+            statusText = `배송 준비`
+            statusColor = '#f39c12'
         }else{
             editStatus = `<button type="button"
                                   onClick="alert('아직 결재 전')">
@@ -304,6 +333,8 @@ export async function purchase_listAll(){
                                   onClick="alert('아직 결재 전')">
                                 <i class="fas fa-edit"></i>
                             </button>`
+            statusText = `결재 전`
+            statusColor = '#e74c3c'
         }
         tbody += `<tr>
                         <td class="emp-id"
@@ -328,8 +359,8 @@ export async function purchase_listAll(){
                         <td>
                             ${row.del_date}
                         </td>
-                        <td>
-                            ${row.status}
+                        <td style="color:${statusColor}; font-weight:600;">
+                        ${statusText}
                         </td>
                         <td class="ac-id"
                             data-value="${row.purchase_id}"
@@ -402,6 +433,8 @@ export async function purchase_list(formData){
     $.each(data, function (i, row){
         let edit;
         let editStatus;
+        let statusText;
+        let statusColor;
         if(row.status==1){
             editStatus = `<button type="button"
                                   onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
@@ -411,6 +444,8 @@ export async function purchase_list(formData){
                                   onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
                                 <i class="fas fa-edit"></i>
                             </button>`
+            statusText = `도착 완료`
+            statusColor = '#27ae60'
         }else if(row.status==0){
             editStatus = ` <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchaseStatus">
                                 <i class="fas fa-gear"></i>
@@ -418,6 +453,9 @@ export async function purchase_list(formData){
             edit= `<button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
                                 <i class="fas fa-edit"></i>
                             </button>`
+
+            statusText = `배송 준비`
+            statusColor = '#f39c12'
         }else{
             editStatus = `<button type="button"
                                   onClick="alert('아직 결재 전')">
@@ -427,6 +465,8 @@ export async function purchase_list(formData){
                                   onClick="alert('아직 결재 전')">
                                 <i class="fas fa-edit"></i>
                             </button>`
+            statusText = `결재 전`
+            statusColor = '#e74c3c'
         }
         tbody += `<tr>
                         <td class="emp-id"
@@ -451,8 +491,8 @@ export async function purchase_list(formData){
                         <td>
                             ${row.del_date}
                         </td>
-                        <td>
-                            ${row.status}
+                        <td style="color:${statusColor}; font-weight:600;">
+                        ${statusText}
                         </td>
                         <td class="ac-id"
                             data-value="${row.purchase_id}"

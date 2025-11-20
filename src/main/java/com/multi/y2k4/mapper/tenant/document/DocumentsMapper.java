@@ -27,5 +27,6 @@ public interface DocumentsMapper {
     int addDocument(Documents document);
 
     int editStatus(@Param("doc_id") Integer doc_id,
-                   @Param("status") Integer status);
+                   @Param("status") Integer status,
+                   @Param("comments") String comments);
 }

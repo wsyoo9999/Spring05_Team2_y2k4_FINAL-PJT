@@ -78,7 +78,8 @@ public class DocumentsController {
 
     @PostMapping("/editStatus")     //결재 승인 및 반려 처리
     public boolean editStatus(@RequestParam Integer doc_id,
-                              @RequestParam Integer status) {
+                              @RequestParam Integer status,
+                              @RequestParam(required = false) String comments) {
         Documents doc = documentsService.searchById(doc_id);
         String query = doc.getQuery();
         HashMap<String, Object> map = null;
@@ -360,7 +361,6 @@ public class DocumentsController {
                     }
                 }
 
-
             /*===============================재고 관련=================================================*/
 
 //            } else if (cat_id == 3) { //재고
@@ -410,7 +410,7 @@ public class DocumentsController {
                 }
             }
         } catch (Exception e) {e.printStackTrace();}
-        documentsService.editStatus(doc_id, status);
+        documentsService.editStatus(doc_id, status,comments);
         return true;
     }
 

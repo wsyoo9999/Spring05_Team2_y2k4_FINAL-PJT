@@ -37,7 +37,10 @@
     </select>
 
     <select id="searchById" resultType="com.multi.y2k4.vo.document.Documents">
-        SELECT * FROM documents WHERE doc_id = #{doc_id}
+        SELECT d.*, req.emp_name req_name, appr.emp_name appr_name FROM documents d
+        LEFT JOIN human_resource req ON req.emp_id = d.req_id
+        LEFT JOIN human_resource appr ON appr.emp_id   = d.appr_id
+        WHERE d.doc_id = #{doc_id}
     </select>
 
     <insert id="addDocument" parameterType="com.multi.y2k4.vo.document.Documents" useGeneratedKeys="true" keyProperty="doc_id" keyColumn="doc_id">
@@ -46,7 +49,7 @@
     </insert>
 
     <update id="editStatus">
-        UPDATE documents set status = #{status} WHERE doc_id = #{doc_id}
+        UPDATE documents set status = #{status}, comments = #{comments} WHERE doc_id = #{doc_id}
     </update>
 
 </mapper>

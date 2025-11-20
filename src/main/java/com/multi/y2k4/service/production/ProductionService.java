@@ -131,12 +131,12 @@ public class ProductionService {
             }
 
             // operationType 3: 재고 부족 시 null 반환, 충분하면 차감 수행
-            List<Integer> result = stockService.manageStock(childStockIds, quantities, 3);
+            //List<Integer> result = stockService.manageStock(childStockIds, quantities, 3);
 
-            if (result == null) {
-                System.out.println("🚨 Lot 등록 실패: 원자재 재고 부족");
-                return false; // 재고 부족으로 등록 중단
-            }
+//            if (result == null) {
+//                System.out.println("🚨 Lot 등록 실패: 원자재 재고 부족");
+//                return false; // 재고 부족으로 등록 중단
+//            }
         }
 
         // 4. Lot 등록 (실적 저장)
@@ -144,7 +144,7 @@ public class ProductionService {
 
         if (result > 0) {
             // 5. 완제품 재고 증가 (operationType 1: 증가)
-            stockService.manageStock(wo.getStock_id().intValue(), 1, lot.getLot_qty());
+            //stockService.manageStock(wo.getStock_id().intValue(), 1, lot.getLot_qty());
 
             // 6. 작업지시서 상태 갱신 (진행률 등)
             refreshWorkOrderState(lot.getWork_order_id());
