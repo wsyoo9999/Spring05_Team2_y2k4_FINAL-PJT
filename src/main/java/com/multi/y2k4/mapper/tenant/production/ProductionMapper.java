@@ -45,4 +45,5 @@ public interface ProductionMapper {
     int deleteLotsByWorkOrderId(@Param("work_order_id") Long work_order_id);
     int deleteDefectsByLotId(@Param("lot_id") Long lot_id);
     int deleteLot(@Param("lot_id") Long lot_id);
+    int updateWorkOrderStatus(@Param("work_order_id") Long work_order_id, @Param("status") int status);
 }

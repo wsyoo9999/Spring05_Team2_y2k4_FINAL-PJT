@@ -61,29 +61,38 @@
         WHEN w.order_status = 0 THEN '대기'
         WHEN w.order_status = 1 THEN '진행중'
         WHEN w.order_status = 2 THEN '완료'
-        ELSE '알 수 없음'
+        WHEN w.order_status = 99 THEN '승인대기'  ELSE '알 수 없음'
         END AS order_status
         FROM work_order w
         LEFT JOIN stock s ON w.stock_id = s.stock_id
-        LEFT JOIN human_resource hr ON w.emp_id = hr.emp_id <where>
-        <if test="order_status != null and order_status != ''">
-            <choose>
-                <when test="order_status == '대기'"> AND w.order_status = 0 </when>
-                <when test="order_status == '진행중'"> AND w.order_status = 1 </when>
-                <when test="order_status == '완료'"> AND w.order_status = 2 </when>
-            </choose>
-        </if>
-        <if test="stock_name != null and stock_name != ''">
-            AND s.stock_name LIKE CONCAT('%', #{stock_name}, '%')
-        </if>
-        <if test="start_date != null and start_date != ''">
-            AND w.start_date >= #{start_date}
-        </if>
-        <if test="due_date != null and due_date != ''">
-            AND w.due_date &lt;= #{due_date}
-        </if>
-    </where>
+        LEFT JOIN human_resource hr ON w.emp_id = hr.emp_id
+        <where>
+            AND w.order_status != 99
+
+            <if test="order_status != null and order_status != ''">
+                <choose>
+                    <when test="order_status == '대기'"> AND w.order_status = 0 </when>
+                    <when test="order_status == '진행중'"> AND w.order_status = 1 </when>
+                    <when test="order_status == '완료'"> AND w.order_status = 2 </when>
+                </choose>
+            </if>
+            <if test="stock_name != null and stock_name != ''">
+                AND s.stock_name LIKE CONCAT('%', #{stock_name}, '%')
+            </if>
+            <if test="start_date != null and start_date != ''">
+                AND w.start_date >= #{start_date}
+            </if>
+            <if test="due_date != null and due_date != ''">
+                AND w.due_date &lt;= #{due_date}
+            </if>
+        </where>
     </select>
+
+    <update id="updateWorkOrderStatus">
+        UPDATE work_order
+        SET order_status = #{status}
+        WHERE work_order_id = #{work_order_id}
+    </update>
 
     <select id="getWorkOrderDetail" resultMap="WorkOrderMap">
         SELECT

@@ -78,38 +78,42 @@ public class ProductionController {
             @RequestParam Integer target_qty
     ) {
         try {
-            // 1. 작업 지시서 객체 생성
+            // 1. 작업 지시서 객체 생성 및 DB 저장 (선저장)
             WorkOrder newWorkOrder = new WorkOrder();
             newWorkOrder.setStock_id(stock_id);
             newWorkOrder.setEmp_id(emp_id);
             newWorkOrder.setStart_date(start_date);
             newWorkOrder.setTarget_qty(target_qty);
             newWorkOrder.setRequest_date(LocalDateTime.now());
-            // 결재 대기 중인 상태로 임시 저장하거나, 로직에 따라 상태값 설정 (예: "대기" 또는 특정 코드)
-            newWorkOrder.setOrder_status("대기");
-            // productionService.addWorkOrder(newWorkOrder);
 
-            // 2. 결재 문서용 JSON 데이터 생성 (DocumentBodyBuilder에서 사용할 데이터)
+            // [핵심] 상태를 '99'(승인 대기)로 설정하여 임시 저장
+            newWorkOrder.setOrder_status("99");
+
+            // DB에 저장 (insert)
+            productionService.addWorkOrder(newWorkOrder);
+
+            // 2. 결재 문서용 JSON 데이터 생성
             Map<String, Object> payload = new HashMap<>();
             payload.put("cat_id", 2);   // 카테고리: 생산/제조
             payload.put("tb_id", 0);    // 테이블: 작업지시서
-            payload.put("cd_id", 0);    // 동작: 추가 (Create)
+            payload.put("cd_id", 0);    // 동작: 추가
 
-            // DocumentBodyBuilder에서 꺼낼 키 이름("workOrder")과 객체를 담습니다.
+            // 생성된 PK를 문서에 저장 (나중에 승인 시 이 PK로 update함)
+            payload.put("pk", newWorkOrder.getWork_order_id());
+
+            // 상세 보기를 위해 객체 정보도 같이 넣어둠 (선택 사항)
             payload.put("workOrder", newWorkOrder);
 
-            // 3. 결재 문서 객체 생성 및 정보 설정
+            // 3. 결재 문서 객체 생성
             Documents doc = new Documents();
-            doc.setTitle("[생산] 작업지시서 등록 요청 - " + start_date); // 문서 제목
-            doc.setReq_id(emp_id);           // 기안자 ID (현재 로그인한 사용자 ID로 변경 필요 시 수정)
+            doc.setTitle("[생산] 작업지시서 등록 요청 - " + start_date);
+            doc.setReq_id(emp_id);
             doc.setReq_date(LocalDate.now());
-            doc.setStatus(0);                // 결재 상태: 0(대기)
+            doc.setStatus(0); // 대기
 
-            // JSON 변환 후 쿼리 스트링 저장
             String query = objectMapper.writeValueAsString(payload);
             doc.setQuery(query);
 
-            // 4. 결재 문서 저장 (이때 DocumentBodyBuilder가 호출되어 본문 HTML이 생성됨)
             documentsService.addDocument(doc);
 
             return true;

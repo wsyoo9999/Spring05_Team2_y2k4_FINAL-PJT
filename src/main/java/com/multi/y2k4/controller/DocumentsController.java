@@ -315,14 +315,16 @@ public class DocumentsController {
                             : null;
 
                     if (cd_id == 0) {  // [추가] 요청 처리
-                        if (status == 1) {    // 1: 승인 -> DB에 실제 데이터 INSERT
-                            if (workOrder != null) {
-                                // 결재 승인 시 상태를 '대기(0)' 등으로 확정하여 저장
-                                // (ProductionController에서 임시로 저장하지 않았다면 여기서 저장)
-                                productionService.addWorkOrder(workOrder);
-                            }
+                        // JSON에서 저장해둔 PK 추출
+                        int pk = Integer.parseInt(map.get("pk").toString());
+
+                        if (status == 1) {
+                            // [승인] 1: 이미 저장된 데이터의 상태를 '0'(대기)으로 변경하여 활성화
+                            productionService.updateWorkOrderStatus((long)pk, 0);
+
                         } else if (status == 2) {
-                            // 반려 시에는 DB에 넣지 않음 (별도 처리 없음)
+                            // [반려] 2: 이미 저장된 임시 데이터를 삭제
+                            productionService.deleteWorkOrder((long)pk);
                         }
 
 

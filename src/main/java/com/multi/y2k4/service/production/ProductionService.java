@@ -155,4 +155,9 @@ public class ProductionService {
         return false;
     }
 
+    @Transactional
+    public boolean updateWorkOrderStatus(Long workOrderId, int status) {
+        return productionMapper.updateWorkOrderStatus(workOrderId, status) > 0;
+    }
+
 }
