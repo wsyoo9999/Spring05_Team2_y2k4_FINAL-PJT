@@ -153,7 +153,7 @@
         VALUES (
                    #{stock_id}, #{emp_id}, #{start_date}, #{due_date},
                    #{target_qty}, #{request_date},
-                   0, 0, 0
+                   0, 0, #{order_status}
                )
     </insert>
 
@@ -246,5 +246,10 @@
     <delete id="deleteLot">
         DELETE FROM lot WHERE lot_id = #{lot_id}
     </delete>
+
+    <select id="getBOMListByParentId" resultType="com.multi.y2k4.vo.production.BOM">
+        SELECT * FROM bom
+        WHERE parent_stock_id = #{parent_stock_id}
+    </select>
 
 </mapper>

@@ -349,13 +349,14 @@ public class DocumentsController {
 
 
                     } else if (cd_id == 2) {  // [삭제] 요청 처리
+                        // [수정] 추가 처리와 동일하게 pk를 맵에서 직접 꺼내 사용
+                        int pk = Integer.parseInt(map.get("pk").toString());
+
                         if (status == 1) {    // 1: 승인 -> DB 데이터 DELETE
-                            if (workOrder != null && workOrder.getWork_order_id() != null) {
-                                // 실제 DB에서 삭제 수행
-                                productionService.deleteWorkOrder(workOrder.getWork_order_id());
-                            }
+                            // 객체 확인 없이 pk로 바로 삭제
+                            productionService.deleteWorkOrder((long)pk);
                         }
-                        // 반려 시에는 삭제하지 않고 유지
+                        // 반려(2) 시에는 삭제하지 않고 유지 (별도 로직 없음)
                     }
                 }
 
