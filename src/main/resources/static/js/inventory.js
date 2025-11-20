@@ -40,7 +40,7 @@ export async function stock_listAll() {
             <tr>
                 <td> ${row.stock_id}</td>
                 <td>${row.stock_name}</td>
-                <td>${Number(qty).toLocaleString()}</td>
+                <td>${Number(row.qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${row.location}</td>
                 <td>${Number(row.acquired_qty).toLocaleString()}</td>
@@ -101,7 +101,7 @@ export async function stock_list(formData) {
             <tr>
                 <td> ${row.stock_id}</td>
                 <td>${row.stock_name}</td>
-                <td>${Number(qty).toLocaleString()}</td>
+                <td>${Number(row.qty).toLocaleString()}</td>
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${row.location}</td>
                 <td>${Number(row.acquired_qty).toLocaleString()}</td>

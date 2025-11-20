@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -36,9 +37,38 @@ public class ProductionService {
         return productionMapper.getWorkOrderDefects(work_order_id);
     }
 
-    @Transactional // 쓰기 작업은 별도로 트랜잭션 허용
+    @Transactional
     public boolean addWorkOrder(WorkOrder workOrder) {
         return productionMapper.addWorkOrder(workOrder) > 0;
+    }
+
+    // [추가] 작업지시서 승인 확정 시 호출: 재고(acquired_qty) 반영 수행
+    @Transactional
+    public void confirmWorkOrderCreation(Long workOrderId) {
+        WorkOrder workOrder = productionMapper.getWorkOrderDetail(workOrderId);
+        if (workOrder == null) return;
+
+        // 1. [완제품] acquired_qty 증가 (생산 예정 수량 확보)
+        stockService.manageAcquiredAty(
+                workOrder.getStock_id().intValue(),
+                1,
+                workOrder.getTarget_qty()
+        );
+
+        // 2. [원자재] acquired_qty 감소 (자재 예약 차감)
+        List<BOM> bomList = productionMapper.getBOMListByParentId(workOrder.getStock_id());
+
+        if (bomList != null) {
+            for (BOM bom : bomList) {
+                int requiredAmount = bom.getRequired_qty() * workOrder.getTarget_qty();
+
+                stockService.manageAcquiredAty(
+                        bom.getChild_stock_id().intValue(),
+                        2,
+                        requiredAmount
+                );
+            }
+        }
     }
 
     @Transactional
@@ -124,14 +154,22 @@ public class ProductionService {
             List<Integer> childStockIds = new ArrayList<>();
             List<Integer> quantities = new ArrayList<>();
 
+            // acquired_qty (확보 수량) 변동 없음 처리를 위한 리스트
+            // 생산 소모 시에는 실제 수량만 줄이고, acquired_qty는 건드리지 않기 위해 0으로 채움
+            List<Integer> acquiredQuantities = new ArrayList<>();
+
             for (BOM bom : bomList) {
                 childStockIds.add(bom.getChild_stock_id().intValue());
+
                 // 소요량 = BOM필요수량 * 생산수량
-                quantities.add(bom.getRequired_qty() * lot.getLot_qty());
+                int requiredAmount = bom.getRequired_qty() * lot.getLot_qty();
+                quantities.add(requiredAmount);
+
+                // [추가] 해당 자재에 대해 acquired_qty는 0만큼 차감
+                acquiredQuantities.add(0);
             }
 
-            // operationType 3: 재고 부족 시 null 반환, 충분하면 차감 수행
-            List<Integer> result = stockService.manageStock(childStockIds, quantities, 3);
+            List<Integer> result = stockService.manageStock(childStockIds, quantities, acquiredQuantities, 2);
 
             if (result == null) {
                 System.out.println("🚨 Lot 등록 실패: 원자재 재고 부족");
@@ -144,7 +182,7 @@ public class ProductionService {
 
         if (result > 0) {
             // 5. 완제품 재고 증가 (operationType 1: 증가)
-            stockService.manageStock(wo.getStock_id().intValue(), 1, lot.getLot_qty());
+            stockService.manageStockQty(wo.getStock_id().intValue(), 1, lot.getLot_qty());
 
             // 6. 작업지시서 상태 갱신 (진행률 등)
             refreshWorkOrderState(lot.getWork_order_id());
