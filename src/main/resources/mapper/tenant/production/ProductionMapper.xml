@@ -75,6 +75,7 @@
                     <when test="order_status == '대기'"> AND w.order_status = 0 </when>
                     <when test="order_status == '진행중'"> AND w.order_status = 1 </when>
                     <when test="order_status == '완료'"> AND w.order_status = 2 </when>
+                    <when test="order_status == '폐기'"> AND w.order_status = 3 </when>
                 </choose>
             </if>
             <if test="stock_name != null and stock_name != ''">
@@ -249,9 +250,19 @@
         DELETE FROM lot WHERE lot_id = #{lot_id}
     </delete>
 
-    <select id="getBOMListByParentId" resultType="com.multi.y2k4.vo.production.BOM">
-        SELECT * FROM bom
-        WHERE parent_stock_id = #{parent_stock_id}
+    <select id="getBOMListByParentId" resultMap="BOMMap">
+        SELECT
+            b.bom_id,
+            b.parent_stock_id,
+            s_p.stock_name AS parent_stock_name,
+            b.child_stock_id,
+            s_c.stock_name AS child_stock_name,
+            b.required_qty,
+            s_c.qty AS child_stock_qty
+        FROM bom b
+                 LEFT JOIN stock s_p ON b.parent_stock_id = s_p.stock_id
+                 LEFT JOIN stock s_c ON b.child_stock_id = s_c.stock_id
+        WHERE b.parent_stock_id = #{parent_stock_id}
     </select>
 
 </mapper>

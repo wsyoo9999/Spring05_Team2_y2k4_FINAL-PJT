@@ -8,7 +8,7 @@ export async function work_order_listAll() {
                             <th>시작일</th>
                             <th>완료일</th>
                             <th>목표수량</th>
-                            <th>관리</th>
+                            <th>상태</th> <th>관리</th>
                         </tr>
                     </thead>`;
 
@@ -25,12 +25,14 @@ export async function work_order_listAll() {
 
         if (data && data.length > 0) {
             $.each(data, function(i, row) {
+                // [수정] '상태' 데이터 셀 추가 (배지 스타일 적용)
                 tbody += `<tr data-work-order-id="${row.work_order_id}">
                             <td><strong>${row.work_order_id}</strong></td>
                             <td>${row.stock_name ?? (row.stock_id ?? '-')}</td>
                             <td>${formatDate(row.start_date)}</td>
                             <td>${formatDate(row.due_date)}</td>
                             <td>${numberFormat(row.target_qty)}</td>
+                            <td><span class="status-badge ${getStatusClass(row.order_status)}">${row.order_status}</span></td>
                             <td class="actions">
                                 <button class="btn-detail"
                                         data-action="detail"
@@ -54,13 +56,11 @@ export async function work_order_listAll() {
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="6" style="text-align:center;">조회된 작업 지시서가 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="7" style="text-align:center;">조회된 작업 지시서가 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
 
-        // 새 디자인의 '추가' 버튼을 테이블 하단에 추가
-        // main.html에 정의된 .table-actions-footer와 .action-button 스타일을 사용
         const actionRow = `
             <div class="table-actions-header">
                 <button class="action-button btn-primary" data-action="add" data-file="production" data-fn="addWorkOrder">
@@ -72,7 +72,7 @@ export async function work_order_listAll() {
 
     } catch (error) {
         console.error('작업 지시서 목록 조회 실패:', error);
-        tbody = `<tbody><tr><td colspan="6" style="text-align:center; color:red;">데이터를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="7" style="text-align:center; color:red;">데이터를 불러오는데 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;
@@ -112,7 +112,7 @@ export async function work_order_search_form() {
                     <option value="대기">대기</option>
                     <option value="진행중">진행중</option>
                     <option value="완료">완료</option>
-                </select>
+                    <option value="폐기">폐기</option> </select>
             </div>
             <div class="form-group">
                 <label for="stock_name">제품명</label>
@@ -154,7 +154,7 @@ export async function work_order_list(formData) {
                             <th>시작일</th>
                             <th>완료일</th>
                             <th>목표수량</th>
-                            <th>관리</th>
+                            <th>상태</th> <th>관리</th>
                         </tr>
                     </thead>`;
 
@@ -183,6 +183,7 @@ export async function work_order_list(formData) {
                             <td>${formatDate(row.start_date)}</td>
                             <td>${formatDate(row.due_date)}</td>
                             <td>${numberFormat(row.target_qty)}</td>
+                            <td><span class="status-badge ${getStatusClass(row.order_status)}">${row.order_status}</span></td>
                             <td class="actions">
                                 <button class="btn-detail"
                                         data-action="detail"
@@ -206,12 +207,11 @@ export async function work_order_list(formData) {
                           </tr>`;
             });
         } else {
-            tbody += `<tr><td colspan="6" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
+            tbody += `<tr><td colspan="7" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
         }
 
         tbody += `</tbody></table>`;
 
-        // listAll과 동일하게 '추가' 버튼 추가
         const actionRow = `
             <div class="table-actions-header">
                 <button class="action-button btn-primary" data-action="add" data-file="production" data-fn="addWorkOrder">
@@ -223,7 +223,7 @@ export async function work_order_list(formData) {
 
     } catch (error) {
         console.error('작업 지시서 검색 실패:', error);
-        tbody = `<tbody><tr><td colspan="6" style="text-align:center; color:red;">검색에 실패했습니다.</td></tr></tbody></table>`;
+        tbody = `<tbody><tr><td colspan="7" style="text-align:center; color:red;">검색에 실패했습니다.</td></tr></tbody></table>`;
     }
 
     return table + tbody;

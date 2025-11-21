@@ -262,4 +262,9 @@ public class ProductionController {
     public boolean deleteLot(@PathVariable Long lot_id) {
         return productionService.deleteLot(lot_id);
     }
+
+    @GetMapping("/bom/by-parent/{parentStockId}")
+    public List<BOM> getBOMListByParentId(@PathVariable Long parentStockId) {
+        return productionService.getBOMListByParentId(parentStockId);
+    }
 }
