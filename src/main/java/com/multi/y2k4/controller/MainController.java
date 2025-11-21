@@ -105,7 +105,6 @@ public class MainController {
                           @RequestParam("phone") String phone,
                           Model model){
 
-
         UserVO userVO = new UserVO();
         userVO.setId(id);
         userVO.setPassword(password);
