@@ -59,15 +59,15 @@
         .status-waiting { background-color: #6c757d; }
         .status-progress { background-color: var(--primary-color); }
         .status-complete { background-color: var(--secondary-color); }
-        .status-discarded { background-color: #343a40; text-decoration: line-through; opacity: 0.8; }
+        .status-discarded { background-color: #343a40; opacity: 0.8; }
 
         /* 정보 표시용 그리드 */
         .info-grid {
             display: grid;
-            grid-template-columns: 180px 1fr; /* 라벨 너비 고정 */
-            gap: 10px 15px; /* 가로 세로 간격 */
+            grid-template-columns: 180px 1fr;
+            gap: 10px 15px;
             margin-bottom: 15px;
-            align-items: center; /* 수직 중앙 정렬 */
+            align-items: center;
         }
         .info-grid .label {
             font-weight: 500;
@@ -75,7 +75,7 @@
             background-color: var(--bg-light);
             padding: 10px 12px;
             border-radius: 4px;
-            border: 1px solid transparent; /* 높이 맞춤용 */
+            border: 1px solid transparent;
         }
         .info-grid .value {
             padding: 10px 12px;
@@ -93,7 +93,7 @@
             border-top: 1px solid var(--border-color);
             display: flex;
             gap: 10px;
-            justify-content: flex-end; /* 버튼 우측 정렬 */
+            justify-content: flex-end;
         }
         .action-button {
             color: white;
@@ -111,9 +111,9 @@
         .btn-delete {
             background: none;
             border: none;
-            color: #888;       /* 기본 회색 */
+            color: #888;
             cursor: pointer;
-            font-size: 16px;   /* 아이콘 크기 */
+            font-size: 16px;
             padding: 4px 8px;
             transition: color 0.2s;
         }
@@ -125,15 +125,13 @@
         .btn-danger { background-color: var(--danger-color); }
         .btn-danger:hover { background-color: #d94343; }
 
-        /* --- [추가] Lot 등록 폼 스타일 --- */
+        /* 폼 스타일 */
         #add-lot-form-container {
             margin-top: 30px;
             padding-top: 25px;
-            border-top: 2px dashed var(--border-color); /* 구분선 */
+            border-top: 2px dashed var(--border-color);
             animation: slideDown 0.3s ease-out;
         }
-
-        /* 폼 입력 필드 (기존 .value와 어울리게)1 */
         .form-input {
             width: 100%;
             padding: 9px 12px;
@@ -151,9 +149,7 @@
             box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
         }
 
-        .table-responsive {
-            overflow-x: auto;
-        }
+        .table-responsive { overflow-x: auto; }
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -164,22 +160,18 @@
             background-color: #f1f3f5;
             color: #495057;
             font-weight: 600;
-            padding: 10px;
+            padding: 7px;
             border-bottom: 2px solid #dce4ec;
             text-align: center;
         }
         .data-table td {
-            padding: 10px;
+            padding: 7px;
             border-bottom: 1px solid #eee;
             text-align: center;
             color: #333;
         }
-        .data-table tr:last-child td {
-            border-bottom: none;
-        }
-        .data-table tr:hover {
-            background-color: #f8f9fa;
-        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover { background-color: #f8f9fa; }
 
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-10px); }
@@ -195,11 +187,30 @@
         <p style="text-align: center; padding: 20px;">상세 정보를 불러오는 중입니다...</p>
     </div>
 
+    <div id="bom-list-container" style="margin-top: 20px; border-top: 2px dashed #E0E0E0; padding-top: 20px;">
+        <h3><i class="fas fa-sitemap"></i> 자재 명세서(BOM) 및 재고 현황</h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>자재코드</th>
+                    <th>자재명</th>
+                    <th>단위 소요량</th>
+                    <th>현재고</th>
+                    <th>상태</th>
+                </tr>
+                </thead>
+                <tbody id="bom-list-tbody">
+                <tr><td colspan="5" style="text-align: center;">로딩 중...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div id="action-container" class="action-container"></div>
 
     <div id="add-lot-form-container" style="display: none;">
         <h3><i class="fas fa-boxes"></i> 신규 생산 실적 등록</h3>
-
         <form method="POST" action="/api/production/lot/add" id="addLotForm">
             <input type="hidden" id="lot_work_order_id" name="work_order_id">
             <input type="hidden" id="lot_stock_id" name="stock_id">
@@ -209,14 +220,13 @@
                 <div>
                     <input class="form-input" type="date" id="lot_date" name="lot_date" required>
                 </div>
-
                 <div class="label">총 생산수량</div>
                 <div>
                     <input class="form-input" type="number" id="lot_qty" name="lot_qty" min="1" placeholder="양품 + 불량품 총합" required>
                 </div>
             </div>
 
-            <div class="info-grid" style="margin-top: 10px; border-top: 1px dashed #ddd; paddingTop: 10px;">
+            <div class="info-grid" style="margin-top: 10px; border-top: 1px dashed #ddd; padding-top: 10px;">
                 <div class="label" style="color: #E95353;">불량 유형 (선택)</div>
                 <div>
                     <select class="form-input" id="defect_code" name="defect_code">
@@ -229,7 +239,6 @@
                         <option value="99">999: 기타</option>
                     </select>
                 </div>
-
                 <div class="label" style="color: #E95353;">불량 수량 (선택)</div>
                 <div>
                     <input class="form-input" type="number" id="defect_qty" name="defect_qty" min="0" value="0" placeholder="0">
@@ -246,6 +255,7 @@
             </div>
         </form>
     </div>
+
     <div id="lot-list-container" style="display: none; margin-top: 20px; border-top: 2px dashed #E0E0E0; padding-top: 20px;">
         <h3><i class="fas fa-list-ul"></i> 생산 실적(Lot) 목록</h3>
         <div class="table-responsive">
@@ -259,8 +269,7 @@
                     <th>관리</th>
                 </tr>
                 </thead>
-                <tbody id="lot-list-tbody">
-                </tbody>
+                <tbody id="lot-list-tbody"></tbody>
             </table>
         </div>
         <div style="text-align: right; margin-top: 10px;">
@@ -272,7 +281,7 @@
 </div>
 
 <script>
-    // 날짜 포맷 (YYYY-MM-DD)
+    // 날짜 포맷
     function formatDate(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
@@ -303,7 +312,68 @@
             case '대기': return 'status-waiting';
             case '진행중': return 'status-progress';
             case '완료': return 'status-complete';
+            case '폐기': return 'status-discarded';
             default: return 'status-waiting';
+        }
+    }
+
+    // [추가] BOM 목록 로드 및 렌더링 함수
+    async function loadBOM(parentStockId, workOrderData) {
+        try {
+            const bomList = await $.ajax({
+                url: `/api/production/bom/by-parent/${parentStockId}`,
+                method: 'GET',
+                dataType: 'json'
+            });
+
+            let html = '';
+            if (bomList && bomList.length > 0) {
+                bomList.forEach(bom => {
+                    // 남은 필요 수량 계산 (목표 - 현재 양품)
+                    const currentGood = workOrderData.good_qty || 0;
+                    const remainingTarget = (workOrderData.target_qty || 0) - currentGood;
+
+                    // 남은 생산에 필요한 총 자재량
+                    // (이미 완료되었거나 초과 생산 시 remainingTarget이 음수일 수 있으나, 여기선 필요량 계산이므로 max(0) 처리)
+                    const neededQty = Math.max(0, remainingTarget);
+                    const totalRequired = bom.required_qty * neededQty;
+
+                    // 재고 상태 체크
+                    const currentStock = bom.child_stock_qty || 0;
+                    // 부족 여부 판단
+                    const isShortage = currentStock < totalRequired;
+                    const statusStyle = isShortage ? 'color: #E95353; font-weight: bold;' : 'color: #50B86C;';
+
+                    // 상태 텍스트 (남은 필요량 대비)
+                    let statusText;
+                    if (totalRequired <= 0) {
+                        statusText = '완료됨';
+                        // 이미 생산 완료되었으면 초록색
+                        if(isShortage) statusText = '충분'; // 완료되었으니 재고가 적어도 상관없음 (표시용)
+                    } else {
+                        statusText = isShortage
+                            ? `부족 (-${numberFormat(totalRequired - currentStock)})`
+                            : '충분';
+                    }
+
+                    html += `
+                        <tr>
+                            <td>${bom.child_stock_id}</td>
+                            <td>${bom.child_stock_name}</td>
+                            <td>${numberFormat(bom.required_qty)}</td>
+                            <td><strong>${numberFormat(currentStock)}</strong></td>
+                            <td style="${statusStyle}">${statusText}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                html = '<tr><td colspan="5" style="text-align:center; padding: 20px;">등록된 BOM 정보가 없습니다.</td></tr>';
+            }
+            $('#bom-list-tbody').html(html);
+
+        } catch (err) {
+            console.error('BOM 로드 실패:', err);
+            $('#bom-list-tbody').html('<tr><td colspan="5" style="color:red; text-align:center;">BOM 정보를 불러오지 못했습니다.</td></tr>');
         }
     }
 
@@ -321,29 +391,19 @@
         let startDate = '';
 
         try {
-            if (!work_order_id) {
-                throw new Error('작업 지시서 ID가 없습니다.');
-            }
+            if (!work_order_id) throw new Error('작업 지시서 ID가 없습니다.');
 
-            // 1. 데이터 조회
-            const [data, lots] = await Promise.all([
+            const [data] = await Promise.all([
                 $.ajax({
                     url: `/api/production/work_order/${work_order_id}`,
-                    method: 'GET',
-                    dataType: 'json'
-                }),
-                $.ajax({
-                    url: `/api/production/work_order/${work_order_id}/lots`,
                     method: 'GET',
                     dataType: 'json'
                 })
             ]);
 
             loadedData = data;
-
             const serverGoodQty = data.good_qty || 0;
             const serverDefectQty = data.defect_qty || 0;
-
             targetQty = loadedData.target_qty || 0;
             startDate = loadedData.start_date ? formatDate(loadedData.start_date) : '';
 
@@ -351,7 +411,7 @@
                 ? Math.round((serverGoodQty / targetQty) * 100)
                 : 0;
 
-            // 2. 헤더 HTML 렌더링
+            // 헤더 및 상세 정보 렌더링
             let headerHtml = `
                 <h2>
                     <span><i class="fas fa-industry"></i> 작업지시서 상세</span>
@@ -359,7 +419,6 @@
                 </h2>
             `;
 
-            // 3. 상세 정보 HTML 렌더링
             let detailHtml = `
                 <h3>기본 정보</h3>
                 <div class="info-grid">
@@ -376,19 +435,15 @@
                 <div class="info-grid">
                     <div class="label">목표수량</div>
                     <div class="value">${numberFormat(data.target_qty)}</div>
-
                     <div class="label">양품수량</div>
                     <div class="value good"><strong>${numberFormat(serverGoodQty)}</strong></div>
-
                     <div class="label">불량수량</div>
                     <div class="value defect"><strong>${numberFormat(serverDefectQty)}</strong></div>
-
                     <div class="label">진행률</div>
                     <div class="value"><strong>${progress}%</strong></div>
                 </div>
             `;
 
-            // 4. 버튼 HTML 렌더링
             let actionHtml = `
                 <button class="action-button btn-primary btn-register-result">
                     <i class="fas fa-plus-circle"></i> 생산 실적 등록
@@ -402,25 +457,20 @@
             container.html(detailHtml);
             actionContainer.html(actionHtml);
 
+            // [추가] BOM 정보 자동 로드 (화면에 바로 표시)
+            if (loadedData.stock_id) {
+                loadBOM(loadedData.stock_id, loadedData);
+            }
+
             // --- 이벤트 핸들러 ---
 
             // [1] 생산 실적 등록 버튼 클릭
             actionContainer.on('click', '.btn-register-result', function() {
-                if (!loadedData) return;
-
-                // 다른 폼 닫기
-                $('#add-defect-form-container').hide();
-                $('#lot-list-container').hide();
-                $('.btn-register-defect').show();
-                $('.btn-view-lots').show();
-
-                const currentGood = loadedData.good_qty || 0;
-                const maxQty = targetQty - currentGood;
-
-                if (maxQty <= 0) {
-                    alert('이미 목표 수량(양품)을 모두 달성했습니다.');
+                if (loadedData.order_status === '완료' || loadedData.order_status === '폐기') {
+                    alert(`현재 '${loadedData.order_status}' 상태이므로 생산 실적을 추가할 수 없습니다.`);
                     return;
                 }
+                $('#lot-list-container').hide();
 
                 // 폼 초기화
                 $('#lot_work_order_id').val(loadedData.work_order_id);
@@ -435,17 +485,15 @@
                     lotDateInput.val(new Date().toISOString().split('T')[0]);
                 }
 
-                const lotQtyInput = $('#lot_qty');
-                lotQtyInput.attr('max', maxQty);
-                lotQtyInput.attr('placeholder', `추가 필요량: ${maxQty}개`);
-                lotQtyInput.val('');
+                $('#lot_qty').attr('placeholder', `생산 수량 입력`);
+                $('#lot_qty').val('');
 
                 $('#add-lot-form-container').show();
-                $(this).hide(); // 버튼 숨김
+                $(this).hide();
                 document.getElementById('add-lot-form-container').scrollIntoView({ behavior: 'smooth' });
             });
 
-            // [2] 생산 실적 취소 버튼
+            // [2] 취소 버튼
             $('#cancel-lot-add').on('click', function() {
                 $('#add-lot-form-container').hide();
                 $('.btn-register-result').show();
@@ -454,23 +502,12 @@
             // [3] 생산 실적 폼 제출
             $('#addLotForm').on('submit', async function(e) {
                 e.preventDefault();
-                const currentGood = loadedData.good_qty || 0;
-                const maxQty = targetQty - currentGood;
                 const enteredQty = parseInt($('#lot_qty').val());
                 const enteredDate = $('#lot_date').val();
                 const defectQty = parseInt($('#defect_qty').val()) || 0;
 
                 if (defectQty > enteredQty) {
                     alert(`불량 수량(${defectQty})은 총 생산 수량(${enteredQty})보다 클 수 없습니다.`);
-                    return;
-                }
-
-                if (maxQty <= 0) {
-                    alert('이미 목표 수량을 달성하여 추가할 수 없습니다.');
-                    return;
-                }
-                if (enteredQty > maxQty) {
-                    alert(`최대 생산 가능 수량(${maxQty}개)을 초과했습니다.`);
                     return;
                 }
                 if (startDate && enteredDate < startDate) {
@@ -490,7 +527,7 @@
                         alert('✅ 생산 실적이 등록되었습니다.');
                         window.location.reload();
                     } else {
-                        alert('❌ 등록에 실패했습니다.');
+                        alert('❌ 등록에 실패했습니다.\n(재고 부족 등 원인을 확인하세요)');
                     }
                 } catch (error) {
                     console.error('등록 실패:', error);
@@ -498,41 +535,25 @@
                 }
             });
 
-
-            // [7] Lot 조회 버튼 클릭
+            // [4] Lot 조회 버튼
             actionContainer.on('click', '.btn-view-lots', async function() {
                 const listContainer = $('#lot-list-container');
-
                 if (listContainer.is(':visible')) {
                     listContainer.hide();
                     $(this).show();
                     return;
                 }
-
-                // 다른 폼 닫기
                 $('#add-lot-form-container').hide();
-                $('#add-defect-form-container').hide();
                 $('.btn-register-result').show();
-                $('.btn-register-defect').show();
 
                 try {
-                    // 데이터 재조회 (최신 상태 반영)
                     const [lotsData, defectsData] = await Promise.all([
-                        $.ajax({
-                            url: `/api/production/work_order/${loadedData.work_order_id}/lots`,
-                            method: 'GET',
-                            dataType: 'json'
-                        }),
-                        $.ajax({
-                            url: `/api/production/work_order/${loadedData.work_order_id}/defects`,
-                            method: 'GET',
-                            dataType: 'json'
-                        })
+                        $.ajax({ url: `/api/production/work_order/${work_order_id}/lots`, method: 'GET', dataType: 'json' }),
+                        $.ajax({ url: `/api/production/work_order/${work_order_id}/defects`, method: 'GET', dataType: 'json' })
                     ]);
 
-                    // 불량 수량 매핑
                     const defectMap = {};
-                    if (defectsData && defectsData.length > 0) {
+                    if (defectsData) {
                         defectsData.forEach(d => {
                             if (!defectMap[d.lot_id]) defectMap[d.lot_id] = 0;
                             defectMap[d.lot_id] += (d.defect_qty || 0);
@@ -544,28 +565,22 @@
                         lotsData.forEach(lot => {
                             const defectQty = defectMap[lot.lot_id] || 0;
                             const defectClass = defectQty > 0 ? 'color: #E95353; font-weight:bold;' : '';
-
-                            // 삭제 버튼이 포함된 행 생성
                             html += `
-                <tr>
-                    <td><strong>${lot.lot_id}</strong></td>
-                    <td>${formatDate(lot.lot_date)}</td>
-                    <td>${numberFormat(lot.lot_qty)}</td>
-                    <td style="${defectClass}">${numberFormat(defectQty)}</td>
-                    <td>
-                        <button type="button" class="btn-delete btn-delete-lot"
-                                data-lot-id="${lot.lot_id}"
-                                title="삭제">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
+                                <tr>
+                                    <td><strong>${lot.lot_id}</strong></td>
+                                    <td>${formatDate(lot.lot_date)}</td>
+                                    <td>${numberFormat(lot.lot_qty)}</td>
+                                    <td style="${defectClass}">${numberFormat(defectQty)}</td>
+                                    <td>
+                                        <button type="button" class="btn-delete btn-delete-lot" data-lot-id="${lot.lot_id}" title="삭제">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>`;
                         });
                     } else {
-                        html = '<tr><td colspan="4" style="text-align:center; padding: 20px;">등록된 생산 실적이 없습니다.</td></tr>';
+                        html = '<tr><td colspan="5" style="text-align:center; padding: 20px;">등록된 생산 실적이 없습니다.</td></tr>';
                     }
-
                     $('#lot-list-tbody').html(html);
                     listContainer.show();
                     document.getElementById('lot-list-container').scrollIntoView({ behavior: 'smooth' });
@@ -576,17 +591,15 @@
                 }
             });
 
-            // [8] Lot 목록 닫기
+            // [5] Lot 목록 닫기
             $('#close-lot-list').on('click', function() {
                 $('#lot-list-container').hide();
             });
 
+            // [6] Lot 삭제
             $('#lot-list-tbody').on('click', '.btn-delete-lot', async function() {
                 const lotId = $(this).data('lot-id');
-
-                if (!confirm(`Lot 번호 [${lotId}] 실적을 삭제하시겠습니까?\n연결된 불량 내역도 함께 삭제됩니다.`)) {
-                    return;
-                }
+                if (!confirm(`Lot 번호 [${lotId}] 실적을 삭제하시겠습니까?\n연결된 불량 내역도 함께 삭제됩니다.`)) return;
 
                 try {
                     const result = await $.ajax({
@@ -594,11 +607,8 @@
                         method: 'DELETE',
                         dataType: 'json'
                     });
-
                     if (result === true) {
                         alert('✅ 삭제되었습니다.');
-                        // 목록을 닫았다가 다시 열거나, 새로고침하여 변경된 수량 반영
-                        // 여기서는 전체 새로고침을 하여 상단 진행률까지 갱신하는 것이 좋습니다.
                         window.location.reload();
                     } else {
                         alert('❌ 삭제에 실패했습니다.');

@@ -18,6 +18,9 @@ public class ProductionService {
 
     private final ProductionMapper productionMapper;
     private final StockService stockService;
+    public List<BOM> getBOMListByParentId(Long parentStockId) {
+        return productionMapper.getBOMListByParentId(parentStockId);
+    }
 
     // --- 작업지시서 (Work Order) ---
 
@@ -42,20 +45,22 @@ public class ProductionService {
         return productionMapper.addWorkOrder(workOrder) > 0;
     }
 
-    // [추가] 작업지시서 승인 확정 시 호출: 재고(acquired_qty) 반영 수행
+    // [수정됨] 작업지시서 승인 확정 시 호출: 재고(acquired_qty) 반영 수행
     @Transactional
     public void confirmWorkOrderCreation(Long workOrderId) {
         WorkOrder workOrder = productionMapper.getWorkOrderDetail(workOrderId);
         if (workOrder == null) return;
 
-        // 1. [완제품] acquired_qty 증가 (생산 예정 수량 확보)
+        // 1. [완제품] acquired_qty 감소 (-) (생산 예정 수량 = 아직 없으므로 마이너스로 표기하거나 요구사항 반영)
+        // 기존 1(증가) -> 2(감소)로 변경
         stockService.manageAcquiredAty(
                 workOrder.getStock_id().intValue(),
-                1,
+                2,
                 workOrder.getTarget_qty()
         );
 
-        // 2. [원자재] acquired_qty 감소 (자재 예약 차감)
+        // 2. [원자재] acquired_qty 증가 (+) (자재 소요 예정)
+        // 기존 2(감소) -> 1(증가)로 변경
         List<BOM> bomList = productionMapper.getBOMListByParentId(workOrder.getStock_id());
 
         if (bomList != null) {
@@ -64,7 +69,7 @@ public class ProductionService {
 
                 stockService.manageAcquiredAty(
                         bom.getChild_stock_id().intValue(),
-                        2,
+                        1,
                         requiredAmount
                 );
             }
@@ -74,11 +79,9 @@ public class ProductionService {
     @Transactional
     public boolean deleteWorkOrder(Long work_order_id) {
         // 1. [자식의 자식] 불량 내역(Defect) 먼저 삭제
-        // (Lot가 삭제되면 불량 내역의 lot_id가 갈 곳을 잃으므로 먼저 삭제해야 함)
         productionMapper.deleteDefectsByWorkOrderId(work_order_id);
 
         // 2. [자식] 생산 실적(Lot) 삭제
-        // (작업지시서가 삭제되면 Lot의 work_order_id가 갈 곳을 잃으므로 삭제)
         productionMapper.deleteLotsByWorkOrderId(work_order_id);
 
         // 3. [부모] 작업지시서(WorkOrder) 최종 삭제
@@ -139,13 +142,14 @@ public class ProductionService {
             newStatus = 1; // 진행중 (생산 이력이 있으면)
         }
 
-        // [추가] 상태가 '완료'로 전환될 때 재고 및 요청 수량 일괄 처리
         if (oldStatus != 2 && newStatus == 2) {
             // 1) 완제품 실제 재고(qty) 증가 : 최종 양품 수량만큼 입고
             stockService.manageStockQty(wo.getStock_id().intValue(), 1, currentGoodQty);
 
-            // 2) 완제품 요청 수량(acquired_qty) 차감 : 입고 예정(목표 수량) 해제
-            stockService.manageAcquiredAty(wo.getStock_id().intValue(), 2, wo.getTarget_qty());
+            // 2) 완제품 요청 수량(acquired_qty) 정리
+            // 생성 시 (-) 였으므로, 완료 시 (+) 하여 0으로 만듦
+            // 기존 2(감소) -> 1(증가)로 변경
+            stockService.manageAcquiredAty(wo.getStock_id().intValue(), 1, wo.getTarget_qty());
         }
 
         // 6. DB 업데이트
@@ -154,63 +158,57 @@ public class ProductionService {
 
     @Transactional
     public boolean addLot(Lot lot, Integer defectCode, Integer defectQty) {
-        // 1. 작업지시서 정보 조회 (완제품 ID 확인용)
         WorkOrder wo = productionMapper.getWorkOrderDetail(lot.getWork_order_id());
         if (wo == null) return false;
-        if ("폐기".equals(wo.getOrder_status())) {
-            System.out.println("🚨 폐기된 작업지시서에는 생산 실적을 등록할 수 없습니다.");
+        if ("폐기".equals(wo.getOrder_status()) || "완료".equals(wo.getOrder_status())) {
             return false;
         }
 
-        // 2. BOM 조회 (필요한 자재 목록)
         List<BOM> bomList = productionMapper.getBOMListByParentId(wo.getStock_id());
 
-        // 3. 자재 재고 체크 및 차감
         if (bomList != null && !bomList.isEmpty()) {
             List<Integer> childStockIds = new ArrayList<>();
-            List<Integer> quantities = new ArrayList<>();
+            List<Integer> quantities = new ArrayList<>();       // 실제 재고 차감용 (총 생산량 기준)
+            List<Integer> acquiredQuantities = new ArrayList<>(); // 요청 수량 차감용 (양품 기준)
 
-            // acquired_qty (확보 수량) 변동 없음 처리를 위한 리스트
-            // 생산 소모 시에는 실제 수량만 줄이고, acquired_qty는 건드리지 않기 위해 0으로 채움
-            List<Integer> acquiredQuantities = new ArrayList<>();
+            // [수정] 불량 수량 null 체크 및 양품 수량 계산
+            int currentDefectQty = (defectQty != null) ? defectQty : 0;
+            int goodQty = lot.getLot_qty() - currentDefectQty;
+            if (goodQty < 0) goodQty = 0; // 방어 코드
 
             for (BOM bom : bomList) {
                 childStockIds.add(bom.getChild_stock_id().intValue());
 
-                // 소요량 = BOM필요수량 * 생산수량
-                int requiredAmount = bom.getRequired_qty() * lot.getLot_qty();
-                quantities.add(requiredAmount);
+                // 1. 실제 재고 차감 (qty): 불량품을 포함한 '총 생산량' 만큼 자재 소모
+                int realAmount = bom.getRequired_qty() * lot.getLot_qty();
+                quantities.add(realAmount);
 
-                // [추가] 해당 자재에 대해 acquired_qty는 0만큼 차감
-                acquiredQuantities.add(-requiredAmount);
+                // 2. 요청 수량 차감 (acquired_qty): '양품 수량' 만큼만 예약 해제 (사용자 요청 반영)
+                int acquiredAmount = bom.getRequired_qty() * goodQty;
+
+                // manageStock type 2는 내부적으로 -value를 수행하므로 양수를 넘겨야 차감됨
+                acquiredQuantities.add(acquiredAmount);
             }
 
             List<Integer> result = stockService.manageStock(childStockIds, quantities, acquiredQuantities, 2);
 
             if (result == null) {
-                System.out.println("🚨 Lot 등록 실패: 원자재 재고 부족");
-                return false; // 재고 부족으로 등록 중단
+                return false; // 재고 부족
             }
         }
 
-        // 4. Lot 등록 (실적 저장)
         int result = productionMapper.addLot(lot);
 
         if (result > 0) {
-            Long generatedLotId = lot.getLot_id(); // 생성된 PK 가져오기
-
-            // [추가] 불량이 있는 경우 Defect 테이블에 등록
+            Long generatedLotId = lot.getLot_id();
             if (defectQty != null && defectQty > 0) {
                 Defect defect = new Defect();
                 defect.setLot_id(generatedLotId);
-                defect.setWork_order_id(lot.getWork_order_id()); // 필요하다면 VO에 따라 설정
-                defect.setStock_id(lot.getStock_id());           // 필요하다면 VO에 따라 설정
-
-                // defectCode가 0이거나 없으면 '기타(99)' 등으로 처리하거나 그대로 저장
+                defect.setWork_order_id(lot.getWork_order_id());
+                defect.setStock_id(lot.getStock_id());
                 defect.setDefect_code(defectCode != null ? defectCode.longValue() : 99L);
                 defect.setDefect_qty(defectQty);
-                defect.setDefect_date(lot.getLot_date()); // Lot 날짜와 동일하게 설정
-
+                defect.setDefect_date(lot.getLot_date());
                 productionMapper.addDefect(defect);
             }
             refreshWorkOrderState(lot.getWork_order_id());
@@ -235,20 +233,16 @@ public class ProductionService {
 
     @Transactional
     public boolean deleteLot(Long lot_id) {
-        // 1. 삭제할 Lot 정보 조회 (삭제 후 상태 갱신을 위해 work_order_id가 필요함)
         Lot targetLot = productionMapper.getLotById(lot_id);
         if (targetLot == null) {
-            return false; // 존재하지 않는 Lot
+            return false;
         }
         Long workOrderId = targetLot.getWork_order_id();
 
-        // 2. 해당 Lot에 연결된 불량 내역(Defect) 먼저 삭제 (FK 제약조건 해결)
+        // FK 제약조건 해결 위해 불량 먼저 삭제
         productionMapper.deleteDefectsByLotId(lot_id);
-
-        // 3. Lot 삭제
         int result = productionMapper.deleteLot(lot_id);
 
-        // 4. 작업지시서 상태(수량, 진행률) 재계산 및 갱신
         if (result > 0) {
             refreshWorkOrderState(workOrderId);
             return true;
@@ -258,26 +252,32 @@ public class ProductionService {
 
     @Transactional
     public boolean updateWorkOrderStatus(Long workOrderId, int status) {
-        // 1. 상태 업데이트 수행
         int result = productionMapper.updateWorkOrderStatus(workOrderId, status);
 
-        // 2. 상태가 '폐기(3)'로 변경된 경우, 재고 예약(요청 수량) 롤백 수행
+        // 폐기(3) 시 롤백 로직
         if (result > 0 && status == 3) {
             WorkOrder wo = productionMapper.getWorkOrderDetail(workOrderId);
             if (wo != null) {
-                // (1) 완제품(Parent) 요청 수량 롤백: 입고 예정이었던 '전체 목표 수량' 해제
-                stockService.manageAcquiredAty(wo.getStock_id().intValue(), 2, wo.getTarget_qty());
 
-                // (2) 원자재(Child) 요청 수량 롤백: 아직 생산하지 않은 '잔여 수량'에 대한 자재 예약 해제
-                List<Lot> lots = productionMapper.getWorkOrderLots(workOrderId);
-                int totalProducedQty = lots.stream().mapToInt(Lot::getLot_qty).sum();
-                int remainingQty = wo.getTarget_qty() - totalProducedQty;
+                // (1) 생산된 완제품(양품)을 실물 재고(qty)에 반영
+                if (wo.getGood_qty() != null && wo.getGood_qty() > 0) {
+                    stockService.manageStockQty(wo.getStock_id().intValue(), 1, wo.getGood_qty());
+                }
 
-                if (remainingQty > 0) {
+                // (2) 완제품(Parent) 요청 수량 롤백
+                // 승인 시 2(감소)했으므로, 폐기 시 1(증가)하여 원래대로 복구
+                stockService.manageAcquiredAty(wo.getStock_id().intValue(), 1, wo.getTarget_qty());
+
+                // (3) 원자재(Child) 요청 수량 롤백 (잔여 예약 해제)
+                // 승인 시 1(증가)했으므로, 폐기 시 2(감소)하여 해제
+                // 기준: (목표 - 양품 수량)
+                int currentGoodQty = (wo.getGood_qty() != null) ? wo.getGood_qty() : 0;
+                int remainingQty = wo.getTarget_qty() - currentGoodQty;
+
+                if (remainingQty != 0) {
                     List<BOM> bomList = productionMapper.getBOMListByParentId(wo.getStock_id());
                     if (bomList != null) {
                         for (BOM bom : bomList) {
-                            // 해제할 자재량 = 잔여 생산량 * 단위 소요량
                             int releaseAmount = bom.getRequired_qty() * remainingQty;
                             stockService.manageAcquiredAty(bom.getChild_stock_id().intValue(), 2, releaseAmount);
                         }
@@ -287,5 +287,4 @@ public class ProductionService {
         }
         return result > 0;
     }
-
 }
