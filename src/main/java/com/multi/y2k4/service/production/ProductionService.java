@@ -153,7 +153,7 @@ public class ProductionService {
     }
 
     @Transactional
-    public boolean addLot(Lot lot) {
+    public boolean addLot(Lot lot, Integer defectCode, Integer defectQty) {
         // 1. 작업지시서 정보 조회 (완제품 ID 확인용)
         WorkOrder wo = productionMapper.getWorkOrderDetail(lot.getWork_order_id());
         if (wo == null) return false;
@@ -193,7 +193,22 @@ public class ProductionService {
         int result = productionMapper.addLot(lot);
 
         if (result > 0) {
+            Long generatedLotId = lot.getLot_id(); // 생성된 PK 가져오기
 
+            // [추가] 불량이 있는 경우 Defect 테이블에 등록
+            if (defectQty != null && defectQty > 0) {
+                Defect defect = new Defect();
+                defect.setLot_id(generatedLotId);
+                defect.setWork_order_id(lot.getWork_order_id()); // 필요하다면 VO에 따라 설정
+                defect.setStock_id(lot.getStock_id());           // 필요하다면 VO에 따라 설정
+
+                // defectCode가 0이거나 없으면 '기타(99)' 등으로 처리하거나 그대로 저장
+                defect.setDefect_code(defectCode != null ? defectCode.longValue() : 99L);
+                defect.setDefect_qty(defectQty);
+                defect.setDefect_date(lot.getLot_date()); // Lot 날짜와 동일하게 설정
+
+                productionMapper.addDefect(defect);
+            }
             refreshWorkOrderState(lot.getWork_order_id());
             return true;
         }

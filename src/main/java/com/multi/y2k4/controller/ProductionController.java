@@ -224,7 +224,9 @@ public class ProductionController {
             @RequestParam Long work_order_id,
             @RequestParam Long stock_id,
             @RequestParam Integer lot_qty,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate lot_date
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate lot_date,
+            @RequestParam(required = false, defaultValue = "0") Integer defect_code,
+            @RequestParam(required = false, defaultValue = "0") Integer defect_qty
     ) {
         Lot newLot = new Lot();
         newLot.setWork_order_id(work_order_id);
@@ -232,7 +234,7 @@ public class ProductionController {
         newLot.setLot_qty(lot_qty);
         newLot.setLot_date(lot_date);
 
-        return productionService.addLot(newLot);
+        return productionService.addLot(newLot, defect_code, defect_qty);
     }
 
     @PostMapping("/defect/add")
