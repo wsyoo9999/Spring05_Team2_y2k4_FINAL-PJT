@@ -169,12 +169,18 @@ public class HRController {
             HttpSession session) {
 
         try {
-            // 1. 세션에서 내 정보 가져오기
-            // String position = (String) session.getAttribute("position"); // 직급 확인 로직 제거
+
             Integer empIdObj = (Integer) session.getAttribute("emp_id");
             String empName = (String) session.getAttribute("emp_name");
 
             if (empIdObj == null) return false; // 로그인 정보 오류
+
+            Employee me = employeeService.getEmployeeDetail(empIdObj);
+            Long supervisorId = null;
+            if (me != null && me.getSupervisor() != null) {
+                supervisorId = Long.valueOf(me.getSupervisor());
+            }
+
             Long requesterEmpId = Long.valueOf(empIdObj);
 
             // 2. JSON 데이터 생성 (결재 문서 본문용)
@@ -194,13 +200,13 @@ public class HRController {
             doc.setReq_date(LocalDate.now());
             doc.setQuery(objectMapper.writeValueAsString(payload));
 
-            // 4. ★ 수정됨: 모든 신청을 '결재 대기' 상태로 생성 ★
-            // 기존의 "최상위 관리자" 자동 승인 로직을 제거하고 무조건 대기로 설정합니다.
+            doc.setCat_id(4); // 카테고리: 인사
+            doc.setTb_id(0);  // 세부: 휴가 요청
+            doc.setCd_id(0);  // 분류: 추가(신청)
 
             doc.setStatus(0);     // 0: 대기 (승인 전)
-            doc.setAppr_id(null); // 결재자 미지정 (누구든 권한 있는 사람이 승인 가능)
+            doc.setAppr_id(supervisorId); // 결재자
 
-            // (1) 문서 저장 (이 시점에는 근태 DB에 반영되지 않음)
             documentsService.addDocument(doc);
 
             return true;
@@ -214,7 +220,7 @@ public class HRController {
     /**
      * [추가] 퇴직 처리 결재 요청
      */
-    @PostMapping("/employees/request-resignation")
+    @PostMapping("/employees/request-status-change")
     public boolean requestResignation(@RequestBody Map<String, Object> reqData, HttpSession session) {
         try {
             // 1. 세션 정보 (기안자)
@@ -222,30 +228,42 @@ public class HRController {
             String requesterName = (String) session.getAttribute("emp_name");
             if (requesterId == null) return false;
 
-            // 2. 클라이언트에서 보낸 데이터 (대상 직원 ID, 이름)
+            Employee requester = employeeService.getEmployeeDetail(requesterId);
+            Long supervisorId = null;
+            if (requester != null && requester.getSupervisor() != null) {
+                supervisorId = Long.valueOf(requester.getSupervisor());
+            }
+
+            // 2. 클라이언트 데이터 (대상 직원)
             Integer targetEmpId = Integer.parseInt(reqData.get("emp_id").toString());
             String targetEmpName = (String) reqData.get("emp_name");
-            String reason = (String) reqData.get("reason"); // 사유 (선택)
+            String reason = (String) reqData.get("reason");
+            String newStatus = (String) reqData.get("newStatus"); // 프론트에서 보낸 변경 상태
 
-            // 3. JSON Payload 생성 (결재 승인 시 사용할 데이터)
+            // 3. 결재 문서 Payload 생성
             Map<String, Object> payload = new HashMap<>();
             payload.put("cat_id", 4);   // 인사
-            payload.put("tb_id", 1);    // 1: 인사 발령(상태 변경)으로 정의
-            payload.put("cd_id", 1);    // 1: 수정(Update)
+            payload.put("tb_id", 1);
+            payload.put("cd_id", 1);
             payload.put("targetEmpId", targetEmpId);
             payload.put("targetEmpName", targetEmpName);
-            payload.put("newStatus", "퇴사"); // 변경할 상태
+            payload.put("newStatus", newStatus);
             payload.put("reason", reason);
 
             // 4. 문서 생성
             Documents doc = new Documents();
-            doc.setTitle("[퇴직신청] " + targetEmpName + " 퇴사 처리 요청");
+            doc.setTitle("[인사] " + targetEmpName + " " + newStatus + " 처리 요청");
             doc.setReq_id(Long.valueOf(requesterId));
             doc.setReq_date(LocalDate.now());
             doc.setQuery(objectMapper.writeValueAsString(payload));
-            doc.setStatus(0);      // 대기
-            doc.setAppr_id(null);  // 결재자 미지정
 
+
+            doc.setCat_id(4);
+            doc.setTb_id(1); // 퇴사 요청은 1번으로 설정
+            doc.setCd_id(1);
+
+            doc.setStatus(0);      // 대기
+            doc.setAppr_id(supervisorId);
             // 5. 저장
             documentsService.addDocument(doc);
 
