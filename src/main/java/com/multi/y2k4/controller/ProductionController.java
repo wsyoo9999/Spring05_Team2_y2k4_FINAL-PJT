@@ -138,48 +138,53 @@ public class ProductionController {
     @DeleteMapping("/work_order/{work_order_id}")
     public boolean deleteWorkOrder(@PathVariable Long work_order_id) {
         try {
-            // 1. 삭제할 대상 정보 조회
+            // 1. 대상 정보 조회
             WorkOrder targetWo = productionService.getWorkOrderDetail(work_order_id);
+            if (targetWo == null) return false;
 
-            if (targetWo == null) {
-                System.out.println("삭제 대상 작업지시서가 존재하지 않습니다: " + work_order_id);
+            // 2. 상태 확인
+            String statusStr = targetWo.getOrder_status(); // "대기", "진행중", "완료" ...
+            int cd_id;
+            String titleSuffix;
+            Map<String, Object> payload = new HashMap<>();
+
+            if ("완료".equals(statusStr) || "폐기".equals(statusStr)) {
+                // [완료/폐기] 상태는 삭제/폐기 불가
+                System.out.println("완료되거나 이미 폐기된 작업지시서는 삭제할 수 없습니다.");
                 return false;
+            } else if ("진행중".equals(statusStr)) {
+                // [진행중] -> 폐기 요청 (수정 문서 생성)
+                cd_id = 1; // 수정(Update)
+                titleSuffix = "폐기 요청";
+                payload.put("newStatus", 3); // 3: 폐기 상태 코드
+            } else {
+                // [대기] (또는 승인대기) -> 삭제 요청 (삭제 문서 생성)
+                cd_id = 2; // 삭제(Delete)
+                titleSuffix = "삭제 요청";
             }
 
-            // 2. 결재 문서용 JSON 데이터 생성
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("cat_id", 2);   // 카테고리: 생산/제조
-            payload.put("tb_id", 0);    // 테이블: 작업지시서
-            payload.put("cd_id", 2);    // 동작: 삭제 (Delete)
-
+            // 3. Payload 구성
+            payload.put("cat_id", 2);
+            payload.put("tb_id", 0);
+            payload.put("cd_id", cd_id);
             payload.put("pk", work_order_id);
-            // DocumentBodyBuilder가 데이터를 읽을 수 있도록 "workOrder" 키에 객체 저장
-            payload.put("workOrder", targetWo);
+            payload.put("workOrder", targetWo); // 상세 정보 표시용
 
-            // 3. 결재 문서 객체 생성 및 정보 설정
+            // 4. 문서 생성
             Documents doc = new Documents();
-            // 문서 제목 설정 (예: [생산] 작업지시서 삭제 요청 - 제품명)
-            String title = "작업지시서 삭제 요청 - " +
-                    (targetWo.getStock_name() != null ? targetWo.getStock_name() : "ID:" + work_order_id);
-            doc.setTitle(title);
+            String stockName = targetWo.getStock_name() != null ? targetWo.getStock_name() : "ID:" + work_order_id;
+            doc.setTitle("작업지시서 " + titleSuffix + " - " + stockName);
 
-            // 기안자 ID 설정 (삭제를 요청한 담당자 ID 사용, 필요 시 로그인 세션 ID로 변경 가능)
             doc.setReq_id(targetWo.getEmp_id());
             doc.setReq_date(LocalDate.now());
-            doc.setStatus(0); // 결재 상태: 0(대기)
-            doc.setCat_id(2); // 생산/제조
-            doc.setTb_id(0);  // 작업지시서
-            doc.setCd_id(2);  // 삭제
+            doc.setStatus(0); // 대기
+            doc.setCat_id(2);
+            doc.setTb_id(0);
+            doc.setCd_id(cd_id); // 1(폐기) or 2(삭제)
 
-            // JSON 변환 및 쿼리 저장
-            String query = objectMapper.writeValueAsString(payload);
-            doc.setQuery(query);
+            doc.setQuery(objectMapper.writeValueAsString(payload));
 
-            // 4. 결재 문서 저장 (결재 요청 발송)
             documentsService.addDocument(doc);
-
-            // 실제 삭제는 여기서 수행하지 않음 (결재 승인 시 수행)
-            // productionService.deleteWorkOrder(work_order_id);
 
             return true;
 

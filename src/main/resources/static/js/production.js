@@ -835,6 +835,7 @@ function getStatusClass(status) {
         case '대기': return 'status-waiting';
         case '진행중': return 'status-progress';
         case '완료': return 'status-complete';
+        case '폐기': return 'status-discarded'; // [추가]
         default: return 'status-default';
     }
 }
