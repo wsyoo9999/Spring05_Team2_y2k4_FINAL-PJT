@@ -115,6 +115,9 @@ public class ProductionService {
         // 1. 목표 수량 조회
         WorkOrder wo = productionMapper.getWorkOrderDetail(workOrderId);
         if (wo == null) return;
+        int oldStatus = 0;
+        if ("진행중".equals(wo.getOrder_status())) oldStatus = 1;
+        else if ("완료".equals(wo.getOrder_status())) oldStatus = 2;
 
         // 2. 전체 생산량(Lot) 합계 계산
         List<Lot> lots = productionMapper.getWorkOrderLots(workOrderId);
@@ -134,6 +137,15 @@ public class ProductionService {
             newStatus = 2; // 완료 (양품이 목표 달성 시)
         } else if (totalProducedQty > 0) {
             newStatus = 1; // 진행중 (생산 이력이 있으면)
+        }
+
+        // [추가] 상태가 '완료'로 전환될 때 재고 및 요청 수량 일괄 처리
+        if (oldStatus != 2 && newStatus == 2) {
+            // 1) 완제품 실제 재고(qty) 증가 : 최종 양품 수량만큼 입고
+            stockService.manageStockQty(wo.getStock_id().intValue(), 1, currentGoodQty);
+
+            // 2) 완제품 요청 수량(acquired_qty) 차감 : 입고 예정(목표 수량) 해제
+            stockService.manageAcquiredAty(wo.getStock_id().intValue(), 2, wo.getTarget_qty());
         }
 
         // 6. DB 업데이트
@@ -166,7 +178,7 @@ public class ProductionService {
                 quantities.add(requiredAmount);
 
                 // [추가] 해당 자재에 대해 acquired_qty는 0만큼 차감
-                acquiredQuantities.add(0);
+                acquiredQuantities.add(-requiredAmount);
             }
 
             List<Integer> result = stockService.manageStock(childStockIds, quantities, acquiredQuantities, 2);
@@ -181,10 +193,7 @@ public class ProductionService {
         int result = productionMapper.addLot(lot);
 
         if (result > 0) {
-            // 5. 완제품 재고 증가 (operationType 1: 증가)
-            stockService.manageStockQty(wo.getStock_id().intValue(), 1, lot.getLot_qty());
 
-            // 6. 작업지시서 상태 갱신 (진행률 등)
             refreshWorkOrderState(lot.getWork_order_id());
             return true;
         }

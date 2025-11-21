@@ -144,7 +144,8 @@
         </where>
     </select>
 
-    <insert id="addWorkOrder" parameterType="com.multi.y2k4.vo.production.WorkOrder">
+    <insert id="addWorkOrder" parameterType="com.multi.y2k4.vo.production.WorkOrder"
+            useGeneratedKeys="true" keyProperty="work_order_id">
         INSERT INTO work_order (
             stock_id, emp_id, start_date, due_date,
             target_qty, request_date,

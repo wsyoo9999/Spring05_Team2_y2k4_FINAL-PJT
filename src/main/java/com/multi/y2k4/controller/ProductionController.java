@@ -96,6 +96,9 @@ public class ProductionController {
             productionService.addWorkOrder(newWorkOrder);
             String stockName = "제품명 미상";
             Stock stock = stockService.selectStockById(stock_id.intValue());
+            if (stock != null) {
+                stockName = stock.getStock_name();
+            }
 
             // 2. 결재 문서용 JSON 데이터 생성
             Map<String, Object> payload = new HashMap<>();
