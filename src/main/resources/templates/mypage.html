@@ -72,23 +72,25 @@
         <span class="nav-logo" aria-hidden="true" ><i class="fas fa-cube"></i></span>
         <span>Y2K4 ERP</span>
     </div>
+
     <div class="nav-spacer"></div>
+
     <nav class="nav-links" id="navLinks">
-        <a href="/dashboard" class="nav-link" data-topnav="dashboard"><i class="fas fa-tachometer-alt"></i> 대시보드</a>
-        <a href="#" class="nav-link" data-topnav="finance"><i class="fas fa-calculator"></i> 재무/회계</a>
-        <a href="#" class="nav-link" data-topnav="sales"><i class="fas fa-chart-line"></i> 판매/구매</a>
-        <a href="#" class="nav-link" data-topnav="production"><i class="fas fa-industry"></i> 생산/제조</a>
-        <a href="#" class="nav-link" data-topnav="inventory"><i class="fas fa-boxes"></i> 재고</a>
-        <a href="#" class="nav-link" data-topnav="hr"><i class="fas fa-users"></i> 인사</a>
-        <a href="#" class="nav-link" data-topnav="reports"><i class="fas fa-file-alt"></i> 리포트</a>
-        <a href="#" class="nav-link" data-topnav="settings"><i class="fas fa-cog"></i> 설정</a>
+        <a href="/" class="nav-link"><i class="fas fa-tachometer-alt"></i> 대시보드</a>
+        <a href="#" class="nav-link"><i class="fas fa-calculator"></i> 재무/회계</a>
+        <a href="#" class="nav-link"><i class="fas fa-chart-line"></i> 판매/구매</a>
+        <a href="#" class="nav-link"><i class="fas fa-industry"></i> 생산/제조</a>
+        <a href="#" class="nav-link"><i class="fas fa-boxes"></i> 재고</a>
+        <a href="#" class="nav-link"><i class="fas fa-users"></i> 인사</a>
+        <a href="#" class="nav-link"><i class="fas fa-file-alt"></i> 리포트</a>
+        <a href="#" class="nav-link"><i class="fas fa-cog"></i> 설정</a>
     </nav>
+
     <div class="nav-right">
-        <button class="nav-icon-btn" title="알림" aria-label="알림" onclick="window.location.href='/alerts'"><i class="fas fa-bell"></i></button>
+        <button class="nav-icon-btn" title="알림" aria-label="알림" onclick="window.location.href='/alerts'" style="color: var(--primary-color);"><i class="fas fa-bell"></i></button>
         <button class="nav-icon-btn" title="프로필" aria-label="프로필" onclick="window.location.href='/mypage'"><i class="fas fa-user-circle"></i></button>
     </div>
 </header>
-
 <div class="main-container">
     <div class="accordion-container">
         <div class="accordion-item"><button class="accordion-header">재무/회계 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="finance" data-fn="documents_listAll" data-table="documents">결재 문서 관리</button><button class="menu" data-file="finance" data-fn="budget_listAll" data-table="budget">예산 관리</button><button class="menu" data-file="finance" data-fn="slips_listAll" data-table="slips">회계 전표 관리</button></div></div>

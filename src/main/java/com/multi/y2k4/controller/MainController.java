@@ -74,16 +74,17 @@ public class MainController {
 
             TenantContext.setCurrentDb(dbName);
 
-            List<Employee> empList = employeeService.getEmployeeList(user.getName(), null, null, null);
-            //같은 이름 처리?
-            if (!empList.isEmpty()) {
-                Employee me = empList.get(0);
-                httpSession.setAttribute("emp_id", me.getEmp_id());     // 내 사번
-                httpSession.setAttribute("position", me.getPosition()); // 내 직급
-                httpSession.setAttribute("emp_name", me.getEmp_name()); // 내 이름
+            Employee me = employeeService.getEmployeeByLoginId(user.getId());
 
-            } else {
+            if (me != null) {
+                httpSession.setAttribute("emp_id", me.getEmp_id());        // 내 사번
+                httpSession.setAttribute("position", me.getPosition());    // 내 직급/권한
+                httpSession.setAttribute("supervisor", me.getSupervisor()); // 내 상급자
 
+                System.out.println("=== 로그인 세션 세팅 ===");
+                System.out.println("emp_id      = " + httpSession.getAttribute("emp_id"));
+                System.out.println("position    = " + httpSession.getAttribute("position"));
+                System.out.println("supervisor  = " + httpSession.getAttribute("supervisor"));
             }
             return "redirect:/";
         }

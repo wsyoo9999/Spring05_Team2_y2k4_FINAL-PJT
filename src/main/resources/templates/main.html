@@ -513,7 +513,7 @@
 
     // 초기 로딩 시
     document.addEventListener('DOMContentLoaded', () => {
-        const initialMenu = document.querySelector('.menu[data-file="inventory"][data-fn="stock_listAll"]');
+        const initialMenu = document.querySelector('.menu[data-file="finance"][data-fn="documents_listAll"]');
         if (initialMenu) {
             initialMenu.classList.add('selected');
             const sectionTitle = document.querySelector('.section-title span');
@@ -528,8 +528,11 @@
                     header.classList.add('active');
                 }
             }
+
+            initialMenu.click();
         }
     });
+
 </script>
 
 <script type="module">
