@@ -187,8 +187,9 @@
         .results {
             flex: 1;
             padding: 20px;
-            min-height: calc(100vh - var(--nav-h));
+            height: calc(100vh - var(--nav-h));
             background-color: var(--bg-light);
+            overflow: hidden;
         }
 
         .content-card {
@@ -196,6 +197,9 @@
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - var(--nav-h) - 40px);
         }
 
         .section-title {
@@ -208,13 +212,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
         /* 표 스타일 */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 0;
         }
         th, td {
             border: 1px solid var(--border-color);
@@ -222,10 +227,22 @@
             text-align: left;
             font-size: 14px;
         }
+        td {
+            position: relative;
+            z-index: 1;
+            background-color: inherit;
+        }
         th {
             background-color: var(--bg-light);
             font-weight: 600;
             color: var(--text-dark);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #F8F9FA;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
@@ -251,6 +268,39 @@
         }
         th:last-child {
             text-align: center;
+        }
+
+        /* 테이블 스크롤 영역 */
+        #table {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: auto;
+            padding: 0;
+        }
+
+        #table::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        #table::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        #table::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        #table::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        #table {
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f1f1f1;
         }
 
         /* 검색 폼 스타일 */
@@ -391,7 +441,7 @@
                 <button class="menu" data-file="finance" data-fn="unpaid_listAll" data-table="unpaid">회사 미정산액</button>
             </div>
         </div>
-<!--        documents는 유지하고, profit, spend로 변경 및 <i class="fas fa-chevron-right"></i> 추가 -->
+        <!--        documents는 유지하고, profit, spend로 변경 및 <i class="fas fa-chevron-right"></i> 추가 -->
         <div class="accordion-item">
             <button class="accordion-header">
                 판매/구매 <i class="fas fa-chevron-right"></i>
@@ -427,7 +477,7 @@
             <div class="accordion-content">
                 <button class="menu" data-file="hr" data-fn="employees_listAll" data-table="employees">직원 목록</button>
                 <button class="menu" data-file="hr" data-fn="attendance_listAll" data-table="attendance">근태 현황</button>
-<!--                <button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button>-->
+                <!--                <button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button>-->
             </div>
         </div>
         <div class="accordion-item">
@@ -455,7 +505,7 @@
 
         <div class="content-card">
             <div class="section-title">
-                <span>재고 목록</span>
+                <span>전체 결재 목록</span>
             </div>
 
             <div id="table">
@@ -513,7 +563,7 @@
 
     // 초기 로딩 시
     document.addEventListener('DOMContentLoaded', () => {
-        const initialMenu = document.querySelector('.menu[data-file="finance"][data-fn="documents_listAll"]');
+        const initialMenu = document.querySelector('.menu[data-file="document"][data-fn="document_listAll"]');
         if (initialMenu) {
             initialMenu.classList.add('selected');
             const sectionTitle = document.querySelector('.section-title span');
