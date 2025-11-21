@@ -21,11 +21,14 @@
             a.emp_id,
             hr.emp_name,
             DATE(a.att_date) AS work_date,
-            a.att_date       AS check_in_time,  a.clock_out      AS check_out_time, CASE a.att_status  WHEN 0 THEN '정상'
+            a.att_date       AS check_in_time,
+            a.clock_out      AS check_out_time,
+            CASE a.att_status
+            WHEN 0 THEN '정상'
             WHEN 1 THEN '지각'
             WHEN 2 THEN '조퇴'
             WHEN 3 THEN '결근'
-            ELSE '기타'
+            WHEN 4 THEN '휴가'  ELSE '기타'
         END AS status_text
         FROM attendance a
         LEFT JOIN human_resource hr ON a.emp_id = hr.emp_id
@@ -41,7 +44,7 @@
                 WHEN '지각' LIKE CONCAT('%', #{search_keyword}, '%') THEN 1
                 WHEN '조퇴' LIKE CONCAT('%', #{search_keyword}, '%') THEN 2
                 WHEN '결근' LIKE CONCAT('%', #{search_keyword}, '%') THEN 3
-                ELSE -1 END)
+                WHEN '휴가' LIKE CONCAT('%', #{search_keyword}, '%') THEN 4 ELSE -1 END)
             </if>
             <if test="start_date != null">
                 AND DATE(a.att_date) <![CDATA[>=]]> #{start_date}
@@ -61,14 +64,42 @@
     <update id="updateAttendanceStatus" parameterType="com.multi.y2k4.vo.hr.Attendance">
         UPDATE attendance
         SET
+            att_date = #{check_in},
+            clock_out = #{check_out},
             att_status = CASE #{attendance_status}
                              WHEN '정상' THEN 0
                              WHEN '지각' THEN 1
                              WHEN '조퇴' THEN 2
                              WHEN '결근' THEN 3
-                             ELSE att_status END
+                             WHEN '휴가' THEN 4 ELSE att_status END
         WHERE
             att_id = #{attendance_id}
     </update>
 
+    <insert id="addBulkAttendance" parameterType="java.util.List">
+        INSERT INTO attendance
+        (emp_id, att_date, clock_out, att_status)
+        VALUES
+        <foreach collection="attendanceList" item="att" separator=",">
+            (
+            #{att.emp_id},
+            #{att.check_in},
+            #{att.check_out},
+            CASE #{att.attendance_status}
+            WHEN '정상' THEN 0
+            WHEN '지각' THEN 1
+            WHEN '조퇴' THEN 2
+            WHEN '결근' THEN 3
+            WHEN '휴가' THEN 4  ELSE 0
+            END
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        att_date = VALUES(att_date),
+        clock_out = VALUES(clock_out),
+        att_status = CASE
+        WHEN att_status = 4 THEN att_status
+        ELSE VALUES(att_status)
+        END
+    </insert>
 </mapper>

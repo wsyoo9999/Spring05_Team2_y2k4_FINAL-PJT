@@ -43,82 +43,231 @@
         h3 {
             font-size: 18px;
             font-weight: 600;
-            margin-top: 20px;
-            margin-bottom: 10px;
+            margin-top: 25px;
+            margin-bottom: 15px;
             border-left: 4px solid var(--primary-color);
-            padding-left: 8px;
+            padding-left: 10px;
+            color: #444;
         }
         .status-badge {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            padding: 5px 12px;
-            border-radius: 15px;
+            padding: 6px 12px;
+            border-radius: 20px;
             color: white;
         }
         .status-waiting { background-color: #6c757d; }
         .status-progress { background-color: var(--primary-color); }
         .status-complete { background-color: var(--secondary-color); }
+        .status-discarded { background-color: #343a40; text-decoration: line-through; opacity: 0.8; }
 
         /* 정보 표시용 그리드 */
         .info-grid {
             display: grid;
-            grid-template-columns: 150px 1fr; /* 라벨-값 */
-            gap: 10px;
+            grid-template-columns: 180px 1fr; /* 라벨 너비 고정 */
+            gap: 10px 15px; /* 가로 세로 간격 */
             margin-bottom: 15px;
+            align-items: center; /* 수직 중앙 정렬 */
         }
         .info-grid .label {
             font-weight: 500;
             color: #555;
             background-color: var(--bg-light);
-            padding: 8px 10px;
+            padding: 10px 12px;
             border-radius: 4px;
+            border: 1px solid transparent; /* 높이 맞춤용 */
         }
         .info-grid .value {
-            padding: 8px 10px;
+            padding: 10px 12px;
             font-weight: 500;
-            background-color: #fcfcfc;
+            color: #333;
             border-bottom: 1px solid var(--border-color);
         }
-        .info-grid .value.good { color: var(--secondary-color); }
-        .info-grid .value.defect { color: var(--danger-color); }
+        .info-grid .value.good { color: var(--secondary-color); font-weight: 700; }
+        .info-grid .value.defect { color: var(--danger-color); font-weight: 700; }
 
         /* 버튼 영역 */
         .action-container {
-            margin-top: 20px;
+            margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid var(--border-color);
             display: flex;
             gap: 10px;
+            justify-content: flex-end; /* 버튼 우측 정렬 */
         }
         .action-button {
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 10px 18px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
-            transition: background-color 0.2s;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #888;       /* 기본 회색 */
+            cursor: pointer;
+            font-size: 16px;   /* 아이콘 크기 */
+            padding: 4px 8px;
+            transition: color 0.2s;
+        }
+        .action-button:hover { transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .btn-primary { background-color: var(--primary-color); }
         .btn-primary:hover { background-color: #3A7BD5; }
         .btn-secondary { background-color: #6c757d; }
         .btn-secondary:hover { background-color: #5a6268; }
         .btn-danger { background-color: var(--danger-color); }
         .btn-danger:hover { background-color: #d94343; }
+
+        /* --- [추가] Lot 등록 폼 스타일 --- */
+        #add-lot-form-container {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px dashed var(--border-color); /* 구분선 */
+            animation: slideDown 0.3s ease-out;
+        }
+
+        /* 폼 입력 필드 (기존 .value와 어울리게)1 */
+        .form-input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 15px;
+            color: var(--text-dark);
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+            background-color: #fff;
+        }
+        .form-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.95em;
+        }
+        .data-table th {
+            background-color: #f1f3f5;
+            color: #495057;
+            font-weight: 600;
+            padding: 10px;
+            border-bottom: 2px solid #dce4ec;
+            text-align: center;
+        }
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            color: #333;
+        }
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
 <div class="detail-card">
-    <div id="detail-header">
-    </div>
-
+    <div id="detail-header"></div>
     <div id="detail-container">
-        <p>상세 정보를 불러오는 중입니다...</p>
+        <p style="text-align: center; padding: 20px;">상세 정보를 불러오는 중입니다...</p>
     </div>
 
-    <div id="action-container" class="action-container">
+    <div id="action-container" class="action-container"></div>
+
+    <div id="add-lot-form-container" style="display: none;">
+        <h3><i class="fas fa-boxes"></i> 신규 생산 실적 등록</h3>
+
+        <form method="POST" action="/api/production/lot/add" id="addLotForm">
+            <input type="hidden" id="lot_work_order_id" name="work_order_id">
+            <input type="hidden" id="lot_stock_id" name="stock_id">
+
+            <div class="info-grid">
+                <div class="label">생산일자</div>
+                <div>
+                    <input class="form-input" type="date" id="lot_date" name="lot_date" required>
+                </div>
+
+                <div class="label">총 생산수량</div>
+                <div>
+                    <input class="form-input" type="number" id="lot_qty" name="lot_qty" min="1" placeholder="양품 + 불량품 총합" required>
+                </div>
+            </div>
+
+            <div class="info-grid" style="margin-top: 10px; border-top: 1px dashed #ddd; paddingTop: 10px;">
+                <div class="label" style="color: #E95353;">불량 유형 (선택)</div>
+                <div>
+                    <select class="form-input" id="defect_code" name="defect_code">
+                        <option value="0">없음 (정상)</option>
+                        <option value="1">101: 파손/찍힘</option>
+                        <option value="2">102: 치수 불량</option>
+                        <option value="3">103: 이물질 오염</option>
+                        <option value="4">104: 조립 불량</option>
+                        <option value="5">105: 기능 고장</option>
+                        <option value="99">999: 기타</option>
+                    </select>
+                </div>
+
+                <div class="label" style="color: #E95353;">불량 수량 (선택)</div>
+                <div>
+                    <input class="form-input" type="number" id="defect_qty" name="defect_qty" min="0" value="0" placeholder="0">
+                </div>
+            </div>
+
+            <div class="action-container" style="border-top: none; padding-top: 10px;">
+                <button type="submit" class="action-button btn-primary">
+                    <i class="fas fa-check"></i> 등록 완료
+                </button>
+                <button type="button" id="cancel-lot-add" class="action-button btn-secondary">
+                    <i class="fas fa-times"></i> 취소
+                </button>
+            </div>
+        </form>
+    </div>
+    <div id="lot-list-container" style="display: none; margin-top: 20px; border-top: 2px dashed #E0E0E0; padding-top: 20px;">
+        <h3><i class="fas fa-list-ul"></i> 생산 실적(Lot) 목록</h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Lot No.</th>
+                    <th>생산일</th>
+                    <th>생산수량</th>
+                    <th>불량수량</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+                <tbody id="lot-list-tbody">
+                </tbody>
+            </table>
+        </div>
+        <div style="text-align: right; margin-top: 10px;">
+            <button type="button" id="close-lot-list" class="action-button btn-secondary">
+                <i class="fas fa-times"></i> 닫기
+            </button>
+        </div>
     </div>
 </div>
 
@@ -144,13 +293,11 @@
         return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
 
-    // 숫자 천단위 콤마
     function numberFormat(num) {
         if (num === null || num === undefined) return '0';
         return parseInt(num).toLocaleString('ko-KR');
     }
 
-    // 상태 클래스 반환
     function getStatusClass(status) {
         switch(status) {
             case '대기': return 'status-waiting';
@@ -160,34 +307,51 @@
         }
     }
 
-    // === 팝업 로드 시 실행되는 메인 로직 ===
+    // === 메인 로직 ===
     $(document).ready(async function() {
         const headerContainer = $('#detail-header');
         const container = $('#detail-container');
         const actionContainer = $('#action-container');
 
-        try {
-            // 1. URL에서 order_id 추출
-            const urlParams = new URLSearchParams(window.location.search);
-            const work_order_id = urlParams.get('work_order_id');
+        const urlParams = new URLSearchParams(window.location.search);
+        const work_order_id = urlParams.get('work_order_id');
 
+        let loadedData = null;
+        let targetQty = 0;
+        let startDate = '';
+
+        try {
             if (!work_order_id) {
                 throw new Error('작업 지시서 ID가 없습니다.');
             }
 
-            // 2. API 호출
-            const data = await $.ajax({
-                url: `/api/production/work_order/${work_order_id}`,
-                method: 'GET',
-                dataType: 'json'
-            });
+            // 1. 데이터 조회
+            const [data, lots] = await Promise.all([
+                $.ajax({
+                    url: `/api/production/work_order/${work_order_id}`,
+                    method: 'GET',
+                    dataType: 'json'
+                }),
+                $.ajax({
+                    url: `/api/production/work_order/${work_order_id}/lots`,
+                    method: 'GET',
+                    dataType: 'json'
+                })
+            ]);
 
-            // 3. HTML 생성
-            const progress = data.target_qty > 0
-                ? Math.round((data.good_qty / data.target_qty) * 100)
+            loadedData = data;
+
+            const serverGoodQty = data.good_qty || 0;
+            const serverDefectQty = data.defect_qty || 0;
+
+            targetQty = loadedData.target_qty || 0;
+            startDate = loadedData.start_date ? formatDate(loadedData.start_date) : '';
+
+            const progress = targetQty > 0
+                ? Math.round((serverGoodQty / targetQty) * 100)
                 : 0;
 
-            // 헤더 생성
+            // 2. 헤더 HTML 렌더링
             let headerHtml = `
                 <h2>
                     <span><i class="fas fa-industry"></i> 작업지시서 상세</span>
@@ -195,27 +359,17 @@
                 </h2>
             `;
 
-            // 상세 정보 HTML 생성
+            // 3. 상세 정보 HTML 렌더링
             let detailHtml = `
                 <h3>기본 정보</h3>
                 <div class="info-grid">
-                    <div class="label">작업지시번호</div>
-                    <div class="value"><strong>${data.work_order_id}</strong></div>
-
-                    <div class="label">제품코드</div>
-                    <div class="value">${data.stock_id ?? '-'}</div>
-
-                    <div class="label">담당자</div>
-                    <div class="value">${data.emp_id ?? '-'}</div>
-
-                    <div class="label">시작일</div>
-                    <div class="value">${formatDate(data.start_date)}</div>
-
-                    <div class="label">완료일</div>
-                    <div class="value">${formatDate(data.due_date)}</div>
-
-                    <div class="label">요청일시</div>
-                    <div class="value">${formatDateTime(data.request_date)}</div>
+                    <div class="label">작업지시번호</div> <div class="value">${data.work_order_id}</div>
+                    <div class="label">제품코드</div> <div class="value">${data.stock_id ?? '-'}</div>
+                    <div class="label">제품명</div> <div class="value"><strong>${data.stock_name ?? '-'}</strong></div>
+                    <div class="label">담당자</div> <div class="value">${data.emp_name ?? (data.emp_id ?? '-')}</div>
+                    <div class="label">시작일</div> <div class="value">${formatDate(data.start_date)}</div>
+                    <div class="label">완료일</div> <div class="value">${formatDate(data.due_date)}</div>
+                    <div class="label">요청일시</div> <div class="value">${formatDateTime(data.request_date)}</div>
                 </div>
 
                 <h3>생산 수량</h3>
@@ -224,37 +378,240 @@
                     <div class="value">${numberFormat(data.target_qty)}</div>
 
                     <div class="label">양품수량</div>
-                    <div class="value good"><strong>${numberFormat(data.good_qty)}</strong></div>
+                    <div class="value good"><strong>${numberFormat(serverGoodQty)}</strong></div>
 
                     <div class="label">불량수량</div>
-                    <div class="value defect"><strong>${numberFormat(data.defect_qty)}</strong></div>
+                    <div class="value defect"><strong>${numberFormat(serverDefectQty)}</strong></div>
 
                     <div class="label">진행률</div>
                     <div class="value"><strong>${progress}%</strong></div>
                 </div>
             `;
 
-            // 버튼 HTML 생성
+            // 4. 버튼 HTML 렌더링
             let actionHtml = `
-                <button class="action-button btn-primary" data-work-order-id="${data.work_order_id}">
-                    <i class="fas fa-check-circle"></i> 생산 실적 등록
+                <button class="action-button btn-primary btn-register-result">
+                    <i class="fas fa-plus-circle"></i> 생산 실적 등록
                 </button>
-                <button class="action-button btn-danger" data-work-order-id="${data.work_order_id}">
-                    <i class="fas fa-exclamation-triangle"></i> 불량 등록
-                </button>
-                <button class="action-button btn-secondary" data-work-order-id="${data.work_order_id}">
-                    <i class="fas fa-search"></i> Lot 조회
+                <button class="action-button btn-secondary btn-view-lots">
+                    <i class="fas fa-list"></i> Lot 조회
                 </button>
             `;
 
-            // 4. 컨테이너에 HTML 삽입
             headerContainer.html(headerHtml);
             container.html(detailHtml);
             actionContainer.html(actionHtml);
 
+            // --- 이벤트 핸들러 ---
+
+            // [1] 생산 실적 등록 버튼 클릭
+            actionContainer.on('click', '.btn-register-result', function() {
+                if (!loadedData) return;
+
+                // 다른 폼 닫기
+                $('#add-defect-form-container').hide();
+                $('#lot-list-container').hide();
+                $('.btn-register-defect').show();
+                $('.btn-view-lots').show();
+
+                const currentGood = loadedData.good_qty || 0;
+                const maxQty = targetQty - currentGood;
+
+                if (maxQty <= 0) {
+                    alert('이미 목표 수량(양품)을 모두 달성했습니다.');
+                    return;
+                }
+
+                // 폼 초기화
+                $('#lot_work_order_id').val(loadedData.work_order_id);
+                $('#lot_stock_id').val(loadedData.stock_id);
+
+                const lotDateInput = $('#lot_date');
+                if (startDate) {
+                    lotDateInput.attr('min', startDate);
+                    const today = new Date().toISOString().split('T')[0];
+                    lotDateInput.val(today > startDate ? today : startDate);
+                } else {
+                    lotDateInput.val(new Date().toISOString().split('T')[0]);
+                }
+
+                const lotQtyInput = $('#lot_qty');
+                lotQtyInput.attr('max', maxQty);
+                lotQtyInput.attr('placeholder', `추가 필요량: ${maxQty}개`);
+                lotQtyInput.val('');
+
+                $('#add-lot-form-container').show();
+                $(this).hide(); // 버튼 숨김
+                document.getElementById('add-lot-form-container').scrollIntoView({ behavior: 'smooth' });
+            });
+
+            // [2] 생산 실적 취소 버튼
+            $('#cancel-lot-add').on('click', function() {
+                $('#add-lot-form-container').hide();
+                $('.btn-register-result').show();
+            });
+
+            // [3] 생산 실적 폼 제출
+            $('#addLotForm').on('submit', async function(e) {
+                e.preventDefault();
+                const currentGood = loadedData.good_qty || 0;
+                const maxQty = targetQty - currentGood;
+                const enteredQty = parseInt($('#lot_qty').val());
+                const enteredDate = $('#lot_date').val();
+                const defectQty = parseInt($('#defect_qty').val()) || 0;
+
+                if (defectQty > enteredQty) {
+                    alert(`불량 수량(${defectQty})은 총 생산 수량(${enteredQty})보다 클 수 없습니다.`);
+                    return;
+                }
+
+                if (maxQty <= 0) {
+                    alert('이미 목표 수량을 달성하여 추가할 수 없습니다.');
+                    return;
+                }
+                if (enteredQty > maxQty) {
+                    alert(`최대 생산 가능 수량(${maxQty}개)을 초과했습니다.`);
+                    return;
+                }
+                if (startDate && enteredDate < startDate) {
+                    alert(`생산일은 작업지시서 시작일(${startDate}) 이전일 수 없습니다.`);
+                    return;
+                }
+
+                try {
+                    const result = await $.ajax({
+                        url: $(this).attr('action'),
+                        method: 'POST',
+                        dataType: 'json',
+                        data: $(this).serialize()
+                    });
+
+                    if (result === true) {
+                        alert('✅ 생산 실적이 등록되었습니다.');
+                        window.location.reload();
+                    } else {
+                        alert('❌ 등록에 실패했습니다.');
+                    }
+                } catch (error) {
+                    console.error('등록 실패:', error);
+                    alert('❌ 서버 통신 중 오류가 발생했습니다.');
+                }
+            });
+
+
+            // [7] Lot 조회 버튼 클릭
+            actionContainer.on('click', '.btn-view-lots', async function() {
+                const listContainer = $('#lot-list-container');
+
+                if (listContainer.is(':visible')) {
+                    listContainer.hide();
+                    $(this).show();
+                    return;
+                }
+
+                // 다른 폼 닫기
+                $('#add-lot-form-container').hide();
+                $('#add-defect-form-container').hide();
+                $('.btn-register-result').show();
+                $('.btn-register-defect').show();
+
+                try {
+                    // 데이터 재조회 (최신 상태 반영)
+                    const [lotsData, defectsData] = await Promise.all([
+                        $.ajax({
+                            url: `/api/production/work_order/${loadedData.work_order_id}/lots`,
+                            method: 'GET',
+                            dataType: 'json'
+                        }),
+                        $.ajax({
+                            url: `/api/production/work_order/${loadedData.work_order_id}/defects`,
+                            method: 'GET',
+                            dataType: 'json'
+                        })
+                    ]);
+
+                    // 불량 수량 매핑
+                    const defectMap = {};
+                    if (defectsData && defectsData.length > 0) {
+                        defectsData.forEach(d => {
+                            if (!defectMap[d.lot_id]) defectMap[d.lot_id] = 0;
+                            defectMap[d.lot_id] += (d.defect_qty || 0);
+                        });
+                    }
+
+                    let html = '';
+                    if (lotsData && lotsData.length > 0) {
+                        lotsData.forEach(lot => {
+                            const defectQty = defectMap[lot.lot_id] || 0;
+                            const defectClass = defectQty > 0 ? 'color: #E95353; font-weight:bold;' : '';
+
+                            // 삭제 버튼이 포함된 행 생성
+                            html += `
+                <tr>
+                    <td><strong>${lot.lot_id}</strong></td>
+                    <td>${formatDate(lot.lot_date)}</td>
+                    <td>${numberFormat(lot.lot_qty)}</td>
+                    <td style="${defectClass}">${numberFormat(defectQty)}</td>
+                    <td>
+                        <button type="button" class="btn-delete btn-delete-lot"
+                                data-lot-id="${lot.lot_id}"
+                                title="삭제">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+                        });
+                    } else {
+                        html = '<tr><td colspan="4" style="text-align:center; padding: 20px;">등록된 생산 실적이 없습니다.</td></tr>';
+                    }
+
+                    $('#lot-list-tbody').html(html);
+                    listContainer.show();
+                    document.getElementById('lot-list-container').scrollIntoView({ behavior: 'smooth' });
+
+                } catch (err) {
+                    console.error('Lot 목록 조회 실패:', err);
+                    alert('목록을 불러오는데 실패했습니다.');
+                }
+            });
+
+            // [8] Lot 목록 닫기
+            $('#close-lot-list').on('click', function() {
+                $('#lot-list-container').hide();
+            });
+
+            $('#lot-list-tbody').on('click', '.btn-delete-lot', async function() {
+                const lotId = $(this).data('lot-id');
+
+                if (!confirm(`Lot 번호 [${lotId}] 실적을 삭제하시겠습니까?\n연결된 불량 내역도 함께 삭제됩니다.`)) {
+                    return;
+                }
+
+                try {
+                    const result = await $.ajax({
+                        url: `/api/production/lot/${lotId}`,
+                        method: 'DELETE',
+                        dataType: 'json'
+                    });
+
+                    if (result === true) {
+                        alert('✅ 삭제되었습니다.');
+                        // 목록을 닫았다가 다시 열거나, 새로고침하여 변경된 수량 반영
+                        // 여기서는 전체 새로고침을 하여 상단 진행률까지 갱신하는 것이 좋습니다.
+                        window.location.reload();
+                    } else {
+                        alert('❌ 삭제에 실패했습니다.');
+                    }
+                } catch (error) {
+                    console.error('삭제 중 오류:', error);
+                    alert('❌ 서버 통신 중 오류가 발생했습니다.');
+                }
+            });
+
         } catch (error) {
             console.error('상세 정보 로드 실패:', error);
-            container.html(`<p style="color:red;">데이터를 불러오는데 실패했습니다: ${error.message}</p>`);
+            container.html(`<p style="color:red; text-align:center; padding:20px;">데이터를 불러오는데 실패했습니다.<br>${error.message}</p>`);
         }
     });
 </script>

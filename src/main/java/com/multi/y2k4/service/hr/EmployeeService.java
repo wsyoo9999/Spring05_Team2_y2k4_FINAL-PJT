@@ -20,6 +20,11 @@ public class EmployeeService {
         return employeeMapper.getEmployeeList(search_name, search_dept, search_position, sort);
     }
 
+    public int addEmployee(Employee employee) {
+        return employeeMapper
+                .addEmployee(employee);
+    }
+
     /**
      * 직원 상세 조회
      */

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>주문 상태 수정</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        :root{
+            --primary-color:#4A90E2;
+            --bg-light:#F8F9FA;
+            --text-dark:#333333;
+            --border-color:#E0E0E0;
+            --card-bg:#FFFFFF;
+        }
+        html,body{height:100%}
+        body{
+            margin:0; background:var(--bg-light); color:var(--text-dark);
+            font-family:'Noto Sans KR', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            padding:24px; display:flex; align-items:flex-start; justify-content:center; box-sizing:border-box;
+        }
+        .wrap{ width:min(900px, 100%); }
+        .title{ font-weight:700; font-size:20px; margin-bottom:14px; color:#2c3e50; }
+
+        .card{
+            background:var(--card-bg);
+            border:1px solid var(--border-color);
+            border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,.06);
+            padding:18px 20px;
+        }
+
+        h3{ margin:2px 0 12px; font-size:16px; color:#4b5563; }
+
+        .ro-grid{
+            display:grid;
+            grid-template-columns:120px 1fr;
+            gap:8px 12px;
+            margin-bottom:16px;
+        }
+        .ro-grid label{
+            font-size:13px;
+            font-weight:700;
+            color:#6b7280;
+            display:flex;
+            align-items:center;
+        }
+        .ro-grid input[disabled]{
+            background:#fbfcff;
+            border:1px dashed #dbe6ff;
+            border-radius:8px;
+            padding:8px 10px;
+            font-size:14px;
+            min-height:34px;
+            color:#374151;
+        }
+
+        .detail-box{
+            margin-top:4px;
+            padding:12px 10px;
+            background:#fbfcff;
+            border:1px dashed #dbe6ff;
+            border-radius:8px;
+            max-height:460px;
+            overflow-y:auto;
+        }
+
+        .line-header{
+            display:flex;
+            gap:10px;
+            font-size:13px;
+            font-weight:700;
+            color:#6b7280;
+            margin-bottom:6px;
+        }
+        .line-header span:nth-child(1){ flex:2; }
+        .line-header span:nth-child(2){ flex:1; text-align:center; }
+        .line-header span:nth-child(3){ flex:1; text-align:center; }
+
+        .line-row{
+            display:flex;
+            gap:10px;
+            align-items:center;
+            margin-bottom:8px;
+        }
+        .line-row:last-child{ margin-bottom:0; }
+
+        .col-name{ flex:2; }
+        .col-ordered{ flex:1; }
+        .col-arrived{ flex:1; }
+
+        .line-row input[type="text"],
+        .line-row input[type="number"]{
+            width:100%;
+            padding:8px 10px;
+            border-radius:6px;
+            border:1px solid var(--border-color);
+            font-size:14px;
+            box-sizing:border-box;
+        }
+
+        .line-row input[type="text"][disabled]{
+            background:#f9fafb;
+        }
+
+        .line-row input[type="number"]:focus{
+            border-color:var(--primary-color);
+            box-shadow:0 0 0 3px rgba(74,144,226,.15);
+            outline:none;
+        }
+
+        .submit-btn{
+            margin-top:14px;
+            width:100%;
+            padding:12px 18px;
+            border:none;
+            border-radius:8px;
+            background:var(--primary-color);
+            color:#fff;
+            font-size:16px;
+            font-weight:700;
+            cursor:pointer;
+        }
+        .submit-btn:hover{ filter:brightness(.95); }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="title">주문 상태 수정</div>
+
+    <section class="card">
+        <h3>기본 정보</h3>
+        <div class="ro-grid">
+            <label>구매 번호</label>
+            <input type="text" id="ro-purchase-id" placeholder="-" disabled>
+        </div>
+
+        <h3>품목별 수량</h3>
+        <form method="POST" action="/api/transaction/purchase/editPurchaseStatus" id="editForm">
+            <input type="hidden" id="purchase_id" name="purchase_id">
+
+            <div class="detail-box">
+                <div class="line-header">
+                    <span>품명</span>
+                    <span>주문 수량</span>
+                    <span>도착 수량</span>
+                </div>
+                <div id="lineContainer">
+                    <!-- JS로 각 행이 들어옴 -->
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">수정 내용 저장</button>
+        </form>
+    </section>
+</div>
+
+<script>
+    let optionLoaded = false;
+
+    async function loadEditForm(purchase_id){
+        try {
+            const details = await $.ajax({
+                url:'/api/transaction/purchase/viewPurchaseDetails',
+                method: 'GET',
+                data:{ purchase_id: purchase_id },
+                dataType:'json'
+            });
+
+            let lines = '';
+
+            $.each(details, function (i, row) {
+                lines += `
+                    <div class="line-row">
+                        <!-- 품명 (읽기 전용) -->
+                        <div class="col-name">
+                            <input type="text" value="${row.stock_name}" disabled>
+                        </div>
+                        <!-- 주문 수량 (읽기 전용) -->
+                        <div class="col-ordered">
+                            <input type="text" value="${row.purchase_qty}" disabled>
+                        </div>
+                        <!-- 도착 수량 입력 + pd_id -->
+                        <div class="col-arrived">
+                            <input type="number" name="qty" min="0" required>
+                            <input type="hidden" name="pd_id" value="${row.pd_id}">
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('lineContainer').innerHTML = lines;
+            optionLoaded = true;
+        }catch(err){
+            console.error(err);
+            alert('옵션 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+        }
+    }
+
+    // 페이지 로드
+    $(async function(){
+        const purchase_id = new URLSearchParams(location.search).get('purchase_id');
+        if(!purchase_id){
+            alert('purchase_id가 필요합니다.');
+            window.close?.();
+            return;
+        }
+        $('#purchase_id').val(purchase_id);
+        $('#ro-purchase-id').val(purchase_id);
+
+        await loadEditForm(purchase_id);
+
+        // 제출
+        $('#editForm').on('submit', async function(e){
+            e.preventDefault();
+
+            // 도착 수량 모두 입력했는지 체크
+            const qtyInputs = $('input[name="qty"]');
+            const hasEmptyQty = qtyInputs.toArray().some(input => !input.value || input.value.trim() === '');
+            if (hasEmptyQty) {
+                alert('도착 수량을 모두 입력하세요.');
+                return;
+            }
+
+            try{
+                const result = await $.ajax({
+                    url: this.action,          // "/api/transaction/purchase/editPurchaseStatus"
+                    method: this.method,       // "POST"
+                    dataType: 'json',
+                    data: $(this).serialize()  // purchase_id + qty[] + pd_id 같이 전송
+                });
+
+                if(result === true || result?.success){
+                    alert('수정 완료');
+                    window.close?.();
+                }else{
+                    alert('수정 실패');
+                }
+            }catch(err){
+                console.error(err);
+                alert('수정 중 오류가 발생했습니다.');
+            }
+        });
+    });
+</script>
+</body>
+</html>

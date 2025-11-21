@@ -19,12 +19,13 @@ CREATE TABLE stock (
                        ac_id        BIGINT UNSIGNED,
                        type         tinyint,
                        is_deleted TINYINT(1) NOT NULL DEFAULT 0,
-                       CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
+                       CONSTRAINT fk_st_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
 );
 
 
 CREATE TABLE human_resource (
                                 emp_id       BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+                                login_id VARCHAR(200) UNIQUE,
                                 emp_name     VARCHAR(50) NOT NULL,
                                 supervisor   BIGINT UNSIGNED,
                                 dept_name    VARCHAR(50),
@@ -72,9 +73,9 @@ CREATE TABLE inbound (
                          ac_id       BIGINT UNSIGNED ,
                          emp_id      BIGINT UNSIGNED NOT NULL,
                          remark      varchar(200),
-                         approval tinyint NOT NULL
-                         CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
-                         CONSTRAINT fk_inb_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id),
+                         approval tinyint NOT NULL,
+                         CONSTRAINT fk_inb_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id),
+                         CONSTRAINT fk_inb_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id)
 );
 
 CREATE TABLE outbound (
@@ -85,9 +86,9 @@ CREATE TABLE outbound (
                           ac_id       BIGINT UNSIGNED,
                           emp_id      BIGINT UNSIGNED NOT NULL,
                           remark varchar(200),
-                          approval tinyint NOT NULL default 0
-                              CONSTRAINT fk_out_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id)
-                          CONSTRAINT fk_out_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id),
+                          approval tinyint NOT NULL default 0,
+                          CONSTRAINT fk_out_ac  FOREIGN KEY (ac_id)  REFERENCES accounts(ac_id),
+                          CONSTRAINT fk_out_emp FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id)
 );
 
 CREATE TABLE salary (
@@ -114,14 +115,18 @@ CREATE TABLE attendance (
 
 CREATE TABLE documents (
                            doc_id     BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+                           cat_id     tinyint not null,	/*0(재무), 1(판매/구매), 2(샌산/제조), 3(재고), 4(인사), */
+                           tb_id      tinyint not null,	/*각 카테고리 별 세부 테이블, 0부터 시작, 순서는 main의 아코디언 메뉴 순  */
+                           cd_id      tinyint not null,  /*0(생성관련 문서), 1(삭제 관련 문서)*/
                            req_id     BIGINT UNSIGNED NOT NULL,
                            req_date   DATETIME DEFAULT CURRENT_TIMESTAMP,
                            title      VARCHAR(200),
                            content    TEXT,
                            appr_id    BIGINT UNSIGNED,
                            appr_date  DATETIME,
-                           status     tinyint,
+                           status     tinyint,  /*0(처리중), 1(승인), 2(반려)*/
                            comments   Text,
+                           query Text,
                            CONSTRAINT fk_doc_req  FOREIGN KEY (req_id)  REFERENCES human_resource(emp_id),
                            CONSTRAINT fk_doc_appr FOREIGN KEY (appr_id) REFERENCES human_resource(emp_id)
 );
@@ -144,7 +149,7 @@ CREATE TABLE purchase_details (
                                   purchase_id    BIGINT UNSIGNED NOT NULL,
                                   stock_id       BIGINT UNSIGNED NOT NULL,
                                   purchase_qty            INT UNSIGNED NOT NULL,
-                                  qty            INT UNSIGNED NOT NULL,
+                                  qty            INT UNSIGNED,
                                   price_per_unit DECIMAL(15,2) NOT NULL,
                                   total_price    DECIMAL(15,2),
                                   CONSTRAINT fk_pl_purchase FOREIGN KEY (purchase_id) REFERENCES purchase(purchase_id) ON DELETE CASCADE,
@@ -187,7 +192,8 @@ CREATE TABLE bom (
 
 CREATE TABLE profit (
                         profit_id     BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                        profit_code   tinyint,
+                        cat_id        TINYINT NOT NULL,        -- 0 재무, 1 판매/구매, ...
+                        tb_id         TINYINT NOT NULL,        -- 0: 판매, 1: 구매, ...
                         profit        DECIMAL(15,2) NOT NULL,
                         profit_date   DATETIME NOT NULL,
                         profit_comment Text
@@ -195,7 +201,8 @@ CREATE TABLE profit (
 
 CREATE TABLE spend (
                        spend_id      BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                       spend_code    tinyint,
+                       cat_id        TINYINT NOT NULL,        -- 0 재무, 1 판매/구매, ...
+                       tb_id         TINYINT NOT NULL,        -- 0: 판매, 1: 구매, ...
                        spend         DECIMAL(15,2) NOT NULL,
                        spend_date    DATETIME NOT NULL,
                        spend_comment Text
@@ -211,3 +218,18 @@ CREATE TABLE defect (
                         defect_date DATE,
                         CONSTRAINT fk_defect_lot  FOREIGN KEY (lot_id)      REFERENCES lot(lot_id)
 );
+
+CREATE TABLE unpaid (
+                        unp_id      BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+                        cat_id      TINYINT NOT NULL,        -- 0 재무, 1 판매/구매, ...
+                        tb_id       TINYINT NOT NULL,        -- 0: 판매, 1: 구매, ...
+                        ref_pk      BIGINT UNSIGNED NOT NULL, -- 실제 대상 PK (sale_id, purchase_id, 등)
+                        cost        DECIMAL(15,2) NOT NULL,   -- 현재 기준 미정산 금액
+                        type        TINYINT NOT NULL,         -- 1 수익(매출), 2 지출(매입/급여 등)
+                        status      TINYINT NOT NULL,         -- 0 미정산, 1 정산 완료, 2 도중에 취소
+                        unpaid_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        paid_date   DATETIME,
+
+                        UNIQUE KEY uq_unpaid_business (cat_id, tb_id, ref_pk)
+);
+

@@ -24,4 +24,7 @@ public class PurchaseDetailsService {
     public int deletePurchaseDetails(int purchase_id){
         return purchaseDetailsMapper.deletePurchaseDetails(purchase_id);
     }
+    public int editPurchaseDetailsQTY(int pd_id, int qty){
+        return purchaseDetailsMapper.editPurchaseDetailsQTY(pd_id,qty);
+    }
 }

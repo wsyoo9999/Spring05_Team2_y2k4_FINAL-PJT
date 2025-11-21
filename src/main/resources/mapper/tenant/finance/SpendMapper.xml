@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.multi.y2k4.mapper.tenant.finance.SpendMapper">
+
+    <select id="list_all" resultType="com.multi.y2k4.vo.finance.Spend">
+        SELECT *
+        FROM spend
+    </select>
+
+    <select id="searchById" resultType="com.multi.y2k4.vo.finance.Spend">
+        SELECT *
+        FROM spend
+        WHERE spend_id = #{spend_id}
+    </select>
+
+    <select id="list" resultType="com.multi.y2k4.vo.finance.Spend">
+        SELECT *
+        FROM spend
+        <where>
+            <if test="spend_id != null">
+                AND spend_id = #{spend_id}
+            </if>
+            <if test="cat_id != null">
+                AND cat_id = #{cat_id}
+            </if>
+            <if test="tb_id != null">
+                AND tb_id = #{tb_id}
+            </if>
+            <if test="from_date != null">
+                AND spend_date &gt;= #{from_date}
+            </if>
+            <if test="to_date != null">
+                AND spend_date &lt;= #{to_date}
+            </if>
+        </where>
+    </select>
+
+    <insert id="addSpend" parameterType="com.multi.y2k4.vo.finance.Spend" useGeneratedKeys="true" keyProperty="spend_id" keyColumn="spend_id">
+        INSERT INTO spend (cat_id, tb_id, spend, spend_date, spend_comment)
+        VALUES (#{cat_id}, #{tb_id}, #{spend}, #{spend_date}, #{spend_comment})
+    </insert>
+
+    <update id="editSpend" parameterType="com.multi.y2k4.vo.finance.Spend">
+        UPDATE spend
+        SET
+            cat_id        = #{cat_id},
+            tb_id         = #{tb_id},
+            spend         = #{spend},
+            spend_date    = #{spend_date},
+            spend_comment = #{spend_comment}
+        WHERE spend_id = #{spend_id}
+    </update>
+
+    <delete id="deleteSpend">
+        DELETE FROM spend
+        WHERE spend_id = #{spend_id}
+    </delete>
+
+</mapper>

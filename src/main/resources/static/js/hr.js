@@ -51,33 +51,55 @@ export function employees_search_form() {
                             <label>이름:
                                 <input type="text" name="search_name" placeholder="이름 검색" />
                             </label>
+                            
                             <label>부서:
-                                <input type="text" name="search_dept" placeholder="부서 검색" />
+                                <select name="search_dept">
+                                    <option value="">전체 부서</option>
+                                    <option value="재무팀">재무팀</option>
+                                    <option value="인사팀">인사팀</option>
+                                    <option value="생산팀">생산팀</option>
+                                    <option value="판매팀">판매팀</option>
+                                    <option value="재고팀">재고팀</option>
+                                    <option value="미배정">미배정</option>
+                                </select>
                             </label>
+
                             <label>직급:
-                                <input type="text" name="search_position" placeholder="직급 검색" />
+                                <select name="search_position">
+                                    <option value="">전체 직급</option>
+                                    <option value="사원">사원</option>
+                                    <option value="중간관리자">중간관리자</option>
+                                    <option value="최고관리자">최고관리자</option>
+                                </select>
                             </label>
                             
-                            <button type="submit" data-action="search" class="search_btn">검색</button>
+                            <button type="button" data-action="search" data-file="hr" data-fn="employees_list" class="search_btn">검색</button>
                         </form>`;
     return search_bar;
 }
-
 export async function employees_listAll() {
     const actionRow = `
             <div class="table-actions-header">
-                <button class="action-button btn-primary" data-action="add" data-file="inventory" data-fn="addSale">
+                <button class="action-button btn-primary" data-action="add" data-file="hr" data-fn="addEmployee_popup">
                     <i class="fas fa-plus-circle"></i> 신규 추가
                 </button>
             </div>
         `;
-    // actionRow에 테이블 HTML을 덧붙여 반환해야 합니다.
-    const employeeTableHtml = await employees_fetch_data({}); // 🌟 이 부분이 실행되어야 함
+    const employeeTableHtml = await employees_fetch_data({});
     return actionRow + employeeTableHtml;
 }
 
 export async function employees_list(formData) {
-    return await employees_fetch_data(formData);
+    // [수정] 검색 시에도 '신규 추가' 버튼이 보이도록 actionRow 추가
+    const actionRow = `
+            <div class="table-actions-header">
+                <button class="action-button btn-primary" data-action="add" data-file="hr" data-fn="addEmployee_popup">
+                    <i class="fas fa-plus-circle"></i> 신규 추가
+                </button>
+            </div>
+        `;
+    const employeeTableHtml = await employees_fetch_data(formData);
+    return actionRow + employeeTableHtml;
 }
 
 async function employees_fetch_data(formData) {
@@ -86,6 +108,17 @@ async function employees_fetch_data(formData) {
     const search_dept = formData.search_dept || '';
     const search_position = formData.search_position || '';
 
+    // 1. [핵심] 상사 이름 매핑을 위해 전체 직원 목록을 먼저 가져옵니다 (ID -> 이름 매핑용)
+    // (실무에선 데이터가 많으면 별도 API를 쓰지만, 여기선 기존 API 활용)
+    let nameMap = {};
+    try {
+        const allEmps = await $.ajax({ url: `${API_BASE_URL}/employees`, method: 'GET', dataType: 'json' });
+        if(allEmps) {
+            allEmps.forEach(e => { nameMap[e.emp_id] = e.emp_name; });
+        }
+    } catch(e) { console.error("매핑 데이터 로드 실패"); }
+
+    // 2. 실제 검색 결과 가져오기
     let table = `<table>
                     <thead>
                         <tr>
@@ -93,7 +126,7 @@ async function employees_fetch_data(formData) {
                             <th>이름</th>
                             <th>부서</th>
                             <th>직급</th>
-                            <th>입사일</th>
+                            <th>직속 상사</th> <th>입사일</th>
                             <th>재직상태</th>
                             <th>연락처</th>
                             <th>관리</th>
@@ -116,12 +149,18 @@ async function employees_fetch_data(formData) {
 
         if (data && data.length > 0) {
             $.each(data, function (i, row) {
+                // [핵심] supervisor ID를 이용해 nameMap에서 이름을 찾습니다.
+                let supervisorName = '-';
+                if (row.supervisor && nameMap[row.supervisor]) {
+                    supervisorName = nameMap[row.supervisor];
+                }
+
                 tbody += `<tr>
                 <td>${row.emp_id || ''}</td>
                 <td>${row.emp_name || ''}</td>
                 <td>${row.dept_name || ''}</td>
                 <td>${row.position || ''}</td>
-                <td>${formatDate(row.hire_date) || ''}</td>
+                <td>${supervisorName}</td> <td>${formatDate(row.hire_date) || ''}</td>
                 <td>${row.status || ''}</td>
                 <td>${row.phone_number || ''}</td>
                 <td class="actions">
@@ -129,40 +168,43 @@ async function employees_fetch_data(formData) {
                         data-action="detail"
                         data-file="hr"
                         data-fn="employee_detail_popup"
-                        data-emp-id="${row.emp_id}">
+                        data-value="${row.emp_id}">
                         <i class="fas fa-edit"></i>
                     </button>
                 </td>
               </tr>`;
             });
         } else {
-            tbody += '<tr><td colspan="7" style="text-align:center;">데이터가 없습니다.</td></tr>';
+            tbody += '<tr><td colspan="9" style="text-align:center;">데이터가 없습니다.</td></tr>';
         }
         tbody += `</tbody></table>`;
         return table + tbody;
     } catch (err) {
         console.error("employees_list 로딩 실패:", err);
-        return table + `<tbody><tr><td colspan="7" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
+        return table + `<tbody><tr><td colspan="9" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
     }
 }
 
-// 직원 상세 조회 및 수정 팝업 함수
-export function employee_detail_popup(e) {
-    // 팝업 URL에 전달할 사번(empId) 가져오기
-    const empId = e.dataset.empId;
+export function addEmployee_popup() {
+    const url = `./popup/addEmployee.html`;
+    const features = 'width=600,height=700,resizable=yes,scrollbars=yes';
+    window.open(url, `add_employee`, features).focus();
+}
+
+export function employee_detail_popup(empId) {
     if (!empId) {
         console.error("Employee ID가 없습니다.");
         return;
     }
 
-    const url = `./popup/employeeDetail.html?empId=${empId}`; // ID를 쿼리 파라미터로 전달
+    const url = `./popup/employeeDetail.html?empId=${empId}`;
     const features = 'width=600,height=450,resizable=yes,scrollbars=yes';
     window.open(url, `employee_detail_${empId}`, features);
 }
 
 
 // ================================================================
-// 근태 현황 (Attendance)
+// 2. 근태 현황 (Attendance)
 // ================================================================
 
 export function attendance_search_form() {
@@ -178,18 +220,47 @@ export function attendance_search_form() {
                 <label>검색:
                     <input type="text" name="search_keyword" placeholder="이름/상태 검색" />
                 </label>
-                <button type="submit" data-action="search" class="search_btn">검색</button>
+                <button type="button" data-action="search" data-file="hr" data-fn="attendance_list" class="search_btn">검색</button>
             </form>`;
 }
 
+/**
+ * [수정] 근태 목록 상단에 "일일 근태 생성" 버튼 추가
+ */
+function getAttendanceActionRow() {
+    return `
+            <div class="table-actions-header">
+                <button class="action-button btn-primary" 
+                        data-action="add" 
+                        data-file="hr" 
+                        data-fn="request_vacation_popup"
+                        style="margin-right: 10px;"> 
+                    <i class="fas fa-plane"></i> 휴가 신청
+                </button>
+
+                <button class="action-button btn-primary" 
+                        data-action="add" 
+                        data-file="hr" 
+                        data-fn="generate_daily_attendance"
+                        style="background-color: #50B86C;"> 
+                    <i class="fas fa-calendar-check"></i> 오늘 날짜 근태 일괄 생성
+                </button>
+            </div>
+        `;
+}
 export async function attendance_listAll() {
     const today = new Date().toISOString().substring(0, 10);
     const formData = { end_date: today };
-    return await attendance_fetch_data(formData);
+
+    const actionRow = getAttendanceActionRow(); // 버튼 HTML
+    const tableHtml = await attendance_fetch_data(formData); // 테이블 HTML
+    return actionRow + tableHtml;
 }
 
 export async function attendance_list(formData) {
-    return await attendance_fetch_data(formData);
+    const actionRow = getAttendanceActionRow(); // 버튼 HTML
+    const tableHtml = await attendance_fetch_data(formData); // 테이블 HTML
+    return actionRow + tableHtml;
 }
 
 async function attendance_fetch_data(formData) {
@@ -232,7 +303,6 @@ async function attendance_fetch_data(formData) {
                     status_class = 'status-alert';
                 }
 
-                // 🚨 data-action="detail"로 통일
                 tbody += `<tr>
                             <td>${formatDate(row.work_date) || '-'}</td>
                             <td>${row.emp_id || '-'}</td>
@@ -245,36 +315,38 @@ async function attendance_fetch_data(formData) {
                                     data-action="detail" 
                                     data-file="hr" 
                                     data-fn="attendance_detail_popup"
-                                    data-attendance-id="${row.attendance_id}" >
+                                    data-value="${row.attendance_id}" >
                                     <i class="fas fa-edit"></i>
                                 </button>
                             </td>
-                          </tr>`; // 🚩 초과 근무 필드 제거
+                          </tr>`;
             });
         } else {
-            tbody += '<tr><td colspan="6" style="text-align:center;">데이터가 없습니다.</td></tr>'; // 🚩 colspan 7 -> 6
+            tbody += '<tr><td colspan="7" style="text-align:center;">데이터가 없습니다.</td></tr>';
         }
         tbody += `</tbody></table>`;
         return table + tbody;
 
     } catch (err) {
         console.error("attendance_list 로딩 실패:", err);
-        return table + `<tbody><tr><td colspan="6" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`; // 🚩 colspan 7 -> 6
+        return table + `<tbody><tr><td colspan="7" style="text-align:center; color:red;">데이터 로딩 실패</td></tr></tbody></table>`;
     }
 }
 
-// 근태 기록 수정 팝업 함수
-export function attendance_detail_popup(e) {
-    const attendanceId = e.dataset.attendanceId;
+export function attendance_detail_popup(attendanceId) {
     if (!attendanceId) {
         console.error("Attendance ID가 없습니다.");
         return;
     }
 
-    // URL은 그대로 attendanceEdit.html을 사용 (수정 기능이 목적이므로)
     const url = `./popup/attendanceEdit.html?attendanceId=${attendanceId}`;
     const features = 'width=500,height=500,resizable=yes,scrollbars=yes';
     window.open(url, `attendance_detail_${attendanceId}`, features);
+}
+export function request_vacation_popup() {
+    const url = `./popup/requestVacation.html`; // 새로 만들 팝업 HTML
+    const features = 'width=500,height=550,resizable=yes,scrollbars=yes';
+    window.open(url, `request_vacation`, features).focus();
 }
 
 
@@ -311,7 +383,7 @@ export function salary_search_form() {
                         ${monthOptions}
                     </select>
                 </label>
-                <button type="submit" data-action="search" class="search_btn">검색</button>
+                <button type="button" data-action="search" data-file="hr" data-fn="salary_list" class="search_btn">검색</button>
             </form>`;
 }
 
@@ -372,7 +444,7 @@ async function salary_fetch_data(formData) {
                                     data-action="detail" 
                                     data-file="hr" 
                                     data-fn="salary_detail_popup"
-                                    data-salary-id="${row.salary_id}" >
+                                    data-value="${row.salary_id}" >
                                     <i class="fas fa-info-circle"></i>
                                 </button>
                             </td>
@@ -385,14 +457,12 @@ async function salary_fetch_data(formData) {
         return table + tbody;
 
     } catch (err) {
-        // 🚨 에러 발생 시 로그 출력 후 빈 테이블 반환
         console.error("salary_list 로딩 실패 (numberFormat 함수 정의 누락):", err);
         return table + `<tbody><tr><td colspan="9" style="text-align:center; color:red;">데이터 로딩 실패 (스크립트 오류)</td></tr></tbody></table>`;
     }
 }
 
-export function salary_detail_popup(e) {
-    const salaryId = e.dataset.salaryId;
+export function salary_detail_popup(salaryId) {
     if (!salaryId) {
         console.error("Salary ID가 없습니다.");
         return;
@@ -401,4 +471,34 @@ export function salary_detail_popup(e) {
     const url = `./popup/salaryDetail.html?salaryId=${salaryId}`;
     const features = 'width=500,height=635,resizable=yes,scrollbars=yes';
     window.open(url, `salary_detail_${salaryId}`, features);
+}
+
+/**
+ * [추가] 일일 근태 생성 API 호출 함수
+ */
+export async function generate_daily_attendance() {
+    if (!confirm("오늘 날짜로 모든 재직 직원의 '정상' 출근 기록(09:00~18:00)을 일괄 생성하시겠습니까?\n이미 기록이 있다면 덮어씁니다.")) {
+        return;
+    }
+
+    try {
+        const result = await $.ajax({
+            url: `${API_BASE_URL}/attendance/generate`,
+            method: 'POST',
+            dataType: 'json'
+        });
+
+        if (result === true) {
+            alert('✅ 일일 근태 기록이 성공적으로 생성/업데이트되었습니다.');
+            // 현재 메뉴(근태 현황)를 다시 클릭하여 목록 새로고침
+            const menu = document.querySelector('.menu[data-file="hr"][data-fn="attendance_listAll"]');
+            if (menu) menu.click();
+        } else {
+            alert('❌ 생성에 실패했습니다.');
+        }
+
+    } catch (error) {
+        console.error('일괄 생성 실패:', error);
+        alert('❌ 서버 통신 중 오류가 발생했습니다.');
+    }
 }

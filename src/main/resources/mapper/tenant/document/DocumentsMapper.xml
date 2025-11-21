@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.multi.y2k4.mapper.tenant.document.DocumentsMapper">
+    <select id="list" resultType="com.multi.y2k4.vo.document.Documents">
+        SELECT d.*, req.emp_name req_name, appr.emp_name appr_name FROM documents d
+            LEFT JOIN human_resource req ON req.emp_id = d.req_id
+            LEFT JOIN human_resource appr ON appr.emp_id   = d.appr_id
+        <where>
+            <if test="cat_id != null">
+                AND cat_id = #{cat_id}
+            </if>
+            <if test="tb_id != null">
+                AND tb_id = #{tb_id}
+            </if>
+            <if test="cd_id != null">
+                AND cd_id = #{cd_id}
+            </if>
+            <if test="req_id != null">
+                AND req_id = #{req_id}
+            </if>
+            <if test="req_date != null">
+                AND req_date = req_date
+            </if>
+            <if test="appr_id != null">
+                AND appr_id = #{appr_id}
+            </if>
+            <if test="appr_date != null">
+                AND appr_date = #{appr_date}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="searchById" resultType="com.multi.y2k4.vo.document.Documents">
+        SELECT d.*, req.emp_name req_name, appr.emp_name appr_name FROM documents d
+        LEFT JOIN human_resource req ON req.emp_id = d.req_id
+        LEFT JOIN human_resource appr ON appr.emp_id   = d.appr_id
+        WHERE d.doc_id = #{doc_id}
+    </select>
+
+    <insert id="addDocument" parameterType="com.multi.y2k4.vo.document.Documents" useGeneratedKeys="true" keyProperty="doc_id" keyColumn="doc_id">
+        INSERT INTO documents (cat_id, tb_id, cd_id, req_id, req_date, title, content, appr_id, appr_date, status, comments, query)
+        VALUES (#{cat_id}, #{tb_id}, #{cd_id}, #{req_id}, #{req_date}, #{title}, #{content}, #{appr_id}, #{appr_date}, #{status}, #{comments}, #{query})
+    </insert>
+
+    <update id="editStatus">
+        UPDATE documents set status = #{status}, comments = #{comments} WHERE doc_id = #{doc_id}
+    </update>
+
+</mapper>

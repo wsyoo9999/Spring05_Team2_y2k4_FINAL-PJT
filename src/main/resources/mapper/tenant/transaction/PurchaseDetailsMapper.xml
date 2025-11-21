@@ -15,6 +15,13 @@
         </foreach>
     </insert>
 
+    <update id="editPurchaseDetailsQTY">
+        UPDATE purchase_details
+        SET qty = #{qty}
+        WHERE pd_id = #{pd_id}
+    </update>
+
+
     <delete id="deletePurchaseDetails">
         DELETE FROM purchase_details WHERE purchase_id = #{purchase_id}
     </delete>

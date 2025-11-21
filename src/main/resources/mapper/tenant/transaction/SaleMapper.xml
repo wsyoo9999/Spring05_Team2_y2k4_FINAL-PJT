@@ -12,6 +12,7 @@
         FROM sale s
         LEFT JOIN human_resource hr ON hr.emp_id = s.emp_id
         LEFT JOIN accounts a ON a.ac_id   = s.ac_id
+        WHERE s.status != 99
     </select>
 
     <select id="list" resultType="com.multi.y2k4.vo.transaction.Sale">
@@ -36,12 +37,17 @@
                 AND s.order_date = #{order_date}
             </if>
             <if test="due_date !=null">
-                AND s.del_date = #{del_date}
+                AND s.due_date = #{due_date}
             </if>
             <if test="status!=null">
                 AND s.status = #{status}
             </if>
+            AND s.status != 99
         </where>
+    </select>
+
+    <select id="searchById" resultType="com.multi.y2k4.vo.transaction.Sale">
+        SELECT * FROM sale WHERE sale_id = #{sale_id}
     </select>
 
     <insert id="addSale" parameterType="com.multi.y2k4.vo.transaction.Sale" useGeneratedKeys="true" keyProperty="sale_id" keyColumn="sale_id">
@@ -50,16 +56,21 @@
     </insert>
 
     <update id="editSale" parameterType="com.multi.y2k4.vo.transaction.Sale">
-        UPDATE purchase
-        SET emp_id = #{emp_id}, ac_id = #{ac_id}, order_date = #{order_date}, del_date = #{del_date}, total_price = #{total_price}
+        UPDATE sale
+        SET emp_id = #{emp_id}, ac_id = #{ac_id}, order_date = #{order_date}, due_date
+            = #{due_date}, total_price = #{total_price}
         WHERE sale_id = #{sale_id}
     </update>
 
     <update id="editSaleStatus" parameterType="com.multi.y2k4.vo.transaction.Sale">
-        UPDATE purchase
+        UPDATE sale
         SET  status = #{status}
         WHERE sale_id = #{sale_id}
 
     </update>
+
+    <delete id="deleteSale">
+        DELETE FROM sale WHERE sale_id = #{sale_id}
+    </delete>
 
 </mapper>

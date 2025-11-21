@@ -21,4 +21,8 @@ public interface SaleMapper {
 
     public int editSale(Sale sale);
     public int editSaleStatus(Sale sale);
+
+    public int deleteSale(@Param("sale_id")Integer sale_id);
+
+    public Sale searchById(@Param("sale_id")Integer sale_id);
 }

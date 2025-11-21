@@ -7,20 +7,12 @@
 
     <select id="getEmployeeList" resultType="com.multi.y2k4.vo.hr.Employee">
         SELECT
-        emp_id,
-        emp_name,
-        dept_name,
-        position,
-        hire_date,
+        emp_id, emp_name, dept_name, position, hire_date,
         CASE status
-        WHEN 0 THEN '재직'
-        WHEN 1 THEN '휴직'
-        WHEN 2 THEN '퇴사'
-        ELSE '알 수 없음'
-        END AS status,
-        phone_number
-        FROM
-        human_resource
+        WHEN 0 THEN '재직' WHEN 1 THEN '휴직' WHEN 2 THEN '퇴사'
+        ELSE '알 수 없음' END AS status,
+        phone_number,
+        supervisor  FROM human_resource
         <where>
             <if test="search_name != null and search_name != ''">
                 AND emp_name LIKE CONCAT('%', #{search_name}, '%')
@@ -42,35 +34,35 @@
 
     <select id="getEmployeeDetail" resultType="com.multi.y2k4.vo.hr.Employee">
         SELECT
-            emp_id,
-            emp_name,
-            dept_name,
-            position,
-            hire_date,
+            emp_id, emp_name, dept_name, position, hire_date,
             CASE status
-                WHEN 0 THEN '재직'
-                WHEN 1 THEN '휴직'
-                WHEN 2 THEN '퇴사'
-                ELSE '알 수 없음'
-                END AS status,
-            phone_number
-        FROM human_resource
+                WHEN 0 THEN '재직' WHEN 1 THEN '휴직' WHEN 2 THEN '퇴사'
+                ELSE '알 수 없음' END AS status,
+            phone_number,
+            supervisor FROM human_resource
         WHERE emp_id = #{empId}
     </select>
 
     <update id="updateEmployee" parameterType="com.multi.y2k4.vo.hr.Employee">
         UPDATE human_resource
-        SET
-            dept_name = #{dept_name},
-            position = #{position},
+        <set>
+            <if test="dept_name != null"> dept_name = #{dept_name}, </if>
+            <if test="position != null"> position = #{position}, </if>
+            <if test="supervisor != null"> supervisor = #{supervisor}, </if> <if test="status != null">
             status = CASE #{status}
-                         WHEN '재직' THEN 0
-                         WHEN '휴직' THEN 1
-                         WHEN '퇴사' THEN 2
-                         ELSE status
-                END
-        WHERE
-            emp_id = #{emp_id}
+            WHEN '재직' THEN 0 WHEN '휴직' THEN 1 WHEN '퇴사' THEN 2
+            ELSE status END,
+        </if>
+        </set>
+        WHERE emp_id = #{emp_id}
     </update>
+
+    <insert id="addEmployee" parameterType="com.multi.y2k4.vo.hr.Employee" useGeneratedKeys="true" keyProperty="emp_id">
+        INSERT INTO human_resource
+        (emp_name, dept_name, position, hire_date, status, phone_number, login_id, supervisor)
+        VALUES
+            (#{emp_name}, #{dept_name}, #{position}, #{hire_date},
+             CASE #{status} WHEN '재직' THEN 0 WHEN '휴직' THEN 1 WHEN '퇴사' THEN 2 ELSE 0 END,
+             #{phone_number}, #{login_id}, #{supervisor}) </insert>
 
 </mapper>

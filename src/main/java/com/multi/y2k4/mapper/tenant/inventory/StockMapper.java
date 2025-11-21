@@ -17,3 +17,4 @@ public interface StockMapper {
     public int updateStock(Stock stock);
     public int deleteStock(Stock stock);
 }
+

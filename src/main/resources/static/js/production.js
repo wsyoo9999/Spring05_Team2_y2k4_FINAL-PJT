@@ -4,7 +4,7 @@ export async function work_order_listAll() {
                     <thead>
                         <tr>
                             <th>작업지시번호</th>
-                            <th>제품코드</th>
+                            <th>제품명</th> 
                             <th>시작일</th>
                             <th>완료일</th>
                             <th>목표수량</th>
@@ -27,7 +27,7 @@ export async function work_order_listAll() {
             $.each(data, function(i, row) {
                 tbody += `<tr data-work-order-id="${row.work_order_id}">
                             <td><strong>${row.work_order_id}</strong></td>
-                            <td>${row.stock_id ?? '-'}</td>
+                            <td>${row.stock_name ?? (row.stock_id ?? '-')}</td>
                             <td>${formatDate(row.start_date)}</td>
                             <td>${formatDate(row.due_date)}</td>
                             <td>${numberFormat(row.target_qty)}</td>
@@ -37,6 +37,7 @@ export async function work_order_listAll() {
                                         data-file="production"
                                         data-fn="work_order_detail_popup"
                                         data-work-order-id="${row.work_order_id}"
+                                        data-value="${row.work_order_id}"
                                         title="상세 보기">
                                     <i class="fas fa-info-circle"></i>
                                 </button>
@@ -79,8 +80,29 @@ export async function work_order_listAll() {
 
 
 // 2. 작업 지시서 검색 폼
-export function work_order_search_form() {
-    // main.html의 .search-form 디자인에 맞게 수정
+export async function work_order_search_form() {
+
+    let stockOptions = '';
+    try {
+        const stocks = await $.ajax({
+            url: '/api/inventory/stock',
+            method: 'GET',
+            dataType: 'json',
+            data: {
+                type: 1
+            }
+        });
+
+        if (stocks && stocks.length > 0) {
+            $.each(stocks, function(i, stock) {
+                stockOptions += `<option value="${stock.stock_name}"></option>`;
+            });
+        }
+    } catch (err) {
+        console.error("작업지시서 검색폼의 제품명 목록 로딩 실패:", err);
+
+    }
+
     const search_bar = `
         <form data-file="production" data-fn="work_order_list">
             <div class="form-group">
@@ -93,8 +115,8 @@ export function work_order_search_form() {
                 </select>
             </div>
             <div class="form-group">
-                <label for="stock_id">제품코드</label>
-                <input type="text" id="stock_id" name="stock_id" placeholder="제품코드 입력" />
+                <label for="stock_name">제품명</label>
+                <input type="text" id="stock_name" name="stock_name" placeholder="제품명 입력" list="stock-name-list" autocomplete="off" />
             </div>
             <div class="form-group">
                 <label for="start_date">시작일</label>
@@ -108,6 +130,10 @@ export function work_order_search_form() {
                 <i class="fas fa-search"></i> 검색
             </button>
         </form>
+
+        <datalist id="stock-name-list">
+            ${stockOptions}
+        </datalist>
     `;
     return search_bar;
 }
@@ -116,7 +142,7 @@ export function work_order_search_form() {
 // 3. 작업 지시서 조건 검색
 export async function work_order_list(formData) {
     const order_status = formData.order_status || '';
-    const stock_id = formData.stock_id || '';
+    const stock_name = formData.stock_name || '';
     const start_date = formData.start_date || '';
     const due_date = formData.due_date || '';
 
@@ -124,7 +150,7 @@ export async function work_order_list(formData) {
                     <thead>
                         <tr>
                             <th>작업지시번호</th>
-                            <th>제품코드</th>
+                            <th>제품명</th> 
                             <th>시작일</th>
                             <th>완료일</th>
                             <th>목표수량</th>
@@ -141,7 +167,7 @@ export async function work_order_list(formData) {
             dataType: 'json',
             data: {
                 order_status: order_status,
-                stock_id: stock_id,
+                stock_name: stock_name,
                 start_date: start_date,
                 due_date: due_date
             }
@@ -153,7 +179,7 @@ export async function work_order_list(formData) {
             $.each(data, function(i, row) {
                 tbody += `<tr data-work-order-id="${row.work_order_id}">
                             <td><strong>${row.work_order_id}</strong></td>
-                            <td>${row.stock_id ?? '-'}</td>
+                            <td>${row.stock_name ?? (row.stock_id ?? '-')}</td>
                             <td>${formatDate(row.start_date)}</td>
                             <td>${formatDate(row.due_date)}</td>
                             <td>${numberFormat(row.target_qty)}</td>
@@ -163,6 +189,7 @@ export async function work_order_list(formData) {
                                         data-file="production"
                                         data-fn="work_order_detail_popup"
                                         data-work-order-id="${row.work_order_id}"
+                                        data-value="${row.work_order_id}"
                                         title="상세 보기">
                                     <i class="fas fa-info-circle"></i>
                                 </button>
@@ -313,8 +340,8 @@ export async function bom_listAll() {
                     <thead>
                         <tr>
                             <th>BOM 코드</th>
-                            <th>목표 재고코드</th>
-                            <th>자재 재고코드</th>
+                            <th>완제품명</th>
+                            <th>원자재명</th>
                             <th>필요량</th>
                             <th>관리</th>
                         </tr>
@@ -335,8 +362,8 @@ export async function bom_listAll() {
             $.each(data, function(i, row) {
                 tbody += `<tr>
                             <td>${row.bom_id ?? '-'}</td>
-                            <td>${row.parent_stock_id ?? '-'}</td>
-                            <td>${row.child_stock_id ?? '-'}</td>
+                            <td>${row.parent_stock_name ?? (row.parent_stock_id ?? '-')}</td>
+                            <td>${row.child_stock_name ?? (row.child_stock_id ?? '-')}</td>
                             <td><strong>${numberFormat(row.required_qty)}</strong></td>
                             
                             <td class="actions">
@@ -344,6 +371,7 @@ export async function bom_listAll() {
                                         data-file="production"
                                         data-fn="editBOM"
                                         data-bom-id="${row.bom_id}"
+                                        data-value="${row.bom_id}"
                                         title="수정">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -374,21 +402,66 @@ export async function bom_listAll() {
 
 
 // 6. BOM 검색 폼
-export function bom_search_form() {
+export async function bom_search_form() {
+
+    // 🔽 [추가] 완제품(type=1)과 원자재(type=0) 목록을 병렬로 로드
+    let parentOptions = '';
+    let childOptions = '';
+    try {
+        const [parents, children] = await Promise.all([
+            // 완제품 (type: 1)
+            $.ajax({
+                url: '/api/inventory/stock',
+                method: 'GET',
+                dataType: 'json',
+                data: { type: 1 } // '판매 상품'
+            }),
+            // 원자재 (type: 0)
+            $.ajax({
+                url: '/api/inventory/stock',
+                method: 'GET',
+                dataType: 'json',
+                data: { type: 0 } // '원자재'
+            })
+        ]);
+
+        if (parents && parents.length > 0) {
+            parents.forEach(stock => {
+                parentOptions += `<option value="${stock.stock_name}"></option>`;
+            });
+        }
+        if (children && children.length > 0) {
+            children.forEach(stock => {
+                childOptions += `<option value="${stock.stock_name}"></option>`;
+            });
+        }
+    } catch (err) {
+        console.error("BOM 검색폼의 재고 목록 로딩 실패:", err);
+    }
+    // 🔼 [추가] 완료
+
+    // 🔽 [수정] 폼 HTML 변경
     const search_bar = `
         <form data-file="production" data-fn="bom_list">
             <div class="form-group">
-                <label for="parent_stock_id">목표 재고코드 (완제품)</label>
-                <input type="text" id="parent_stock_id" name="parent_stock_id" placeholder="완제품 코드 입력" />
+                <label for="parent_stock_name">완제품명</label>
+                <input type="text" id="parent_stock_name" name="parent_stock_name" placeholder="완제품명 입력" list="parent-stock-list" autocomplete="off" />
             </div>
             <div class="form-group">
-                <label for="child_stock_id">자재 재고코드 (원자재)</label>
-                <input type="text" id="child_stock_id" name="child_stock_id" placeholder="원자재 코드 입력" />
+                <label for="child_stock_name">원자재명</label>
+                <input type="text" id="child_stock_name" name="child_stock_name" placeholder="원자재명 입력" list="child-stock-list" autocomplete="off" />
             </div>
             <button type="submit" data-action="search" data-file="production" data-fn="bom_list">
                 <i class="fas fa-search"></i> 검색
             </button>
         </form>
+
+        <datalist id="parent-stock-list">
+            ${parentOptions}
+        </datalist>
+        <datalist id="child-stock-list">
+            ${childOptions}
+        </datalist>
     `;
     return search_bar;
 }
@@ -397,8 +470,8 @@ export function bom_search_form() {
 
 // 7. BOM 조건 검색 (물품별)
 export async function bom_list(formData) {
-    const parent_stock_id = formData.parent_stock_id || '';
-    const child_stock_id = formData.child_stock_id || '';
+    const parent_stock_name = formData.parent_stock_name || '';
+    const child_stock_name = formData.child_stock_name || '';
     const actionRow = `
         <div class="table-actions-header">
             <button class="action-button btn-primary" data-action="add" data-file="production" data-fn="addBOM">
@@ -411,9 +484,9 @@ export async function bom_list(formData) {
                     <thead>
                         <tr>
                             <th>BOM 코드</th>
-                            <th>목표 재고코드</th>
-                            <th>자재 재고코드</th>
-                            <th>필요량</th>
+                            <th>완제품명</th>
+                            <th>원자재명</th>
+                            <th>필요량</th>                            
                             <th>관리</th>
                         </tr>
                     </thead>`;
@@ -426,8 +499,8 @@ export async function bom_list(formData) {
             method: 'GET',
             dataType: 'json',
             data: {
-                parent_stock_id: parent_stock_id,
-                child_stock_id: child_stock_id
+                parent_stock_name: parent_stock_name,
+                child_stock_name: child_stock_name
             }
         });
 
@@ -437,8 +510,8 @@ export async function bom_list(formData) {
             $.each(data, function(i, row) {
                 tbody += `<tr>
                             <td>${row.bom_id ?? '-'}</td>
-                            <td>${row.parent_stock_id ?? '-'}</td>
-                            <td>${row.child_stock_id ?? '-'}</td>
+                            <td>${row.parent_stock_name ?? (row.parent_stock_id ?? '-')}</td>
+                            <td>${row.child_stock_name ?? (row.child_stock_id ?? '-')}</td>
                             <td><strong>${numberFormat(row.required_qty)}</strong></td>
                             
                             <td class="actions">
@@ -446,6 +519,7 @@ export async function bom_list(formData) {
                                         data-file="production"
                                         data-fn="editBOM"
                                         data-bom-id="${row.bom_id}"
+                                        data-value="${row.bom_id}"
                                         title="수정">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -761,6 +835,7 @@ function getStatusClass(status) {
         case '대기': return 'status-waiting';
         case '진행중': return 'status-progress';
         case '완료': return 'status-complete';
+        case '폐기': return 'status-discarded'; // [추가]
         default: return 'status-default';
     }
 }
@@ -775,9 +850,9 @@ function getEquipmentStatusClass(status) {
     }
 }
 
-export async function work_order_detail_popup(e) {
+export async function work_order_detail_popup(work_order_id) {
 
-    const work_order_id = e.dataset.workOrderId;
+    // const work_order_id = e.dataset.workOrderId;
 
     if (!work_order_id) {
         alert('상세 정보를 불러올 수 없습니다. (work_order_id 누락)');
@@ -835,8 +910,7 @@ export async function deleteWorkOrder(e) {
     }
 }
 
-export function editBOM(e) {
-    const bom_id = e.dataset.bomId;
+export function editBOM(bom_id) {
     if (!bom_id) {
         alert('수정할 BOM ID를 찾을 수 없습니다.');
         return;

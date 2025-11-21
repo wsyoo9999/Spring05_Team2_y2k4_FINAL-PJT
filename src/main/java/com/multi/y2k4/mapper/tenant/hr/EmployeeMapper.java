@@ -33,4 +33,9 @@ public interface EmployeeMapper {
      * 직원 정보 수정
      */
     int updateEmployee(Employee employee);
+
+    /**
+     * 신규 직원 등록
+     */
+    int addEmployee(Employee employee);
 }

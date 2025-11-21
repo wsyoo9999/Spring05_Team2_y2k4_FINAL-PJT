@@ -8,7 +8,9 @@
     <resultMap id="WorkOrderMap" type="com.multi.y2k4.vo.production.WorkOrder">
         <id property="work_order_id" column="work_order_id"/>
         <result property="stock_id" column="stock_id"/>
+        <result property="stock_name" column="stock_name"/>
         <result property="emp_id" column="emp_id"/>
+        <result property="emp_name" column="emp_name"/>
         <result property="start_date" column="start_date"/>
         <result property="due_date" column="due_date"/>
         <result property="target_qty" column="target_qty"/>
@@ -38,71 +40,82 @@
     <resultMap id="BOMMap" type="com.multi.y2k4.vo.production.BOM">
         <id property="bom_id" column="bom_id"/>
         <result property="parent_stock_id" column="parent_stock_id"/>
-        <result property="child_stock_id" column="child_stock_id"/>
-        <result property="required_qty" column="required_qty"/>
+        <result property="parent_stock_name" column="parent_stock_name"/> <result property="child_stock_id" column="child_stock_id"/>
+        <result property="child_stock_name" column="child_stock_name"/> <result property="required_qty" column="required_qty"/>
     </resultMap>
 
     <select id="getWorkOrderList" resultMap="WorkOrderMap">
         SELECT
-        work_order_id,
-        stock_id,
-        emp_id,
-        start_date,
-        due_date,
-        target_qty,
-        good_qty,
-        defect_qty,
-        request_date,
+        w.work_order_id,
+        w.stock_id,
+        s.stock_name,
+        w.emp_id,
+        hr.emp_name,
+        w.start_date,
+        w.due_date,
+        w.target_qty,
+        w.good_qty,
+        w.defect_qty,
+        w.request_date,
         CASE
-        WHEN order_status = 0 THEN '대기'
-        WHEN order_status = 1 THEN '진행중'
-        WHEN order_status = 2 THEN '완료'
+        WHEN w.order_status = 0 THEN '대기'
+        WHEN w.order_status = 1 THEN '진행중'
+        WHEN w.order_status = 2 THEN '완료'
+        WHEN w.order_status = 3 THEN '폐기'  WHEN w.order_status = 99 THEN '승인대기'
         ELSE '알 수 없음'
         END AS order_status
-        FROM work_order
+        FROM work_order w
+        LEFT JOIN stock s ON w.stock_id = s.stock_id
+        LEFT JOIN human_resource hr ON w.emp_id = hr.emp_id
         <where>
+            AND w.order_status != 99
+
             <if test="order_status != null and order_status != ''">
                 <choose>
-                    <when test="order_status == '대기'"> AND order_status = 0 </when>
-                    <when test="order_status == '진행중'"> AND order_status = 1 </when>
-                    <when test="order_status == '완료'"> AND order_status = 2 </when>
+                    <when test="order_status == '대기'"> AND w.order_status = 0 </when>
+                    <when test="order_status == '진행중'"> AND w.order_status = 1 </when>
+                    <when test="order_status == '완료'"> AND w.order_status = 2 </when>
                 </choose>
             </if>
-            <if test="stock_id != null">
-                AND stock_id = #{stock_id}
+            <if test="stock_name != null and stock_name != ''">
+                AND s.stock_name LIKE CONCAT('%', #{stock_name}, '%')
             </if>
             <if test="start_date != null and start_date != ''">
-                AND start_date >= #{start_date}
+                AND w.start_date >= #{start_date}
             </if>
             <if test="due_date != null and due_date != ''">
-                AND due_date &lt;= #{due_date}
+                AND w.due_date &lt;= #{due_date}
             </if>
         </where>
     </select>
 
+    <update id="updateWorkOrderStatus">
+        UPDATE work_order
+        SET order_status = #{status}
+        WHERE work_order_id = #{work_order_id}
+    </update>
+
     <select id="getWorkOrderDetail" resultMap="WorkOrderMap">
         SELECT
-            work_order_id,
-            stock_id,
-            emp_id,
-            start_date,
-            due_date,
-            target_qty,
-            good_qty,
-            defect_qty,
-            request_date,
+            w.work_order_id,
+            w.stock_id,
+            s.stock_name,
+            w.emp_id,
+            hr.emp_name, w.start_date,
+            w.due_date,
+            w.target_qty,
+            w.good_qty,
+            w.defect_qty,
+            w.request_date,
             CASE
-                WHEN order_status = 0 THEN '대기'
-                WHEN order_status = 1 THEN '진행중'
-                WHEN order_status = 2 THEN '완료'
-                ELSE '알 수 없음'
+                WHEN w.order_status = 0 THEN '대기'
+                WHEN w.order_status = 1 THEN '진행중'
+                WHEN w.order_status = 2 THEN '완료'
+                WHEN w.order_status = 3 THEN '폐기'  ELSE '알 수 없음'
                 END AS order_status
-        FROM work_order
-        WHERE work_order_id = #{work_order_id}
-    </select>
-
-    <select id="getWorkOrderLots" resultMap="LotMap">
-        SELECT * FROM lot WHERE work_order_id = #{work_order_id}
+        FROM work_order w
+                 LEFT JOIN stock s ON w.stock_id = s.stock_id
+                 LEFT JOIN human_resource hr ON w.emp_id = hr.emp_id WHERE w.work_order_id = #{work_order_id}
     </select>
 
     <select id="getWorkOrderDefects" resultMap="DefectMap">
@@ -114,19 +127,26 @@
     </select>
 
     <select id="getBOMList" resultMap="BOMMap">
-        SELECT bom_id, parent_stock_id, child_stock_id, required_qty
-        FROM bom
+        SELECT
+        b.bom_id,
+        b.parent_stock_id,
+        s_parent.stock_name AS parent_stock_name, b.child_stock_id,
+        s_child.stock_name AS child_stock_name, b.required_qty
+        FROM bom b
+        LEFT JOIN stock s_parent ON b.parent_stock_id = s_parent.stock_id
+        LEFT JOIN stock s_child ON b.child_stock_id = s_child.stock_id
         <where>
-            <if test="parent_stock_id != null">
-                AND parent_stock_id = #{parent_stock_id}
+            <if test="parent_stock_name != null and parent_stock_name != ''">
+                AND s_parent.stock_name LIKE CONCAT('%', #{parent_stock_name}, '%')
             </if>
-            <if test="child_stock_id != null">
-                AND child_stock_id = #{child_stock_id}
+            <if test="child_stock_name != null and child_stock_name != ''">
+                AND s_child.stock_name LIKE CONCAT('%', #{child_stock_name}, '%')
             </if>
         </where>
     </select>
 
-    <insert id="addWorkOrder" parameterType="com.multi.y2k4.vo.production.WorkOrder">
+    <insert id="addWorkOrder" parameterType="com.multi.y2k4.vo.production.WorkOrder"
+            useGeneratedKeys="true" keyProperty="work_order_id">
         INSERT INTO work_order (
             stock_id, emp_id, start_date, due_date,
             target_qty, request_date,
@@ -135,7 +155,7 @@
         VALUES (
                    #{stock_id}, #{emp_id}, #{start_date}, #{due_date},
                    #{target_qty}, #{request_date},
-                   0, 0, 0
+                   0, 0, #{order_status}
                )
     </insert>
 
@@ -147,10 +167,29 @@
         DELETE FROM work_order
         WHERE work_order_id = #{work_order_id}
     </delete>
+
+    <delete id="deleteDefectsByWorkOrderId">
+        DELETE d
+        FROM defect d
+        JOIN lot l ON d.lot_id = l.lot_id
+        WHERE l.work_order_id = #{work_order_id}
+    </delete>
+
+    <delete id="deleteLotsByWorkOrderId">
+        DELETE FROM lot
+        WHERE work_order_id = #{work_order_id}
+    </delete>
+
     <select id="getBOMById" resultMap="BOMMap">
-        SELECT bom_id, parent_stock_id, child_stock_id, required_qty
-        FROM bom
-        WHERE bom_id = #{bom_id}
+        SELECT
+            b.bom_id,
+            b.parent_stock_id,
+            s_parent.stock_name AS parent_stock_name, b.child_stock_id,
+            s_child.stock_name AS child_stock_name,   b.required_qty
+        FROM bom b
+                 LEFT JOIN stock s_parent ON b.parent_stock_id = s_parent.stock_id
+                 LEFT JOIN stock s_child ON b.child_stock_id = s_child.stock_id
+        WHERE b.bom_id = #{bom_id}
     </select>
 
     <update id="updateBOM" parameterType="com.multi.y2k4.vo.production.BOM">
@@ -163,5 +202,56 @@
         DELETE FROM bom
         WHERE bom_id = #{bom_id}
     </delete>
+
+    <insert id="addLot" parameterType="com.multi.y2k4.vo.production.Lot"
+            useGeneratedKeys="true" keyProperty="lot_id">
+        INSERT INTO lot (work_order_id, stock_id, lot_qty, lot_date)
+        VALUES (#{work_order_id}, #{stock_id}, #{lot_qty}, #{lot_date})
+    </insert>
+
+    <select id="getWorkOrderLots" resultMap="LotMap">
+        SELECT
+            lot_id,
+            work_order_id,
+            stock_id,
+            lot_qty,
+            lot_date
+        FROM lot
+        WHERE work_order_id = #{work_order_id}
+        ORDER BY lot_id ASC
+    </select>
+
+    <select id="getLotById" resultMap="LotMap">
+        SELECT * FROM lot WHERE lot_id = #{lot_id}
+    </select>
+
+    <update id="updateWorkOrderProgress">
+        UPDATE work_order
+        SET
+        good_qty = #{good_qty},
+        defect_qty = #{defect_qty},  order_status = #{order_status}
+        <if test="order_status == 2">
+            , due_date = CURDATE()
+        </if>
+        WHERE work_order_id = #{work_order_id}
+    </update>
+
+    <insert id="addDefect" parameterType="com.multi.y2k4.vo.production.Defect">
+        INSERT INTO defect (lot_id, defect_code, defect_qty, defect_date)
+        VALUES (#{lot_id}, #{defect_code}, #{defect_qty}, #{defect_date})
+    </insert>
+
+    <delete id="deleteDefectsByLotId">
+        DELETE FROM defect WHERE lot_id = #{lot_id}
+    </delete>
+
+    <delete id="deleteLot">
+        DELETE FROM lot WHERE lot_id = #{lot_id}
+    </delete>
+
+    <select id="getBOMListByParentId" resultType="com.multi.y2k4.vo.production.BOM">
+        SELECT * FROM bom
+        WHERE parent_stock_id = #{parent_stock_id}
+    </select>
 
 </mapper>
