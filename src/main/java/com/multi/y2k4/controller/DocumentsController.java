@@ -51,7 +51,7 @@ public class DocumentsController {
     private final EmployeeService employeeService;
     private final AttendanceService attendanceService;
     private final UnpaidService unpaidService;
-    
+
     /*************재고 수정 관련**********/
     private final StockService stockService;
 
@@ -146,7 +146,7 @@ public class DocumentsController {
                     }
                 }
 
-            /*===============================판매 구매 관련=================================================*/
+                /*===============================판매 구매 관련=================================================*/
 
             } else if (cat_id == 1) { //판매 및 구매 관련
                 Unpaid unpaid = new Unpaid();
@@ -166,7 +166,7 @@ public class DocumentsController {
                             for (SaleDetails d : saleDetails) {
                                 stockService.manageAcquiredAty(d.getStock_id(),1,d.getQty());   //해당 판매에 필요한 주문의 요구수량을 증가
                             }
-                            
+
                             unpaid.setCat_id(cat_id);
                             unpaid.setTb_id(tb_id);
                             unpaid.setRef_pk((long) pk);
@@ -323,7 +323,7 @@ public class DocumentsController {
                     }
                 }
 
-            /*===============================생산 제조 관련=================================================*/
+                /*===============================생산 제조 관련=================================================*/
 
             } else if (cat_id == 2) { // 생산/제조
                 if (tb_id == 0) {  // 작업 지시서
@@ -341,17 +341,30 @@ public class DocumentsController {
                         if (status == 1) {
                             // [승인]
                             // 1. 상태를 '0'(대기)으로 변경하여 활성화
-                            productionService.updateWorkOrderStatus((long)pk, 0);
+                            productionService.updateWorkOrderStatus((long) pk, 0);
 
                             // 2. [추가됨] 재고(acquired_qty) 변동 사항 반영
-                            productionService.confirmWorkOrderCreation((long)pk);
+                            productionService.confirmWorkOrderCreation((long) pk);
 
                         } else if (status == 2) {
                             // [반려] 임시 저장된 데이터 삭제
-                            productionService.deleteWorkOrder((long)pk);
+                            productionService.deleteWorkOrder((long) pk);
                         }
 
+                    } else if(cd_id == 1) { // [수정] -> 여기서는 '폐기' 상태 변경용
+                        int pk = Integer.parseInt(map.get("pk").toString());
 
+                        if (status == 1) { // [승인]
+                            // payload에 담긴 newStatus(3:폐기)로 상태 변경
+                            if (map.containsKey("newStatus")) {
+                                int newStatus = (int) map.get("newStatus");
+                                productionService.updateWorkOrderStatus((long)pk, newStatus);
+
+                                // (선택 사항) 폐기 시, 잡아놓았던 재고(acquired_qty)를 해제하려면
+                                // 여기서 productionService.releaseStockForDiscard((long)pk) 등을 호출해야 함
+                            }
+                        }
+                        // 반려 시 아무 작업 안 함 (기존 상태 유지)
 
                     } else if (cd_id == 2) {  // [삭제] 요청 처리
                         // [수정] 추가 처리와 동일하게 pk를 맵에서 직접 꺼내 사용
@@ -365,7 +378,7 @@ public class DocumentsController {
                     }
                 }
 
-            /*===============================재고 관련=================================================*/
+                /*===============================재고 관련=================================================*/
 
 //            } else if (cat_id == 3) { //재고
 //                if (tb_id == 0) {  //추후 확장을 위함

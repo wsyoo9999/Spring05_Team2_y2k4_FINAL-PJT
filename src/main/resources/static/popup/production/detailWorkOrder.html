@@ -59,6 +59,7 @@
         .status-waiting { background-color: #6c757d; }
         .status-progress { background-color: var(--primary-color); }
         .status-complete { background-color: var(--secondary-color); }
+        .status-discarded { background-color: #343a40; text-decoration: line-through; opacity: 0.8; }
 
         /* 정보 표시용 그리드 */
         .info-grid {
@@ -204,45 +205,22 @@
             <input type="hidden" id="lot_stock_id" name="stock_id">
 
             <div class="info-grid">
-                <div class="label">생산일자 (Lot Date)</div>
+                <div class="label">생산일자</div>
                 <div>
                     <input class="form-input" type="date" id="lot_date" name="lot_date" required>
                 </div>
 
-                <div class="label">생산수량 (Lot Qty)</div>
+                <div class="label">총 생산수량</div>
                 <div>
-                    <input class="form-input" type="number" id="lot_qty" name="lot_qty" min="1" placeholder="수량을 입력하세요" required>
+                    <input class="form-input" type="number" id="lot_qty" name="lot_qty" min="1" placeholder="양품 + 불량품 총합" required>
                 </div>
             </div>
 
-            <div class="action-container" style="border-top: none; padding-top: 10px;">
-                <button type="submit" class="action-button btn-primary">
-                    <i class="fas fa-check"></i> 등록 완료
-                </button>
-                <button type="button" id="cancel-lot-add" class="action-button btn-secondary">
-                    <i class="fas fa-times"></i> 취소
-                </button>
-            </div>
-        </form>
-    </div>
-    <div id="add-defect-form-container" class="detail-card card-add-lot" style="display: none; margin-top: 20px; border-top: 2px dashed #E95353;">
-        <h3 style="color: #E95353;"><i class="fas fa-exclamation-triangle"></i> 불량 내역 등록</h3>
-
-        <form method="POST" action="/api/production/defect/add" id="addDefectForm">
-            <input type="hidden" id="hidden_defect_date" name="defect_date">
-
-            <div class="info-grid">
-                <div class="info-item">
-                    <label class="label" for="defect_lot_id">대상 Lot No.</label>
-                    <select class="form-input" id="defect_lot_id" name="lot_id" required>
-                        <option value="">선택</option>
-                    </select>
-                </div>
-
-                <div class="info-item">
-                    <label class="label" for="defect_code">불량 유형</label>
-                    <select class="form-input" id="defect_code" name="defect_code" required>
-                        <option value="">선택</option>
+            <div class="info-grid" style="margin-top: 10px; border-top: 1px dashed #ddd; paddingTop: 10px;">
+                <div class="label" style="color: #E95353;">불량 유형 (선택)</div>
+                <div>
+                    <select class="form-input" id="defect_code" name="defect_code">
+                        <option value="0">없음 (정상)</option>
                         <option value="1">101: 파손/찍힘</option>
                         <option value="2">102: 치수 불량</option>
                         <option value="3">103: 이물질 오염</option>
@@ -252,17 +230,17 @@
                     </select>
                 </div>
 
-                <div class="info-item">
-                    <label class="label" for="defect_qty">불량 수량</label>
-                    <input class="form-input" type="number" id="defect_qty" name="defect_qty" min="1" placeholder="수량을 입력하세요" required>
+                <div class="label" style="color: #E95353;">불량 수량 (선택)</div>
+                <div>
+                    <input class="form-input" type="number" id="defect_qty" name="defect_qty" min="0" value="0" placeholder="0">
                 </div>
             </div>
 
             <div class="action-container" style="border-top: none; padding-top: 10px;">
-                <button type="submit" class="action-button btn-danger">
-                    <i class="fas fa-check"></i> 불량 등록
+                <button type="submit" class="action-button btn-primary">
+                    <i class="fas fa-check"></i> 등록 완료
                 </button>
-                <button type="button" id="cancel-defect-add" class="action-button btn-secondary">
+                <button type="button" id="cancel-lot-add" class="action-button btn-secondary">
                     <i class="fas fa-times"></i> 취소
                 </button>
             </div>
@@ -415,9 +393,6 @@
                 <button class="action-button btn-primary btn-register-result">
                     <i class="fas fa-plus-circle"></i> 생산 실적 등록
                 </button>
-                <button class="action-button btn-danger btn-register-defect">
-                    <i class="fas fa-exclamation-triangle"></i> 불량 등록
-                </button>
                 <button class="action-button btn-secondary btn-view-lots">
                     <i class="fas fa-list"></i> Lot 조회
                 </button>
@@ -483,6 +458,12 @@
                 const maxQty = targetQty - currentGood;
                 const enteredQty = parseInt($('#lot_qty').val());
                 const enteredDate = $('#lot_date').val();
+                const defectQty = parseInt($('#defect_qty').val()) || 0;
+
+                if (defectQty > enteredQty) {
+                    alert(`불량 수량(${defectQty})은 총 생산 수량(${enteredQty})보다 클 수 없습니다.`);
+                    return;
+                }
 
                 if (maxQty <= 0) {
                     alert('이미 목표 수량을 달성하여 추가할 수 없습니다.');
@@ -517,88 +498,6 @@
                 }
             });
 
-            // [4] 불량 등록 버튼 클릭
-            actionContainer.on('click', '.btn-register-defect', function() {
-                // 다른 폼 닫기
-                $('#add-lot-form-container').hide();
-                $('#lot-list-container').hide();
-                $('.btn-register-result').show();
-                $('.btn-view-lots').show();
-
-                const lotSelect = $('#defect_lot_id');
-                lotSelect.empty();
-                lotSelect.append('<option value="">Lot를 선택하세요</option>');
-
-                if (lots && lots.length > 0) {
-                    lots.forEach(lot => {
-                        const dateStr = formatDate(lot.lot_date);
-                        lotSelect.append(`<option value="${lot.lot_id}" data-date="${dateStr}">
-                            Lot ${lot.lot_id} (생산: ${dateStr}, 수량: ${numberFormat(lot.lot_qty)})
-                        </option>`);
-                    });
-                } else {
-                    alert("등록된 생산 실적(Lot)이 없어 불량을 등록할 수 없습니다.\n먼저 생산 실적을 등록해주세요.");
-                    return;
-                }
-
-                // 초기화
-                $('#defect_code').val('');
-                $('#defect_qty').val('');
-                $('#hidden_defect_date').val('');
-
-                $('#add-defect-form-container').show();
-                $(this).hide(); // 버튼 숨김
-                document.getElementById('add-defect-form-container').scrollIntoView({ behavior: 'smooth' });
-            });
-
-            // [5] 불량 등록 취소 버튼
-            $('#cancel-defect-add').on('click', function() {
-                $('#add-defect-form-container').hide();
-                $('.btn-register-defect').show();
-            });
-
-            // [6] 불량 등록 폼 제출
-            $('#addDefectForm').on('submit', async function(e) {
-                e.preventDefault();
-
-                const selectedLotId = $('#defect_lot_id').val();
-                const defectQty = parseInt($('#defect_qty').val());
-
-                // Lot 날짜 설정
-                const selectedOption = $('#defect_lot_id option:selected');
-                const lotDate = selectedOption.data('date');
-                if (!lotDate) {
-                    alert("Lot 정보 오류: 날짜를 찾을 수 없습니다.");
-                    return;
-                }
-                $('#hidden_defect_date').val(lotDate);
-
-                // 유효성 검사
-                const selectedLot = lots.find(l => l.lot_id == selectedLotId);
-                if (selectedLot && defectQty > selectedLot.lot_qty) {
-                    alert(`불량 수량(${defectQty})이 해당 Lot의 생산 수량(${selectedLot.lot_qty})보다 많을 수 없습니다.`);
-                    return;
-                }
-
-                try {
-                    const result = await $.ajax({
-                        url: $(this).attr('action'),
-                        method: 'POST',
-                        dataType: 'json',
-                        data: $(this).serialize()
-                    });
-
-                    if (result === true) {
-                        alert('✅ 불량 내역이 등록되었습니다.');
-                        window.location.reload();
-                    } else {
-                        alert('❌ 등록에 실패했습니다.');
-                    }
-                } catch (error) {
-                    console.error('불량 등록 실패:', error);
-                    alert('❌ 서버 통신 중 오류가 발생했습니다.');
-                }
-            });
 
             // [7] Lot 조회 버튼 클릭
             actionContainer.on('click', '.btn-view-lots', async function() {

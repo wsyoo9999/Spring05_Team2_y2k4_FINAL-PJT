@@ -61,7 +61,8 @@
         WHEN w.order_status = 0 THEN '대기'
         WHEN w.order_status = 1 THEN '진행중'
         WHEN w.order_status = 2 THEN '완료'
-        WHEN w.order_status = 99 THEN '승인대기'  ELSE '알 수 없음'
+        WHEN w.order_status = 3 THEN '폐기'  WHEN w.order_status = 99 THEN '승인대기'
+        ELSE '알 수 없음'
         END AS order_status
         FROM work_order w
         LEFT JOIN stock s ON w.stock_id = s.stock_id
@@ -110,7 +111,7 @@
                 WHEN w.order_status = 0 THEN '대기'
                 WHEN w.order_status = 1 THEN '진행중'
                 WHEN w.order_status = 2 THEN '완료'
-                ELSE '알 수 없음'
+                WHEN w.order_status = 3 THEN '폐기'  ELSE '알 수 없음'
                 END AS order_status
         FROM work_order w
                  LEFT JOIN stock s ON w.stock_id = s.stock_id
@@ -144,7 +145,8 @@
         </where>
     </select>
 
-    <insert id="addWorkOrder" parameterType="com.multi.y2k4.vo.production.WorkOrder">
+    <insert id="addWorkOrder" parameterType="com.multi.y2k4.vo.production.WorkOrder"
+            useGeneratedKeys="true" keyProperty="work_order_id">
         INSERT INTO work_order (
             stock_id, emp_id, start_date, due_date,
             target_qty, request_date,
