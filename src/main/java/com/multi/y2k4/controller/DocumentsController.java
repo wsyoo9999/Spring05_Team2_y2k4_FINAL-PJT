@@ -9,10 +9,7 @@ import com.multi.y2k4.service.hr.AttendanceService;
 import com.multi.y2k4.service.hr.EmployeeService;
 import com.multi.y2k4.service.inventory.StockService;
 import com.multi.y2k4.service.production.ProductionService;
-import com.multi.y2k4.service.transaction.PurchaseDetailsService;
-import com.multi.y2k4.service.transaction.PurchaseService;
-import com.multi.y2k4.service.transaction.SaleDetailsService;
-import com.multi.y2k4.service.transaction.SaleService;
+import com.multi.y2k4.service.transaction.*;
 import com.multi.y2k4.service.production.ProductionService;
 import com.multi.y2k4.vo.document.Documents;
 import com.multi.y2k4.vo.finance.Unpaid;
@@ -39,10 +36,7 @@ public class DocumentsController {
     private final ObjectMapper objectMapper;
 
     /********판매 구매 관련 서비스*************/
-    private final SaleService saleService;
-    private final PurchaseService purchaseService;
-    private final SaleDetailsService saleDetailsService;
-    private final PurchaseDetailsService purchaseDetailsService;
+    private final TransactionService transactionService;
 
     /*****************생산 제조 관련 서비스************************/
     private final ProductionService productionService;
@@ -148,184 +142,13 @@ public class DocumentsController {
 
                 /*===============================판매 구매 관련=================================================*/
 
-            } else if (cat_id == 1) { //판매 및 구매 관련
-                Unpaid unpaid = new Unpaid();
-                if (tb_id == 0) {  //판매
+            } else if (cat_id == 1) {
 
-                    if (cd_id == 0) {  //추가
-                        int pk = Integer.parseInt(map.get("pk").toString());
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-                            Sale s =new Sale();
-                            s.setStatus(0);
-                            s.setSale_id(pk);
-                            saleService.editSaleStatus(s);
+                transactionService.processSalePurchaseApproval(cat_id, tb_id, cd_id, status, map);
 
-                            Sale sale = saleService.searchById(pk);
-                            List<SaleDetails> saleDetails = saleDetailsService.searchById(pk);
-
-                            for (SaleDetails d : saleDetails) {
-                                stockService.manageAcquiredAty(d.getStock_id(),1,d.getQty());   //해당 판매에 필요한 주문의 요구수량을 증가
-                            }
-
-                            unpaid.setCat_id(cat_id);
-                            unpaid.setTb_id(tb_id);
-                            unpaid.setRef_pk((long) pk);
-                            unpaid.setCost(sale.getTotal_price());
-                            unpaid.setStatus(0);
-                            unpaid.setType(1);
-                            unpaidService.upsertUnpaid(unpaid);
-
-                        } else if (status == 2) {  //결재 서류 반려
-                            saleService.deleteSale(pk);
-
-                        }
-
-                    } else if (cd_id == 1) {  //수정
-
-                        int before_pk = Integer.parseInt(map.get("before_pk").toString());
-
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-
-                            Object sale_obj = map.get("after_sale");
-                            Object details_obj = map.get("after_details");
-
-                            Sale sale = (sale_obj != null)  //수정할 값
-                                    ? objectMapper.convertValue(sale_obj, Sale.class)
-                                    : null;
-
-                            List<SaleDetails> details_list = (details_obj != null)  //수정할(기존의 것 삭제하고 다시 넣을) 세부 정보들
-                                    ? objectMapper.convertValue(details_obj, new TypeReference<List<SaleDetails>>() {})
-                                    : Collections.emptyList();
-
-                            List<SaleDetails> before_details = saleDetailsService.searchById(before_pk);
-
-                            for (SaleDetails beforeDetail : before_details) {     //수정 전의 요청 수량을 원래대로
-                                stockService.manageAcquiredAty(beforeDetail.getStock_id(), 2, beforeDetail.getQty());
-                            }
-
-                            for (SaleDetails details_lists : details_list) {     //수정 후의 요청 수량을 반영
-                                stockService.manageAcquiredAty(details_lists.getStock_id(), 1, details_lists.getQty());
-                            }
-
-
-                            saleDetailsService.deleteSaleDetails(before_pk);   //기존의 판매 세부 정보 삭제
-                            saleDetailsService.addSaleDetails(details_list);
-                            sale.setStatus(0);
-                            saleService.editSale(sale);
-
-
-                            unpaid.setCat_id(cat_id);
-                            unpaid.setTb_id(tb_id);
-                            unpaid.setRef_pk((long) before_pk);
-                            unpaid.setCost(sale.getTotal_price());
-                            unpaid.setStatus(0);
-                            unpaid.setType(1);
-                            unpaidService.upsertUnpaid(unpaid);
-
-
-                        } else if (status == 2) {  //결재 서류 반려,기존의 정보 유지
-                            Sale s =new Sale();
-                            s.setStatus(0);
-                            s.setSale_id(before_pk);
-                            saleService.editSaleStatus(s);  //기존의 정보를 유지
-                        }
-
-                    } else if (cd_id == 2) {  //삭제
-                        int pk = Integer.parseInt(map.get("pk").toString());
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-                            saleService.deleteSale(pk);
-                            unpaidService.cancelUnpaid(cat_id,tb_id,(long)doc_id);
-
-                        } else if (status == 2) {  //결재 서류 반려
-                            Sale s =new Sale();
-                            s.setStatus(0);
-                            s.setSale_id(pk);
-                            saleService.editSaleStatus(s);  //삭제 거부, 기존의 데이터 유지
-                        }
-
-                    }
-
-                } else if (tb_id == 1) {    //구매
-
-                    if (cd_id == 0) {  //추가
-                        int pk = Integer.parseInt(map.get("pk").toString());
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-                            Purchase p = new Purchase();
-                            p.setStatus(0);
-                            p.setPurchase_id(pk);
-                            purchaseService.editPurchaseStatus(p);
-
-                            Purchase purchase = purchaseService.searchById(pk);
-                            unpaid.setCat_id(cat_id);
-                            unpaid.setTb_id(tb_id);
-                            unpaid.setRef_pk((long)pk);
-                            unpaid.setCost(purchase.getTotal_price());
-                            unpaid.setStatus(0);
-                            unpaid.setType(2);
-                            unpaidService.upsertUnpaid(unpaid);
-
-                        } else if (status == 2) {  //결재 서류 반려
-                            purchaseService.deletePurchase(pk); //미리 집어넣은 데이터 삭제
-                        }
-
-                    } else if (cd_id == 1) {  //수정
-
-                        int before_pk = Integer.parseInt(map.get("before_pk").toString());
-
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-                            Object purchase_obj = map.get("after_purchase");
-                            Object details_obj = map.get("after_details");
-
-                            Purchase purchase = (purchase_obj != null)  //수정할 값
-                                    ? objectMapper.convertValue(purchase_obj, Purchase.class)
-                                    : null;
-
-                            List<PurchaseDetails> details_list = (details_obj != null)  //수정할(기존의 것 삭제하고 다시 넣을) 세부 정보들
-                                    ? objectMapper.convertValue(details_obj, new TypeReference<List<PurchaseDetails>>() {})
-                                    : Collections.emptyList();
-
-
-                            purchaseDetailsService.deletePurchaseDetails(before_pk);   //기존의 판매 세부 정보 삭제
-
-                            purchaseDetailsService.addPurchaseDetails(details_list);
-                            purchase.setStatus(0);
-                            purchaseService.editPurchase(purchase);  // emp, ac, 날짜, total_price 수정
-
-
-                            unpaid.setCat_id(cat_id);
-                            unpaid.setTb_id(tb_id);
-                            unpaid.setRef_pk((long)before_pk);
-                            unpaid.setCost(purchase.getTotal_price());
-                            unpaid.setStatus(0);
-                            unpaid.setType(2);
-                            unpaidService.upsertUnpaid(unpaid);
-
-                        } else if (status == 2) {  //결재 서류 반려
-                            Purchase p =new Purchase();
-                            p.setStatus(0);
-                            p.setPurchase_id(before_pk);
-                            purchaseService.editPurchaseStatus(p);  //기존의 정보를 유지
-                        }
-
-                    } else if (cd_id == 2) {  //삭제
-                        int pk = Integer.parseInt(map.get("pk").toString());
-                        if (status == 1) {    //결재 문서를 승인으로 변경, 이는 문서 내용을 DB에 반영한다는 의미
-                            purchaseService.deletePurchase(pk);
-                            unpaidService.cancelUnpaid(cat_id,tb_id,(long)pk);
-
-                        } else if (status == 2) {  //결재 서류 반려
-                            Purchase p = new Purchase();
-                            p.setStatus(0);
-                            p.setPurchase_id(pk);
-                            purchaseService.editPurchaseStatus(p);    //삭제 반려, 기존의 값 유지
-                        }
-
-                    }
-                }
-
-                /*===============================생산 제조 관련=================================================*/
-
-            } else if (cat_id == 2) { // 생산/제조
+            }
+            /*===============================생산 제조 관련=================================================*/
+            else if (cat_id == 2) { // 생산/제조
                 if (tb_id == 0) {  // 작업 지시서
 
                     // JSON에서 workOrder 객체 추출 (추가/삭제 공통 사용)
