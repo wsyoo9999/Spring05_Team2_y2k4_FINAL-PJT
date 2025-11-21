@@ -14,4 +14,9 @@ public class UserVO {
     private String company_id;
     private LocalDate birthday;
     private String phone;
+
+    private int emp_id;             // 사번
+    private Integer supervisor;     // 직속 상사 사번
+    private String position;        // 직급
+
 }

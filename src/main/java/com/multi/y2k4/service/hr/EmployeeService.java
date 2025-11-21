@@ -40,4 +40,8 @@ public class EmployeeService {
         // updateEmployee는 0 또는 1 (영향받은 행 수)을 반환하므로 0보다 큰지 확인
         return employeeMapper.updateEmployee(employee) > 0;
     }
+
+    public Employee getEmployeeByLoginId(String login_id) {
+        return employeeMapper.getEmployeeByLoginId(login_id);
+    }
 }

@@ -38,4 +38,6 @@ public interface EmployeeMapper {
      * 신규 직원 등록
      */
     int addEmployee(Employee employee);
+
+    Employee getEmployeeByLoginId(@Param("login_id") String login_id);
 }
