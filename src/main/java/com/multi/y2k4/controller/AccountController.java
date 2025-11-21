@@ -26,5 +26,4 @@ public class AccountController {
     public Account searchById(@RequestParam Integer ac_id){
         return accountService.searchById(ac_id);
     }
-
 }
