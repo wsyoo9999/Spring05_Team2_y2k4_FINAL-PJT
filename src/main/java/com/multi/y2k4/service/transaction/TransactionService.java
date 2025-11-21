@@ -60,6 +60,10 @@ public class TransactionService {
         Integer sup = (Integer) httpSession.getAttribute("supervisor");
         Integer authLevel = (Integer) httpSession.getAttribute("authLevel");
 
+        if(me==null||sup==null||authLevel==null){
+            return false;
+        }
+
         for (int i = 0; i < stock_id.length; i++) {
             SaleDetails saleDetail = new SaleDetails();
             saleDetail.setStock_id(stock_id[i]);
@@ -152,6 +156,10 @@ public class TransactionService {
         Integer sup = (Integer) httpSession.getAttribute("supervisor");
         Integer authLevel = (Integer) httpSession.getAttribute("authLevel");
 
+        if(me==null||sup==null||authLevel==null){
+            return false;
+        }
+
         List<Integer> before_stocks = new ArrayList<>();
         List<Integer> after_stocks = new ArrayList<>();
         List<Integer> before_qty = new ArrayList<>();
@@ -239,11 +247,19 @@ public class TransactionService {
 
     // ======================== 판매 상태 변경 ========================
     @Transactional
-    public boolean editSaleStatus(Integer sale_id, Integer status) {
+    public boolean editSaleStatus(Integer sale_id, Integer status, HttpSession httpSession) {
         Sale sale = saleService.searchById(sale_id);
         if (sale == null) {
             return false;
         }
+        Integer me  = (Integer) httpSession.getAttribute("me");
+        Integer sup = (Integer) httpSession.getAttribute("supervisor");
+        Integer authLevel = (Integer) httpSession.getAttribute("authLevel");
+
+        if(me==null||sup==null||authLevel==null){   //권한 확인 부분
+            return false;
+        }
+        
         List<SaleDetails> saleDetails = saleDetailsService.searchById(sale_id);
         List<Integer> stock_id = new ArrayList<>();
         List<Integer> qty = new ArrayList<>();
@@ -298,6 +314,11 @@ public class TransactionService {
         Integer me  = (Integer) httpSession.getAttribute("me");
         Integer sup = (Integer) httpSession.getAttribute("supervisor");
         Integer authLevel = (Integer) httpSession.getAttribute("authLevel");
+
+
+        if(me==null||sup==null||authLevel==null){   //권한 확인 부분
+            return false;
+        }
 
         for (int i = 0; i < stock_id.length; i++) {
             PurchaseDetails purchaseDetail = new PurchaseDetails();
@@ -385,6 +406,11 @@ public class TransactionService {
         Integer sup = (Integer) httpSession.getAttribute("supervisor");
         Integer authLevel = (Integer) httpSession.getAttribute("authLevel");
 
+
+        if(me==null||sup==null||authLevel==null){   //권한 확인 부분
+            return false;
+        }
+
         Purchase edit_purchase = new Purchase();
         edit_purchase.setPurchase_id(purchase_id);
         edit_purchase.setAc_id(ac_id);
@@ -449,7 +475,16 @@ public class TransactionService {
     @Transactional
     public boolean editPurchaseStatus(Integer purchase_id,
                                       Integer[] pd_id,
-                                      Integer[] qty) {
+                                      Integer[] qty,
+                                      HttpSession httpSession) throws JsonProcessingException {
+
+        Integer me  = (Integer) httpSession.getAttribute("me");
+        Integer sup = (Integer) httpSession.getAttribute("supervisor");
+        Integer authLevel = (Integer) httpSession.getAttribute("authLevel");
+
+        if(me==null||sup==null||authLevel==null){   //권한 확인 부분
+            return false;
+        }
 
         List<PurchaseDetails> details = purchaseDetailsService.searchById(purchase_id);
         if (details == null || details.isEmpty()) {

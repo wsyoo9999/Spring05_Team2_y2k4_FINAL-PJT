@@ -101,9 +101,10 @@ public class TransactionController {
 
     @PostMapping("/sale/editSaleStatus")
     public boolean editSaleStatus(@RequestParam Integer sale_id,
-                                  @RequestParam Integer status) {
+                                  @RequestParam Integer status,
+                                  HttpSession httpSession) throws JsonProcessingException {
 
-        return transactionService.editSaleStatus(sale_id, status);
+        return transactionService.editSaleStatus(sale_id, status,httpSession);
     }
 
     @GetMapping("/purchase/list")
@@ -164,8 +165,9 @@ public class TransactionController {
     @PostMapping("/purchase/editPurchaseStatus")
     public boolean editPurchaseStatus(@RequestParam Integer purchase_id,
                                       @RequestParam Integer[] pd_id,
-                                      @RequestParam Integer[] qty) {
+                                      @RequestParam Integer[] qty,
+                                      HttpSession httpSession) throws JsonProcessingException {
 
-        return transactionService.editPurchaseStatus(purchase_id, pd_id, qty);
+        return transactionService.editPurchaseStatus(purchase_id, pd_id, qty,httpSession);
     }
 }
