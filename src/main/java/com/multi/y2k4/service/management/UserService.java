@@ -19,4 +19,8 @@ public class UserService {
     public int addUser(UserVO userVO){
         return  userMapper.addUser(userVO);
     }
+
+    public boolean existsById(String id){
+        return  userMapper.existsById(id);
+    }
 }

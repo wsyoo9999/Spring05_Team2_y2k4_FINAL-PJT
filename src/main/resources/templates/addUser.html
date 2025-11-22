@@ -167,34 +167,45 @@
         <a href="/login">로그인으로 돌아가기</a>
     </div>
 </div>
-
+</body>
 <script>
     // 아이디 중복 상태를 저장하는 변수
     let isIdAvailable = false;
     let originalId = '';
 
-    // 1. 아이디 중복 확인 기능 (Mockup)
+    // 1. 아이디 중복 확인 기능
     function checkDuplicate() {
-        const userId = document.getElementById('id').value;
+        const userId = document.getElementById('id').value.trim();
+
         if (userId.length < 4) {
             alert('아이디는 최소 4자 이상이어야 합니다.');
             return;
         }
-        // --- Mockup 결과 ---
-        const isDuplicated = userId === 'testuser' || userId === 'admin';
 
-        // 실제 AJAX 요청을 시뮬레이션
-        setTimeout(() => {
-            if (isDuplicated) {
-                alert(`'${userId}'는 이미 사용 중인 아이디입니다.`);
-                isIdAvailable = false;
-            } else {
-                alert(`'${userId}'는 사용 가능한 아이디입니다.`);
-                isIdAvailable = true;
-                originalId = userId;
-            }
-        }, 500);
+        fetch(`/check-id?id=${encodeURIComponent(userId)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('서버 오류');
+                }
+                return response.json();
+            })
+            .then(exists => {
+                // exists가 true면 이미 존재(중복), false면 사용 가능
+                if (exists) {
+                    alert(`이미 존재하는 아이디입니다.`);
+                    isIdAvailable = false;
+                } else {
+                    alert(`사용 가능한 아이디입니다.`);
+                    isIdAvailable = true;
+                    originalId = userId;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('아이디 중복 확인 중 오류가 발생했습니다.');
+            });
     }
+
 
     // 2. 회사 찾기 기능
     function find_Company(){
@@ -217,7 +228,7 @@
     function validateForm() {
         const password = document.getElementById('password').value;
         const confirm = document.getElementById('password_confirm').value;
-        const userId = document.getElementById('user_id').value;
+        const userId = document.getElementById('id').value;
 
         // 1. 중복 확인 검사
         if (!isIdAvailable || userId !== originalId) {
@@ -246,5 +257,5 @@
         //return false; // 현재 Mockup 상태에서는 전송 방지
     }
 </script>
-</body>
+
 </html>

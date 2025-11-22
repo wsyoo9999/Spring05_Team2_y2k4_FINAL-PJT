@@ -12,13 +12,11 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-
+import java.util.Map;
 
 
 @Controller
@@ -158,6 +156,12 @@ public class MainController {
 
         model.addAttribute("login_alert","회원가입 성공, 로그인 해주세요");
         return "login";
+    }
+
+    @GetMapping("/check-id")
+    @ResponseBody
+    public boolean checkId(@RequestParam("id") String id) {
+        return userService.existsById(id);
     }
 
     @GetMapping("/alerts")

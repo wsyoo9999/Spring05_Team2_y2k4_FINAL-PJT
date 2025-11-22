@@ -11,4 +11,5 @@ public interface UserMapper {
 
     int addUser(UserVO userVO);
 
+    boolean existsById(@Param("id") String id);
 }
