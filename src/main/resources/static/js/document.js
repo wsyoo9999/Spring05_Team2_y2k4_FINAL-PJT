@@ -90,7 +90,7 @@ export async function  viewEmployee(id) {
 export async function  viewDocument(id) {
     const base = './../popup/doc/viewDocument.html';
     const url  = `${base}?doc_id=${encodeURIComponent(id)}`;
-    const features = 'width=1000,height=700,resizable=no,scrollbars=yes';
+    const features = 'width=760,height=850,resizable=no,scrollbars=yes';
     const child = window.open(url, 'view_doc', features);
     if (child) child.focus();
 }
@@ -233,7 +233,7 @@ export function document_search_form() {
     `;
 
     // 폼이 DOM에 붙은 뒤에 이벤트/옵션을 셋업하기 위해 살짝 뒤에 실행
-    setTimeout(bind_document_search_form, 0);
+    setTimeout(() => bind_document_search_form_by_fn('document_list'), 0);
 
     return form;
 }
@@ -259,11 +259,11 @@ const doc_tb_map = {
     ]
 };
 
-function bind_document_search_form() {
+function bind_document_search_form_by_fn(fnName) {
     const container = document.querySelector('.search-form');
     if (!container) return;
 
-    const form = container.querySelector('form[data-file="document"][data-fn="document_list"]');
+    const form = container.querySelector(`form[data-file="document"][data-fn="${fnName}"]`);
     if (!form) return;
 
     const cat_select = form.querySelector('select[name="cat_id"]');
@@ -271,18 +271,13 @@ function bind_document_search_form() {
     const req_select = form.querySelector('select[name="req_id"]');
     const appr_select = form.querySelector('select[name="appr_id"]');
 
-    // 1) cat_id 변경 시 tb_id 옵션 갱신
     if (cat_select && tb_select) {
         cat_select.addEventListener('change', () => {
-            const val = cat_select.value;
-            update_tb_options(val, tb_select);
+            update_tb_options(cat_select.value, tb_select);
         });
-
-        // 초기 상태에서도 한 번 호출 (기본값 기준)
         update_tb_options(cat_select.value, tb_select);
     }
 
-    // 2) 작성자/결재자 셀렉트 옵션을 API로 채움
     if (req_select) {
         load_req_options(req_select, appr_select);
     }
@@ -336,4 +331,229 @@ async function load_req_options(req_select, appr_select) {
     } catch (err) {
         console.error('작성자/결재자 옵션 로딩 중 오류', err);
     }
+}
+
+// 자신의 결재 목록 조회 함수
+export async function document_listMy(formData) {
+    let table = `<table>
+        <thead>
+        <tr>
+        <th>기안자</th>
+        <th>결재자</th>
+        <th>제목</th>
+        <th>작성일</th>
+        <th>결재일</th>
+        <th>결재 상태</th>
+        <th>카테고리</th>
+        <th>세부 카테고리</th>
+        <th>분류</th>
+        </tr>
+        </thead>
+    `;
+    let tbody = `<tbody>`;
+
+    try {
+        const data = await $.ajax({
+            url: '/api/doc/mylist',
+            method: 'GET',
+            dataType: 'json',
+            data: formData // [추가] 검색 조건 전달
+        });
+
+        if (data && data.length > 0) {
+            $.each(data, function (i, row){
+                const { text: statusText, color: statusColor } = getStatusInfo(row.status);
+                const catLabel = getCatLabel(row.cat_id);
+                const tbLabel  = getTbLabel(row.cat_id, row.tb_id);
+
+                tbody += `<tr>
+                    <td data-value="${row.req_id}" style="cursor:pointer"
+                        onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                        onmouseout="this.style.color=''; this.style.fontWeight='';"
+                        data-action="detail" data-file="document" data-fn="viewEmployee">
+                        ${row.req_name ?? ''}
+                    </td>
+                    <td data-value="${row.appr_id}" style="cursor:pointer"
+                        onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                        onmouseout="this.style.color=''; this.style.fontWeight='';"
+                        data-action="detail" data-file="document" data-fn="viewEmployee">
+                        ${row.appr_name ?? ''}
+                    </td>
+                    <td data-value="${row.doc_id}" style="cursor:pointer"
+                        onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                        onmouseout="this.style.color=''; this.style.fontWeight='';"
+                        data-action="detail" data-file="document" data-fn="viewDocument">
+                        ${row.title ?? ''}
+                    </td>
+                    <td>${row.req_date ?? ''}</td>
+                    <td>${row.appr_date ?? ''}</td>
+                    <td style="color:${statusColor}; font-weight:600;">${statusText}</td>
+                    <td>${catLabel}</td>
+                    <td>${tbLabel}</td>
+                    <td>${row.cd_id}</td>
+                </tr>`;
+            });
+        } else {
+            // [추가] 결과가 없을 때 메시지 표시
+            tbody += `<tr><td colspan="9" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
+        }
+    } catch(err) {
+        console.error(err);
+    }
+    tbody += `</tbody></table>`;
+
+    return table + tbody;
+}
+
+// 문서 목록 조건 검색 함수
+export async function document_list(formData) {
+    let table = `<table>
+        <thead>
+        <tr>
+        <th>기안자</th>
+        <th>결재자</th>
+        <th>제목</th>
+        <th>작성일</th>
+        <th>결재일</th>
+        <th>결재 상태</th>
+        <th>카테고리</th>
+        <th>세부 카테고리</th>
+        <th>분류</th>
+        </tr>
+        </thead>
+    `;
+    let tbody = `<tbody>`;
+
+    try {
+        const data = await $.ajax({
+            url: '/api/doc/list', // 검색도 같은 list API 사용
+            method: 'GET',
+            dataType: 'json',
+            data: formData // 폼에서 입력받은 검색 조건 전달
+        });
+
+        if (data && data.length > 0) {
+            $.each(data, function (i, row) {
+                const { text: statusText, color: statusColor } = getStatusInfo(row.status);
+                const catLabel = getCatLabel(row.cat_id);
+                const tbLabel  = getTbLabel(row.cat_id, row.tb_id);
+
+                tbody += `<tr>
+                    <td data-value="${row.req_id}"
+                        style="cursor:pointer"
+                        onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                        onmouseout="this.style.color=''; this.style.fontWeight='';"
+                        data-action="detail" data-file="document" data-fn="viewEmployee">
+                        ${row.req_name ?? ''}
+                    </td>
+                    <td data-value="${row.appr_id}"
+                        style="cursor:pointer"
+                        onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                        onmouseout="this.style.color=''; this.style.fontWeight='';"
+                        data-action="detail" data-file="document" data-fn="viewEmployee">
+                        ${row.appr_name ?? ''}
+                    </td>
+                    <td data-value="${row.doc_id}"
+                        style="cursor:pointer"
+                        onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';" 
+                        onmouseout="this.style.color=''; this.style.fontWeight='';"
+                        data-action="detail" data-file="document" data-fn="viewDocument">
+                        ${row.title ?? ''}
+                    </td>
+                    <td>${row.req_date ?? ''}</td>
+                    <td>${row.appr_date ?? ''}</td>
+                    <td style="color:${statusColor}; font-weight:600;">${statusText}</td>
+                    <td>${catLabel}</td>
+                    <td>${tbLabel}</td>
+                    <td>${row.cd_id}</td>
+                </tr>`;
+            });
+        } else {
+            tbody += `<tr><td colspan="9" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
+        }
+    } catch (err) {
+        console.error("검색 실패:", err);
+        tbody += `<tr><td colspan="9" style="text-align:center; color:red;">데이터를 불러오는데 실패했습니다.</td></tr>`;
+    }
+
+    tbody += `</tbody></table>`;
+    return table + tbody;
+}
+
+export function document_my_search_form() {
+    // data-fn="document_listMy" 로 설정하여 검색 버튼 클릭 시 해당 함수가 실행되도록 함
+    const form = `
+        <form data-file="document" data-fn="document_listMy">
+            <div class="form-group">
+                <label> 작성자 :
+                    <select name="req_id" class="doc_req_id">
+                        <option value="">전체</option>
+                    </select>
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 결재자 :
+                    <select name="appr_id" class="doc_appr_id">
+                        <option value="">전체</option>
+                    </select>
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 작성일:
+                    <input type="date" name="req_date" />
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 결재일:
+                    <input type="date" name="appr_date" />
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 상태:
+                    <select name="status">
+                        <option value="">전체</option>
+                        <option value="0">대기</option>
+                        <option value="1">승인</option>
+                        <option value="2">반려</option>
+                    </select>
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 카테고리:
+                    <select name="cat_id" class="doc_cat_id">
+                        <option value="">전체</option>
+                        <option value="0">재무</option>
+                        <option value="1">판매/구매</option>
+                        <option value="2">생산/제조</option>
+                        <option value="3">재고</option>
+                        <option value="4">인사</option>
+                    </select>
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 세부 카테고리:
+                    <select name="tb_id" class="doc_tb_id">
+                        <option value="">전체</option>
+                    </select>
+                </label>
+            </div>
+            <div class="form-group">
+                <label> 분류:
+                    <select name="cd_id">
+                        <option value="">전체</option>
+                        <option value="0">추가</option>
+                        <option value="1">수정</option>
+                        <option value="2">삭제</option>
+                    </select>
+                </label>
+            </div>
+            <button type="button" data-action="search" class="search_btn" data-file="document" data-fn="document_listMy">
+                <i class="fas fa-search"></i> 검색
+            </button>
+        </form>
+    `;
+
+    setTimeout(() => bind_document_search_form_by_fn('document_listMy'), 0);
+
+    return form;
 }

@@ -211,6 +211,37 @@
         }
 
         /* 표 스타일 */
+        /* [수정] 테이블 컨테이너 스타일 (스크롤바 적용) */
+        #table {
+            max-height: 800px;           /* 전체 높이 고정 */
+            display: flex;           /* 내부 요소를 플렉스로 배치 */
+            flex-direction: column;  /* 세로 방향 배치 (버튼 -> 테이블) */
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-top: 20px;
+            background-color: #fff;
+            overflow: hidden;        /* 컨테이너 자체 스크롤은 제거 */
+        }
+
+        #table:empty {
+            border: none;
+            background-color: transparent;
+            height: auto; /* 높이도 자동으로 줄여서 공간 차지 안 하게 설정 */
+        }
+
+        .table-actions-header {
+            padding: 15px;
+            background-color: #fff;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;          /* 높이가 줄어들지 않도록 고정 */
+        }
+
+        .table-scroll-wrapper {
+            flex-grow: 1;            /* 남은 공간을 모두 차지 */
+            overflow-y: auto;        /* 세로 스크롤 생성 */
+        }
+
+        /* 표 스타일 */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -359,7 +390,7 @@
     <div class="nav-spacer"></div>
 
     <nav class="nav-links" id="navLinks">
-        <a href="#" class="nav-link active" data-topnav="dashboard"><i class="fas fa-tachometer-alt"></i> 대시보드</a>
+        <a href="/" class="nav-link active" data-topnav="dashboard"><i class="fas fa-tachometer-alt"></i> 대시보드</a>
         <a href="#" class="nav-link" data-topnav="finance"><i class="fas fa-calculator"></i> 재무/회계</a>
         <a href="#" class="nav-link" data-topnav="sales"><i class="fas fa-chart-line"></i> 판매/구매</a>
         <a href="#" class="nav-link" data-topnav="production"><i class="fas fa-industry"></i> 생산/제조</a>
@@ -444,7 +475,7 @@
             </button>
             <div class="accordion-content">
                 <button class="menu" data-file="document" data-fn="document_listAll" data-table="document">전체 결재 목록</button>
-                <button class="menu" data-file="document" data-fn="document_listAll" data-table="document">자신의 결재 목록</button>
+                <button class="menu" data-file="document" data-fn="document_listMy" data-table="document_my">자신의 결재 목록</button>
             </div>
         </div>
     </div>
@@ -455,12 +486,10 @@
 
         <div class="content-card">
             <div class="section-title">
-                <span>재고 목록</span>
+                <span>대시보드</span>
             </div>
 
-            <div id="table">
-
-            </div>
+            <div id="table"></div>
 
 
         </div>
@@ -513,6 +542,7 @@
 
     // 초기 로딩 시
     document.addEventListener('DOMContentLoaded', () => {
+        /*
         const initialMenu = document.querySelector('.menu[data-file="finance"][data-fn="documents_listAll"]');
         if (initialMenu) {
             initialMenu.classList.add('selected');
@@ -531,6 +561,7 @@
 
             initialMenu.click();
         }
+        */
     });
 
 </script>
@@ -586,6 +617,7 @@
             const searchUI = await buildSearch();
 
             table.innerHTML = tableResult; // 테이블과 버튼을 함께 삽입
+            applyScrollWrapper();
             searchContainer.innerHTML = searchUI;
         }
         catch(err){
@@ -615,6 +647,7 @@
 
 
             table.innerHTML = await buildTable(formData); // 테이블 + 버튼을 함께 업데이트
+            applyScrollWrapper();
         }
         catch(err){
             console.error(err);
@@ -670,6 +703,28 @@
         }
     }
 
+    function applyScrollWrapper() {
+        const tContainer = document.getElementById('table');
+        if (!tContainer) return;
+
+        const tableEl = tContainer.querySelector('table');
+
+        // 이미 래퍼가 적용되어 있다면 중단
+        if (tContainer.querySelector('.table-scroll-wrapper')) return;
+
+        if (tableEl) {
+            // 1. 래퍼 div 생성
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-scroll-wrapper';
+
+            // 2. 테이블 바로 앞에 래퍼를 삽입
+            tContainer.insertBefore(wrapper, tableEl);
+
+            // 3. 테이블을 래퍼 안으로 이동
+            wrapper.appendChild(tableEl);
+        }
+    }
+
     async function viewDetail(e){
         const file_name = e.dataset.file;
         const fn_name = e.dataset.fn;
@@ -720,7 +775,7 @@
     // [!! 수정 !!] 상단 메뉴 ↔ 왼쪽 아코디언 연동 로직 수정
     (function() {
         const map = {
-            dashboard: { file: 'inventory', fn: 'stock_listAll' },
+            dashboard: null,
             finance:  { file: 'finance', fn: 'profit_listAll' },
             sales:    { file: 'transaction', fn: 'sale_listAll' },
             production: { file: 'production', fn: 'work_order_listAll' },

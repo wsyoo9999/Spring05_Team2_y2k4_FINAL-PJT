@@ -21,6 +21,7 @@ import com.multi.y2k4.vo.production.WorkOrder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpSession;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -59,7 +60,42 @@ public class DocumentsController {
                                 @RequestParam(required = false) Integer appr_id,
                                 @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate appr_date,
                                 @RequestParam(required = false) Integer status) {
-        return documentsService.list(doc_id, cat_id, tb_id, cd_id, req_id, req_date, appr_id, appr_date, status);
+        return documentsService.list(doc_id, cat_id, tb_id, cd_id, req_id, req_date, appr_id, appr_date, status, null);
+    }
+
+    @GetMapping("/mylist")
+    public List<Documents> mylist(
+            @RequestParam(required = false) Integer doc_id,
+            @RequestParam(required = false) Integer cat_id,
+            @RequestParam(required = false) Integer tb_id,
+            @RequestParam(required = false) Integer cd_id,
+            @RequestParam(required = false) Integer req_id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate req_date,
+            @RequestParam(required = false) Integer appr_id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate appr_date,
+            @RequestParam(required = false) Integer status,
+            HttpSession session) {
+
+        Integer emp_id = (Integer) session.getAttribute("emp_id");
+        if (emp_id == null) {
+            return Collections.emptyList();
+        }
+
+        // 서비스 호출 시 검색 조건들과 함께 본인 ID(emp_id)를 member_id로 전달
+        return documentsService.list(doc_id, cat_id, tb_id, cd_id, req_id, req_date, appr_id, appr_date, status, emp_id);
+    }
+
+    @GetMapping("/pending-approvals")
+    public List<Documents> pendingApprovals(HttpSession session) {
+        Integer emp_id = (Integer) session.getAttribute("emp_id");
+        if (emp_id == null) {
+            return Collections.emptyList();
+        }
+
+        // 서비스의 list 메서드 호출:
+        // appr_id = emp_id (본인), status = 0 (대기)
+        // 나머지 필터는 null
+        return documentsService.list(null, null, null, null, null, null, emp_id, null, 0, null);
     }
 
     @GetMapping("/searchById")

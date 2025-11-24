@@ -20,7 +20,8 @@ public interface DocumentsMapper {
                          @Param("req_date")  LocalDate req_date,
                          @Param("appr_id") Integer appr_id,
                          @Param("appr_date") LocalDate appr_date,
-                         @Param("status") Integer status);
+                         @Param("status") Integer status,
+                         @Param("member_id") Integer member_id);
 
     Documents searchById(@Param("doc_id") Integer doc_id);
 

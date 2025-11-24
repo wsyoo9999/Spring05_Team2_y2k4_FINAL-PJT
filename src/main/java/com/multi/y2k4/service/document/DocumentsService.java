@@ -25,8 +25,9 @@ public class DocumentsService {
                                 LocalDate req_date,
                                 Integer appr_id,
                                 LocalDate appr_date,
-                                Integer status) {
-        return documentsMapper.list(doc_id,cat_id, tb_id, cd_id, req_id, req_date, appr_id, appr_date, status);
+                                Integer status,
+                                Integer member_id) {
+        return documentsMapper.list(doc_id,cat_id, tb_id, cd_id, req_id, req_date, appr_id, appr_date, status, member_id);
     }
 
     public Documents searchById(Integer doc_id){

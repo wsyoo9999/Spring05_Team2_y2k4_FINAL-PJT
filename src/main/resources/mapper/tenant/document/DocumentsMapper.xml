@@ -22,16 +22,19 @@
                 AND req_id = #{req_id}
             </if>
             <if test="req_date != null">
-                AND req_date = req_date
+                AND DATE(req_date) = #{req_date}
             </if>
             <if test="appr_id != null">
                 AND appr_id = #{appr_id}
             </if>
             <if test="appr_date != null">
-                AND appr_date = #{appr_date}
+                AND DATE(appr_date) = #{appr_date}
             </if>
             <if test="status != null">
-                AND status = #{status}
+                AND d.status = #{status}
+            </if>
+            <if test="member_id != null">
+                AND (d.req_id = #{member_id} OR d.appr_id = #{member_id})
             </if>
         </where>
     </select>
