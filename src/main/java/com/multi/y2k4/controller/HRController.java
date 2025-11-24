@@ -169,21 +169,18 @@ public class HRController {
             HttpSession session) {
 
         try {
-
+            // 1. 세션에서 내 ID 가져오기
             Integer empIdObj = (Integer) session.getAttribute("emp_id");
             String empName = (String) session.getAttribute("emp_name");
 
-            if (empIdObj == null) return false; // 로그인 정보 오류
-
-            Employee me = employeeService.getEmployeeDetail(empIdObj);
-            Long supervisorId = null;
-            if (me != null && me.getSupervisor() != null) {
-                supervisorId = Long.valueOf(me.getSupervisor());
-            }
-
+            if (empIdObj == null) return false;
             Long requesterEmpId = Long.valueOf(empIdObj);
 
-            // 2. JSON 데이터 생성 (결재 문서 본문용)
+            // 내 상세 정보 조회 (직속 상사 ID를 알기 위해)
+            Employee me = employeeService.getEmployeeDetail(empIdObj);
+            Integer supervisorId = me.getSupervisor(); // 내 상사의 ID
+
+            // 2. JSON 데이터 생성
             Map<String, Object> payload = new HashMap<>();
             payload.put("cat_id", 4);
             payload.put("tb_id", 0);
@@ -200,12 +197,14 @@ public class HRController {
             doc.setReq_date(LocalDate.now());
             doc.setQuery(objectMapper.writeValueAsString(payload));
 
-            doc.setCat_id(4); // 카테고리: 인사
-            doc.setTb_id(0);  // 세부: 휴가 요청
-            doc.setCd_id(0);  // 분류: 추가(신청)
+            doc.setStatus(0); // 대기
 
-            doc.setStatus(0);     // 0: 대기 (승인 전)
-            doc.setAppr_id(supervisorId); // 결재자
+            // 4. 결재자를 내 직속 상사로 지정
+            if (supervisorId != null) {
+                doc.setAppr_id(Long.valueOf(supervisorId)); // 상사 지정
+            } else {
+                doc.setAppr_id(null); // 상사가 없으면(최고관리자 등) 미지정
+            }
 
             documentsService.addDocument(doc);
 
@@ -221,52 +220,51 @@ public class HRController {
      * [추가] 퇴직 처리 결재 요청
      */
     @PostMapping("/employees/request-status-change")
-    public boolean requestResignation(@RequestBody Map<String, Object> reqData, HttpSession session) {
+    public boolean requestStatusChange(@RequestBody Map<String, Object> reqData, HttpSession session) {
         try {
             // 1. 세션 정보 (기안자)
             Integer requesterId = (Integer) session.getAttribute("emp_id");
-            String requesterName = (String) session.getAttribute("emp_name");
             if (requesterId == null) return false;
 
-            Employee requester = employeeService.getEmployeeDetail(requesterId);
-            Long supervisorId = null;
-            if (requester != null && requester.getSupervisor() != null) {
-                supervisorId = Long.valueOf(requester.getSupervisor());
-            }
+            // [추가] 기안자의 상세 정보 조회 (상사 ID 확인용)
+            Employee me = employeeService.getEmployeeDetail(requesterId);
+            Integer supervisorId = me.getSupervisor();
 
-            // 2. 클라이언트 데이터 (대상 직원)
+            // 2. 데이터 파싱
             Integer targetEmpId = Integer.parseInt(reqData.get("emp_id").toString());
             String targetEmpName = (String) reqData.get("emp_name");
+            String currentStatus = (String) reqData.get("currentStatus");
+            String newStatus = (String) reqData.get("newStatus");
             String reason = (String) reqData.get("reason");
-            String newStatus = (String) reqData.get("newStatus"); // 프론트에서 보낸 변경 상태
 
-            // 3. 결재 문서 Payload 생성
+            // 3. JSON Payload
             Map<String, Object> payload = new HashMap<>();
-            payload.put("cat_id", 4);   // 인사
+            payload.put("cat_id", 4);
             payload.put("tb_id", 1);
             payload.put("cd_id", 1);
             payload.put("targetEmpId", targetEmpId);
             payload.put("targetEmpName", targetEmpName);
+            payload.put("currentStatus", currentStatus);
             payload.put("newStatus", newStatus);
             payload.put("reason", reason);
 
             // 4. 문서 생성
             Documents doc = new Documents();
-            doc.setTitle("[인사] " + targetEmpName + " " + newStatus + " 처리 요청");
+            doc.setTitle("[인사발령] " + targetEmpName + " " + newStatus + " 처리 요청");
             doc.setReq_id(Long.valueOf(requesterId));
             doc.setReq_date(LocalDate.now());
             doc.setQuery(objectMapper.writeValueAsString(payload));
 
+            doc.setStatus(0);
 
-            doc.setCat_id(4);
-            doc.setTb_id(1); // 퇴사 요청은 1번으로 설정
-            doc.setCd_id(1);
+            // [수정] 결재자를 기안자의 직속 상사로 지정
+            if (supervisorId != null) {
+                doc.setAppr_id(Long.valueOf(supervisorId));
+            } else {
+                doc.setAppr_id(null);
+            }
 
-            doc.setStatus(0);      // 대기
-            doc.setAppr_id(supervisorId);
-            // 5. 저장
             documentsService.addDocument(doc);
-
             return true;
 
         } catch (Exception e) {

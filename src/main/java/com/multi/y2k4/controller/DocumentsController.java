@@ -426,8 +426,8 @@ public class DocumentsController {
                     }
                 }
                 else if (tb_id == 1) {
-                    if (cd_id == 1) { // 수정
-                        if (status == 1) { // 승인 시
+                    if (cd_id == 1) {
+                        if (status == 1) {
                             int targetEmpId = Integer.parseInt(String.valueOf(map.get("targetEmpId")));
                             String newStatus = (String) map.get("newStatus");
 
