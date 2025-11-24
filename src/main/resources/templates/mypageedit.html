@@ -29,6 +29,9 @@
         .nav-icon-btn { width: 40px; height: 40px; border: none; border-radius: 50%; background: transparent; color: rgba(255,255,255,0.7); cursor: pointer; transition: background 0.2s, color 0.2s; font-size: 18px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         .nav-icon-btn.active { color: var(--text-light); background: rgba(255,255,255,0.1); }
         .nav-icon-btn:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
+        .nav-profile-btn {  border: none; border-radius: 20px; padding: 0 16px; height: 40px; background: transparent; color: rgba(255,255,255,0.9); cursor: pointer; font-size: 17px; font-weight: 500; display: flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s; white-space: nowrap;}
+        .nav-profile-btn:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
+
         /* Main Layout Styles */
         .main-container { display: flex; }
         .accordion-container { width: var(--sidebar-w); background-color: var(--card-bg); flex-shrink: 0; height: calc(100vh - var(--nav-h)); position: sticky; top: var(--nav-h); overflow-y: auto; border-right: 1px solid var(--border-color); }
@@ -70,9 +73,7 @@
     </nav>
     <div class="nav-right">
         <button class="nav-icon-btn" title="알림" aria-label="알림"><i class="fas fa-bell"></i></button>
-        <a href="/mypage" class="nav-icon-btn active" title="프로필" aria-label="프로필">
-            <i class="fas fa-user-circle"></i>
-        </a>
+        <button class="nav-profile-btn" title="프로필" aria-label="프로필" onclick="window.location.href='/mypage'">님</button>
     </div>
 </header>
 
@@ -95,48 +96,40 @@
 
                     <div>
                         <label for="name">이름 (수정 가능)</label>
-                        <input type="text" id="name" name="name" value="육현수">
+                        <input type="text" id="name" name="name">
                     </div>
 
                     <div>
                         <label for="birthday">생년월일 (변경 불가)</label>
-                        <input type="text" id="birthday" value="1999.06.15" readonly>
+                        <input type="text" id="birthday"readonly>
                     </div>
 
                     <div>
                         <label for="user_id">아이디 (변경 불가)</label>
-                        <input type="text" id="user_id" value="yhs_0615" readonly>
+                        <input type="text" id="user_id"readonly>
                     </div>
 
                     <div>
                         <label for="email">이메일 (수정 가능)</label>
-                        <input type="email" id="email" name="email" value="yuk@naver.com">
+                        <input type="email" id="email" name="email">
                     </div>
 
                     <div>
                         <label for="contact">연락처 (수정 가능)</label>
-                        <input type="text" id="contact" name="contact" value="010-1234-5678">
+                        <input type="text" id="contact" name="contact">
                     </div>
 
                     <div>
-                        <label for="company_name">회사명 (변경 불가)</label>
-                        <input type="text" id="company_name" value="ERP 시스템즈" readonly>
-                    </div>
-                    <div>
-                        <label for="emp_id">사원번호 (변경 불가)</label>
-                        <input type="text" id="emp_id" value="E2024001" readonly>
+                        <label for="company_name">사업자 번호(변경 불가)</label>
+                        <input type="text" id="company_name" readonly>
                     </div>
                     <div>
                         <label for="dept">부서 (변경 불가)</label>
-                        <input type="text" id="dept" value="IT 개발팀" readonly>
-                    </div>
-                    <div>
-                        <label for="job_title">직무 (변경 불가)</label>
-                        <input type="text" id="job_title" value="개발" readonly>
+                        <input type="text" id="dept" readonly>
                     </div>
                     <div>
                         <label for="position">직급 (변경 불가)</label>
-                        <input type="text" id="position" value="대리" readonly>
+                        <input type="text" id="position" readonly>
                     </div>
 
                     <hr>
@@ -154,8 +147,7 @@
                         <input type="password" id="confirm_pw" name="confirm_password">
                     </div>
 
-                    <button type="button" class="action-button"
-                            onclick="alert('수정 요청이 전송되었습니다. 마이페이지로 돌아갑니다.'); window.location.href='/mypage';">
+                    <button type="button" class="action-button" id="btn-save">
                         수정 완료
                     </button>
                 </form>
@@ -163,7 +155,7 @@
         </div>
     </div>
 </div>
-
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
     // 아코디언 동작 (JS)
     const accordionHeaders = document.querySelectorAll('.accordion-header');
@@ -178,6 +170,162 @@
             if (!isActive) {
                 content.style.display = 'block';
                 this.classList.add('active');
+            }
+        });
+    });
+
+    // 사용자 이름 출력
+    $(function () {
+        $.ajax({
+            url: '/me',
+            method: 'GET',
+            dataType: 'json',
+            success: function(user) {
+                if (user && user.name) {
+                    $('.nav-profile-btn').text(user.name + ' 님');
+                } else {
+                    $('.nav-profile-btn').text('로그인');
+                }
+            },
+            error: function() {
+                $('.nav-profile-btn').text('로그인');
+            }
+        });
+    });
+
+    $.ajax({
+        url: '/mypage/inform',
+        method: 'GET',
+        dataType: 'json',
+        success: function(info) {
+            if (!info || info.success === false) {
+                console.warn('마이페이지 정보 불러오기 실패:', info && info.message);
+                return;
+            }
+
+            // 이름
+            if (info.name) $('#name').val(info.name);
+
+            // 생년월일: yyyy-MM-dd → yyyy.MM.dd
+            if (info.birthday) {
+                let birthdayStr = info.birthday;
+
+                if (typeof birthdayStr === 'object' && birthdayStr.year) {
+                    const y = birthdayStr.year;
+                    const m = String(birthdayStr.monthValue || birthdayStr.month || '').padStart(2, '0');
+                    const d = String(birthdayStr.dayOfMonth || birthdayStr.day || '').padStart(2, '0');
+                    birthdayStr = y + '-' + m + '-' + d;
+                }
+
+                const parts = String(birthdayStr).split('-');
+                if (parts.length === 3) {
+                    $('#birthday').val(parts[0] + '.' + parts[1] + '.' + parts[2]);
+                } else {
+                    $('#birthday').val(birthdayStr);
+                }
+            }
+
+            // 아이디
+            if (info.userId) $('#user_id').val(info.userId);
+
+            // 이메일
+            if (info.email) $('#email').val(info.email);
+
+            // 연락처
+            if (info.contact) $('#contact').val(info.contact);
+
+            // 회사명/코드
+            if (info.companyId) $('#company_name').val(info.companyId);
+
+            // 사원번호
+            if (info.empId) $('#emp_id').val(info.empId);
+
+            // 부서
+            if (info.dept) $('#dept').val(info.dept);
+
+            // 직무는 현재 없으면 그대로 둠
+            // if (info.jobTitle) $('#job_title').val(info.jobTitle);
+
+            // 직급
+            if (info.position) $('#position').val(info.position);
+        },
+        error: function(xhr, status, error) {
+            console.error('[/mypage/inform] 호출 실패:', status, error);
+        }
+    });
+
+    // 3) 수정 완료 버튼 클릭 시 /mypageedit/edit AJAX 호출
+    $('#btn-save').on('click', function () {
+        const name    = $('#name').val().trim();
+        const email   = $('#email').val().trim();
+        const contact = $('#contact').val().trim();
+
+        const currentPassword = $('#current_pw').val();
+        const newPassword     = $('#new_pw').val();
+        const confirmPassword = $('#confirm_pw').val();
+
+        if (!name) {
+            alert('이름을 입력해주세요.');
+            $('#name').focus();
+            return;
+        }
+        if (!email) {
+            alert('이메일을 입력해주세요.');
+            $('#email').focus();
+            return;
+        }
+        if (!contact) {
+            alert('연락처를 입력해주세요.');
+            $('#contact').focus();
+            return;
+        }
+
+        // 비밀번호 변경 의사 여부
+        const changePassword = newPassword && newPassword.trim().length > 0;
+
+        if (changePassword) {
+            // 새 비밀번호/확인 비밀번호 일치 여부
+            if (!confirmPassword || newPassword !== confirmPassword) {
+                alert('새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.');
+                $('#confirm_pw').focus();
+                return;
+            }
+            // 현재 비밀번호 입력 여부
+            if (!currentPassword || currentPassword.trim().length === 0) {
+                alert('비밀번호를 변경하려면 현재 비밀번호를 입력해야 합니다.');
+                $('#current_pw').focus();
+                return;
+            }
+        }
+
+        $.ajax({
+            url: '/mypageedit/edit',   // ✅ 컨트롤러 매핑에 맞춤
+            method: 'POST',
+            dataType: 'json',
+            data: {
+                name: name,
+                email: email,
+                contact: contact,
+                current_password: currentPassword,
+                new_password: newPassword,
+                confirm_password: confirmPassword
+            },
+            success: function (res) {
+                if (!res) {
+                    alert('알 수 없는 오류가 발생했습니다.');
+                    return;
+                }
+
+                if (res.success) {
+                    alert(res.message || '회원 정보가 수정되었습니다.');
+                    window.location.href = '/mypage';
+                } else {
+                    alert(res.message || '회원 정보 수정에 실패했습니다.');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('[/mypageedit/edit] 호출 실패:', status, error);
+                alert('서버 통신 중 오류가 발생했습니다.');
             }
         });
     });

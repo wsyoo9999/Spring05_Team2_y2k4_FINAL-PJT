@@ -2,10 +2,13 @@ package com.multi.y2k4.controller;
 
 
 import com.multi.y2k4.db.TenantContext;
+import com.multi.y2k4.service.alert.AlertService;
 import com.multi.y2k4.service.db.DBService;
 import com.multi.y2k4.service.db.TenantSchemaService;
+import com.multi.y2k4.service.document.DocumentsService;
 import com.multi.y2k4.service.hr.EmployeeService;
 import com.multi.y2k4.service.management.UserService;
+import com.multi.y2k4.vo.alert.Alert;
 import com.multi.y2k4.vo.hr.Employee;
 import com.multi.y2k4.vo.user.UserVO;
 import jakarta.servlet.http.HttpSession;
@@ -15,6 +18,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +32,8 @@ public class MainController {
     private final DBService dbService;
     private final TenantSchemaService tenantSchemaService;
     private final EmployeeService employeeService;
+    private final AlertService alertService;
+    private final DocumentsService documentsService;
 
 
     @GetMapping({"/"})
@@ -164,11 +171,43 @@ public class MainController {
         return userService.existsById(id);
     }
 
-    @GetMapping("/alerts")
-    public String alerts(){
-        return "alerts";
+    @GetMapping("/me")
+    @ResponseBody
+    public Map<String, Object> getCurrentUser(HttpSession session) {
+        String loginId = (String) session.getAttribute("id");
+        Map<String, Object> result = new HashMap<>();
 
+        UserVO user = userService.selectById(loginId);
+
+        if (user != null) {
+            result.put("name", user.getName());
+        } else {
+            result.put("name", "");
+        }
+
+        return result;
     }
+
+    @GetMapping("/alerts")
+    public String alertsPage() {
+        return "alerts";  // alerts.html 반환
+    }
+
+    // 2. JSON 데이터 반환
+    @GetMapping("/api/alerts")
+    @ResponseBody
+    public List<Alert> getMyAlerts(HttpSession session) {
+        Integer empIdInt = (Integer) session.getAttribute("emp_id");
+
+        if (empIdInt == null) {
+            return new ArrayList<>();
+        }
+
+        Long emp_id = empIdInt.longValue();
+
+        return alertService.selectAlerts(emp_id);
+    }
+
     @GetMapping("/logout")
     public String logout(HttpSession httpSession) {
         httpSession.invalidate(); // 세션 만료
