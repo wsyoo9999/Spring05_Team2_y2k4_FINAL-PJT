@@ -109,6 +109,28 @@
         }
         .nav-icon-btn:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
 
+        .nav-profile-btn {
+            border: none;
+            border-radius: 20px;
+            padding: 0 16px;
+            height: 40px;
+            background: transparent;
+            color: rgba(255,255,255,0.9);
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap; /* 이름 길어져도 줄바꿈 방지 */
+        }
+
+        .nav-profile-btn:hover {
+            color: var(--text-light);
+            background: rgba(255,255,255,0.1);
+        }
+
         /* 메인 콘텐츠 영역 */
         .main-container {
             display: flex;
@@ -402,7 +424,8 @@
 
     <div class="nav-right">
         <button class="nav-icon-btn" title="알림" aria-label="알림" onclick="window.location.href='/alerts'"><i class="fas fa-bell"></i></button>
-        <button class="nav-icon-btn" title="프로필" aria-label="프로필" onclick="window.location.href='/mypage'"><i class="fas fa-user-circle"></i></button>
+        <button class="nav-profile-btn" title="프로필" aria-label="프로필" onclick="window.location.href='/mypage'">님</button>
+
     </div>
 </header>
 
@@ -422,7 +445,7 @@
                 <button class="menu" data-file="finance" data-fn="unpaid_listAll" data-table="unpaid">회사 미정산액</button>
             </div>
         </div>
-<!--        documents는 유지하고, profit, spend로 변경 및 <i class="fas fa-chevron-right"></i> 추가 -->
+        <!--        documents는 유지하고, profit, spend로 변경 및 <i class="fas fa-chevron-right"></i> 추가 -->
         <div class="accordion-item">
             <button class="accordion-header">
                 판매/구매 <i class="fas fa-chevron-right"></i>
@@ -458,7 +481,7 @@
             <div class="accordion-content">
                 <button class="menu" data-file="hr" data-fn="employees_listAll" data-table="employees">직원 목록</button>
                 <button class="menu" data-file="hr" data-fn="attendance_listAll" data-table="attendance">근태 현황</button>
-<!--                <button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button>-->
+                <!--                <button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button>-->
             </div>
         </div>
         <div class="accordion-item">
@@ -826,6 +849,25 @@
             }
         });
     })();
+
+    // 마이페이지 이름 출력
+    $(function () {
+        $.ajax({
+            url: '/me',
+            method: 'GET',
+            dataType: 'json',
+            success: function(user) {
+                if (user && user.name) {
+                    $('.nav-profile-btn').text(user.name + ' 님');
+                } else {
+                    $('.nav-profile-btn').text('로그인');
+                }
+            },
+            error: function() {
+                $('.nav-profile-btn').text('로그인');
+            }
+        });
+    });
 </script>
 </body>
 </html>

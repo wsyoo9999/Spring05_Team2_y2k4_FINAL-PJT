@@ -4,7 +4,6 @@ import com.multi.y2k4.mapper.tenant.inventory.StockMapper;
 import com.multi.y2k4.vo.inventory.Stock;
 import lombok.Locked;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

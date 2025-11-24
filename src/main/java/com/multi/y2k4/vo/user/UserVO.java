@@ -18,5 +18,5 @@ public class UserVO {
     private int emp_id;             // 사번
     private Integer supervisor;     // 직속 상사 사번
     private String position;        // 직급
-
+    private String dept_name;       // 부서명
 }

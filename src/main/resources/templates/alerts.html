@@ -110,6 +110,29 @@
     }
     .nav-icon-btn:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
 
+
+    .nav-profile-btn {
+      border: none;
+      border-radius: 20px;
+      padding: 0 16px;
+      height: 40px;
+      background: transparent;
+      color: rgba(255,255,255,0.9);
+      cursor: pointer;
+      font-size: 17px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap; /* 이름 길어져도 줄바꿈 방지 */
+    }
+
+    .nav-profile-btn:hover {
+      color: var(--text-light);
+      background: rgba(255,255,255,0.1);
+    }
+
     /* 메인 콘텐츠 영역 */
     .main-container {
       display: flex;
@@ -256,16 +279,87 @@
 <body>
 
 <header class="nav-bar">
+  <div class="nav-brand" onclick="window.location.href='/'">
+    <span class="nav-logo" aria-hidden="true" ><i class="fas fa-cube"></i></span>
+    <span>Y2K4 ERP</span>
+  </div>
+
+  <div class="nav-spacer"></div>
+
+  <nav class="nav-links" id="navLinks">
+    <a href="/" class="nav-link"><i class="fas fa-tachometer-alt"></i> 대시보드</a>
+    <a href="#" class="nav-link"><i class="fas fa-calculator"></i> 재무/회계</a>
+    <a href="#" class="nav-link"><i class="fas fa-chart-line"></i> 판매/구매</a>
+    <a href="#" class="nav-link"><i class="fas fa-industry"></i> 생산/제조</a>
+    <a href="#" class="nav-link"><i class="fas fa-boxes"></i> 재고</a>
+    <a href="#" class="nav-link"><i class="fas fa-users"></i> 인사</a>
+    <a href="#" class="nav-link"><i class="fas fa-file-alt"></i> 리포트</a>
+    <a href="#" class="nav-link"><i class="fas fa-cog"></i> 설정</a>
+  </nav>
+
+  <div class="nav-right">
+    <button class="nav-icon-btn" title="알림" aria-label="알림" onclick="window.location.href='/alerts'" style="color: var(--primary-color);"><i class="fas fa-bell"></i></button>
+    <button class="nav-icon-btn" title="프로필" aria-label="프로필" onclick="window.location.href='/mypage'"><i class="fas fa-user-circle"></i></button>
+  </div>
 </header>
 
 <div class="main-container">
+
   <div class="accordion-container">
+    <div class="accordion-item">
+      <button class="accordion-header">
+        재무/회계 <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="accordion-content">
+        <button class="menu" data-file="finance" data-fn="documents_listAll" data-table="documents">결재 문서 관리</button>
+        <button class="menu" data-file="finance" data-fn="budget_listAll" data-table="budget">예산 관리</button>
+        <button class="menu" data-file="finance" data-fn="slips_listAll" data-table="slips">회계 전표 관리</button>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header">
+        판매/구매 <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="accordion-content">
+        <button class="menu" data-file="transaction" data-fn="sale_listAll" data-table="sale">판매</button>
+        <button class="menu" data-file="transaction" data-fn="purchase_listAll" data-table="purchase">구매</button>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header">
+        생산/제조 <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="accordion-content">
+        <button class="menu" data-file="production" data-fn="work_order_listAll" data-table="work_order">작업 지시서</button>
+        <button class="menu" data-file="production" data-fn="bom_listAll"   data-table="bom">자재 명세서</button>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header">
+        재고 <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="accordion-content">
+        <button class="menu" data-file="inventory" data-fn="stock_listAll" data-table="stock">재고 목록</button>
+        <button class="menu" data-file="inventory" data-fn="inbound_listAll" data-table="inbound">입고</button>
+        <button class="menu" data-file="inventory" data-fn="outbound_listAll" data-table="outbound">출고</button>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header">
+        인사 <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="accordion-content">
+        <button class="menu" data-file="hr" data-fn="employees_listAll" data-table="employees">직원 목록</button>
+        <button class="menu" data-file="hr" data-fn="attendance_listAll" data-table="attendance">근태 현황</button>
+        <button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button>
+      </div>
+    </div>
   </div>
 
   <div class="results">
     <div class="content-card">
       <div class="section-title">
-        <span>🔔 결재 대기 알림</span>
+        <span>알림 목록</span>
       </div>
 
       <div id="alerts-list">
@@ -355,6 +449,118 @@
       });
     });
   });
+
+  // 마이페이지 사용자명 불러오기
+  $(function () {
+    $.ajax({
+      url: '/me',
+      method: 'GET',
+      dataType: 'json',
+      success: function(user) {
+        if (user && user.name) {
+          $('.nav-profile-btn').text(user.name + ' 님');
+        } else {
+          $('.nav-profile-btn').text('로그인');
+        }
+      },
+      error: function() {
+        $('.nav-profile-btn').text('로그인');
+      }
+    });
+    loadAlerts();
+  });
+
+  function loadAlerts() {
+    $.ajax({
+      url: '/api/alerts',
+      method: 'GET',
+      dataType: 'json',
+      success: function(alerts) {
+        renderAlerts(alerts);
+      },
+      error: function() {
+        $('#alerts-list').html('<p style="padding: 20px; text-align: center; color: #999;">알림을 불러올 수 없습니다.</p>');
+      }
+    });
+  }
+
+  function renderAlerts(alerts) {
+    const container = $('#alerts-list');
+    container.empty();
+
+    if (alerts.length === 0) {
+      container.html('<p style="padding: 20px; text-align: center; color: #999;">알림이 없습니다.</p>');
+      return;
+    }
+
+    alerts.forEach(function(alert) {
+      const isUnread = alert.is_read === 0;
+
+      // 메시지 생성
+      let message = '';
+      if (alert.alert_type === 0) {
+        const req_name = alert.req_name || '사용자';
+        message = req_name + '(이)가 결재 ' + alert.doc_title + '(을)를 신청했습니다';
+      } else {
+        // const status_text = alert.doc_status === 'approved' ? '승인' : '반려';
+        // message = alert.doc_title + '(이)가 ' + status_text + '됐습니다';
+
+        message = alert.doc_title + '(이)가 어찌저찌 됐습니다';
+
+      }
+
+      const html = `
+            <div class="alert-item-link" style="border-bottom: 1px solid #E0E0E0; padding: 15px 0;">
+                <span data-value="${alert.doc_id}"
+                      style="cursor:pointer"
+                      onmouseover="this.style.color='#4A96D9'; this.style.fontWeight='700';"
+                      onmouseout="this.style.color=''; this.style.fontWeight='';"
+                      data-action="detail"
+                      data-file="document"
+                      data-fn="viewDocument">
+                    ${isUnread ? '<i class="fas fa-circle" style="color: #FF9800; font-size: 8px; margin-right: 10px;"></i>' : ''}
+                    ${message}
+                </span>
+            </div>
+        `;
+
+      container.append(html);
+    });
+    $(document).on('click', '#alerts-list span[data-action="detail"]', function () {
+      const docId = this.dataset.value;      // span의 data-value → doc_id
+      // ⚠️ 여기 URL은 네가 결재 목록에서 실제로 쓰는 문서 상세 URL로 맞춰줘
+      const popupUrl = `/popup/doc/viewDocument.html?doc_id=${docId}`;
+
+      window.open(
+              popupUrl,
+              'documentPopup',
+              'width=1000,height=800,scrollbars=yes,resizable=yes'
+      );
+    });
+
+    // 알림 클릭 시 읽음 처리
+    // $('.alert-item-link').on('click', function(e) {
+    //   const alert_id = $(this).data('alert-id');
+    //   const $this = $(this);
+    //
+    //   // 읽음 처리 API 호출
+    //   $.ajax({
+    //     url: '/alerts',
+    //     method: 'PUT',
+    //     success: function() {
+    //       // 화면에서 제거
+    //       $this.fadeOut(300, function() {
+    //         $this.remove();
+    //
+    //         // 알림이 0개면 "알림 없음" 메시지
+    //         if ($('#alerts-list .alert-item-link').length === 0) {
+    //           $('#alerts-list').html('<p style="padding: 20px; text-align: center; color: #999;">알림이 없습니다.</p>');
+    //         }
+    //       });
+    //     }
+    //   });
+    // });
+  }
 </script>
 </body>
 </html>

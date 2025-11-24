@@ -41,7 +41,8 @@
         .nav-icon-btn { width: 40px; height: 40px; border: none; border-radius: 50%; background: transparent; color: rgba(255,255,255,0.7); cursor: pointer; transition: background 0.2s, color 0.2s; font-size: 18px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         .nav-icon-btn.active { color: var(--text-light); background: rgba(255,255,255,0.1); }
         .nav-icon-btn:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
-
+        .nav-profile-btn {  border: none; border-radius: 20px; padding: 0 16px; height: 40px; background: transparent; color: rgba(255,255,255,0.9); cursor: pointer; font-size: 17px; font-weight: 500; display: flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s; white-space: nowrap;}
+        .nav-profile-btn:hover { color: var(--text-light); background: rgba(255,255,255,0.1); }
         /* Main Layout Styles */
         .main-container { display: flex; }
         .accordion-container { width: var(--sidebar-w); background-color: var(--card-bg); flex-shrink: 0; height: calc(100vh - var(--nav-h)); position: sticky; top: var(--nav-h); overflow-y: auto; border-right: 1px solid var(--border-color); }
@@ -88,16 +89,81 @@
 
     <div class="nav-right">
         <button class="nav-icon-btn" title="알림" aria-label="알림" onclick="window.location.href='/alerts'" style="color: var(--primary-color);"><i class="fas fa-bell"></i></button>
-        <button class="nav-icon-btn" title="프로필" aria-label="프로필" onclick="window.location.href='/mypage'"><i class="fas fa-user-circle"></i></button>
+        <button class="nav-profile-btn" title="프로필" aria-label="프로필" onclick="window.location.href='/mypage'">님</button>
     </div>
 </header>
 <div class="main-container">
     <div class="accordion-container">
-        <div class="accordion-item"><button class="accordion-header">재무/회계 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="finance" data-fn="documents_listAll" data-table="documents">결재 문서 관리</button><button class="menu" data-file="finance" data-fn="budget_listAll" data-table="budget">예산 관리</button><button class="menu" data-file="finance" data-fn="slips_listAll" data-table="slips">회계 전표 관리</button></div></div>
-        <div class="accordion-item"><button class="accordion-header">판매/구매 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="transaction" data-fn="sale_listAll" data-table="sale">판매</button><button class="menu" data-file="transaction" data-fn="purchase_listAll" data-table="purchase">구매</button></div></div>
-        <div class="accordion-item"><button class="accordion-header">생산/제조 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="production" data-fn="work_order_listAll" data-table="work_order">작업 지시서</button><button class="menu" data-file="production" data-fn="bom_listAll" data-table="bom">자재 명세서</button></div></div>
-        <div class="accordion-item"><button class="accordion-header">재고 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="inventory" data-fn="stock_listAll" data-table="stock">재고 목록</button><button class="menu" data-file="inventory" data-fn="inbound_listAll" data-table="inbound">입고</button><button class="menu" data-file="inventory" data-fn="outbound_listAll" data-table="outbound">출고</button></div></div>
-        <div class="accordion-item"><button class="accordion-header">인사 <i class="fas fa-chevron-right"></i></button><div class="accordion-content"><button class="menu" data-file="hr" data-fn="employees_listAll" data-table="employees">직원 목록</button><button class="menu" data-file="hr" data-fn="attendance_listAll" data-table="attendance">근태 현황</button><button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button></div></div>
+        <div class="accordion-item">
+
+            <button class="accordion-header">
+                재무/회계 <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="accordion-content">
+
+                <button class="menu" data-file="finance" data-fn="profit_listAll" data-table="profit">회사 수익</button>
+
+                <button class="menu" data-file="finance" data-fn="spend_listAll" data-table="spend">회사 지출</button>
+
+                <button class="menu" data-file="finance" data-fn="unpaid_listAll" data-table="unpaid">회사 미정산액</button>
+            </div>
+        </div>
+        <!--        documents는 유지하고, profit, spend로 변경 및 <i class="fas fa-chevron-right"></i> 추가 -->
+        <div class="accordion-item">
+            <button class="accordion-header">
+                판매/구매 <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="accordion-content">
+                <button class="menu" data-file="transaction" data-fn="sale_listAll" data-table="sale">판매</button>
+                <button class="menu" data-file="transaction" data-fn="purchase_listAll" data-table="purchase">구매</button>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button class="accordion-header">
+                생산/제조 <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="accordion-content">
+                <button class="menu" data-file="production" data-fn="work_order_listAll" data-table="work_order">작업 지시서</button>
+                <button class="menu" data-file="production" data-fn="bom_listAll"   data-table="bom">자재 명세서</button>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button class="accordion-header">
+                재고 <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="accordion-content">
+                <button class="menu" data-file="inventory" data-fn="stock_listAll" data-table="stock">재고 목록</button>
+                <button class="menu" data-file="inventory" data-fn="inbound_listAll" data-table="inbound">입고</button>
+                <button class="menu" data-file="inventory" data-fn="outbound_listAll" data-table="outbound">출고</button>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button class="accordion-header">
+                인사 <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="accordion-content">
+                <button class="menu" data-file="hr" data-fn="employees_listAll" data-table="employees">직원 목록</button>
+                <button class="menu" data-file="hr" data-fn="attendance_listAll" data-table="attendance">근태 현황</button>
+                <!--                <button class="menu" data-file="hr" data-fn="salary_listAll" data-table="salary">급여 대장</button>-->
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button class="accordion-header">
+                거래처 <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="accordion-content">
+                <button class="menu" data-file="account" data-fn="account_listAll" data-table="account">거래처 목록</button>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button class="accordion-header">
+                결재 문서 <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="accordion-content">
+                <button class="menu" data-file="document" data-fn="document_listAll" data-table="document">전체 결재 목록</button>
+                <button class="menu" data-file="document" data-fn="document_listAll" data-table="document">자신의 결재 목록</button>
+            </div>
+        </div>
     </div>
 
     <div class="results">
@@ -110,60 +176,50 @@
 
                     <div>
                         <label for="name">이름</label>
-                        <input type="text" id="name" name="name" value="육현수" readonly>
+                        <input type="text" id="name" name="name" readonly>
                     </div>
 
                     <div>
                         <label for="birthday">생년월일</label>
-                        <input type="text" id="birthday" value="1999.06.15" readonly>
+                        <input type="text" id="birthday" readonly>
                     </div>
 
                     <div>
                         <label for="user_id">아이디</label>
-                        <input type="text" id="user_id" value="yhs_0615" readonly>
+                        <input type="text" id="user_id" readonly>
                     </div>
 
                     <div>
                         <label for="email">이메일</label>
-                        <input type="email" id="email" name="email" value="yuk@naver.com" readonly>
+                        <input type="email" id="email" name="email" readonly>
                     </div>
 
                     <div>
                         <label for="contact">연락처</label>
-                        <input type="text" id="contact" name="contact" value="010-1234-5678" readonly>
+                        <input type="text" id="contact" name="contact" readonly>
                     </div>
 
                     <div>
-                        <label for="company_name">회사명</label>
-                        <input type="text" id="company_name" value="ERP 시스템즈" readonly>
-                    </div>
-                    <div>
-                        <label for="emp_id">사원번호</label>
-                        <input type="text" id="emp_id" value="E2024001" readonly>
+                        <label for="company_name">사업자 번호</label>
+                        <input type="text" id="company_name" readonly>
                     </div>
                     <div>
                         <label for="dept">부서</label>
-                        <input type="text" id="dept" value="IT 개발팀" readonly>
-                    </div>
-                    <div>
-                        <label for="job_title">직무</label>
-                        <input type="text" id="job_title" value="개발" readonly>
+                        <input type="text" id="dept" readonly>
                     </div>
                     <div>
                         <label for="position">직급</label>
-                        <input type="text" id="position" value="대리" readonly>
-                    </div>
-
-                    <hr>
-                    <h3>비밀번호</h3>
-                    <div>
-                        <label for="password_display">비밀번호</label>
-                        <input type="password" id="password_display" value="********" readonly>
+                        <input type="text" id="position" readonly>
                     </div>
 
                     <button type="button" class="action-button"
                             onclick="window.location.href='/mypageedit';">
                         수정하기
+                    </button>
+
+                    <button type="button" class="action-button"
+                            onclick="window.location.href='/logout';">
+                        로그아웃
                     </button>
                 </form>
             </section>
@@ -171,6 +227,7 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
     // 아코디언 동작 (JS)
     const accordionHeaders = document.querySelectorAll('.accordion-header');
@@ -187,6 +244,125 @@
                 this.classList.add('active');
             }
         });
+    });
+
+    // 사용자 이름 출력
+    $(function () {
+        $.ajax({
+            url: '/me',
+            method: 'GET',
+            dataType: 'json',
+            success: function(user) {
+                if (user && user.name) {
+                    $('.nav-profile-btn').text(user.name + ' 님');
+                } else {
+                    $('.nav-profile-btn').text('로그인');
+                }
+            },
+            error: function() {
+                $('.nav-profile-btn').text('로그인');
+            }
+        });
+    });
+
+    $(function () {
+
+        // 1) 상단 네비게이션 프로필 이름: /me 그대로 사용
+        $.ajax({
+            url: '/me',
+            method: 'GET',
+            dataType: 'json',
+            success: function (user) {
+                if (user && user.name) {
+                    $('.nav-profile-btn').text(user.name + ' 님');
+                } else {
+                    $('.nav-profile-btn').text('로그인');
+                }
+            },
+            error: function () {
+                $('.nav-profile-btn').text('로그인');
+            }
+        });
+
+        // 2) 마이페이지 상세 정보 채우기: /mypage/inform 사용
+        $.ajax({
+            url: '/mypage/inform',
+            method: 'GET',
+            dataType: 'json',
+            success: function (info) {
+                if (!info || info.success === false) {
+                    console.warn('마이페이지 정보 불러오기 실패:', info && info.message);
+                    return;
+                }
+
+                // 이름
+                if (info.name) {
+                    $('#name').val(info.name);
+                }
+
+                // 생년월일: "yyyy-MM-dd" → "yyyy.MM.dd" 로 변환
+                if (info.birthday) {
+                    let birthdayStr = info.birthday;
+
+                    // 혹시 Object 형태로 내려오는 경우 처리
+                    if (typeof birthdayStr === 'object' && birthdayStr.year) {
+                        const y = birthdayStr.year;
+                        const m = String(birthdayStr.monthValue || birthdayStr.month || '').padStart(2, '0');
+                        const d = String(birthdayStr.dayOfMonth || birthdayStr.day || '').padStart(2, '0');
+                        birthdayStr = y + '-' + m + '-' + d;
+                    }
+
+                    const parts = String(birthdayStr).split('-');
+                    if (parts.length === 3) {
+                        $('#birthday').val(parts[0] + '.' + parts[1] + '.' + parts[2]);
+                    } else {
+                        $('#birthday').val(birthdayStr);
+                    }
+                }
+
+                // 아이디 (로그인 아이디)
+                if (info.userId) {
+                    $('#user_id').val(info.userId);
+                }
+
+                // 이메일
+                if (info.email) {
+                    $('#email').val(info.email);
+                }
+
+                // 연락처
+                if (info.contact) {
+                    $('#contact').val(info.contact);
+                }
+
+                // 사업자 번호 / 회사 코드
+                if (info.companyId) {
+                    $('#company_name').val(info.companyId);
+                }
+
+                // 사원번호
+                if (info.empId) {
+                    $('#emp_id').val(info.empId);
+                }
+
+                // 부서 (hr.dept_name)
+                if (info.dept) {
+                    $('#dept').val(info.dept);
+                }
+
+                // 직무는 현재 정보 없음 → 그대로 샘플 유지하거나 공백 처리
+                // $('#job_title').val('');
+
+                // 직급 (hr.position)
+                if (info.position) {
+                    $('#position').val(info.position);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('[/mypage/inform] 호출 실패:', status, error);
+            }
+        });
+
     });
 </script>
 </body>

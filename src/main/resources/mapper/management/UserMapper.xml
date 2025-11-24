@@ -16,4 +16,37 @@
     <insert id="addUser" parameterType="com.multi.y2k4.vo.user.UserVO">
         INSERT INTO user (id,password,name,email,company_id, birthday, phone) VALUES (#{id}, #{password}, #{name}, #{email}, #{company_id}, #{birthday}, #{phone})
     </insert>
+
+    <select id="existsById" parameterType="com.multi.y2k4.vo.user.UserVO">
+        SELECT EXISTS(
+            SELECT 1
+            FROM user
+            WHERE id = #{id}
+        )
+    </select>
+
+    <!-- 단건 조회 -->
+    <select id="selectById" parameterType="string" resultType="com.multi.y2k4.vo.user.UserVO">
+        SELECT u.*, hr.dept_name, hr.position
+        FROM userDB.user u
+        LEFT JOIN `db_104-81-53114`.human_resource hr
+               ON hr.login_id COLLATE utf8mb4_0900_ai_ci = u.id
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateMypage" parameterType="map">
+        UPDATE userDB.user
+        <set>
+            name  = #{name},
+            email = #{email},
+            phone = #{phone}
+            <if test="newPassword != null and newPassword != ''">
+                , password = #{newPassword}
+            </if>
+        </set>
+        WHERE id = #{id}
+        <if test="newPassword != null and newPassword != ''">
+            AND password = #{currentPassword}
+        </if>
+    </update>
 </mapper>

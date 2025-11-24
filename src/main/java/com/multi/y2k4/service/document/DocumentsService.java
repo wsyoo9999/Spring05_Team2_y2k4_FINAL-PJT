@@ -2,6 +2,7 @@ package com.multi.y2k4.service.document;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.multi.y2k4.mapper.tenant.document.DocumentsMapper;
+import com.multi.y2k4.service.alert.AlertService;
 import com.multi.y2k4.vo.document.Documents;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.*;
 public class DocumentsService {
     private final DocumentsMapper documentsMapper;
     private final ObjectMapper objectMapper;
+    private final AlertService alertService;
 
     public List<Documents> list(Integer doc_id,
                                 Integer cat_id,
@@ -36,7 +38,19 @@ public class DocumentsService {
 
 
     public int editStatus(Integer doc_id, Integer status, String comments){
-        return documentsMapper.editStatus(doc_id, status,comments);
+        int result = documentsMapper.editStatus(doc_id, status,comments);
+
+        Documents doc = documentsMapper.searchById(doc_id);
+
+        if (result > 0 && doc != null && doc.getReq_id() != null) {
+            alertService.creatAlert(
+                    doc.getReq_id(),  // 기안자 ID
+                    doc.getDoc_id()   // 문서 ID
+            );
+        }
+
+        return result;
+//        return documentsMapper.editStatus(doc_id, status,comments);
     };
 
     @Transactional
@@ -44,6 +58,6 @@ public class DocumentsService {
         DocumentBodyBuilder documentBodyBuilder = new DocumentBodyBuilder(objectMapper);
         String body_html = documentBodyBuilder.buildBody(doc.getQuery());
         doc.setContent(body_html);
-        documentsMapper.addDocument(doc);
+        alertService.createAlertForApprover(doc.getDoc_id(), 0);
     }
 }
