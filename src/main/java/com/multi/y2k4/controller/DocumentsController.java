@@ -103,6 +103,11 @@ public class DocumentsController {
         return documentsService.searchById(doc_id);
     }
 
+    @GetMapping("/read")
+    public void read(@RequestParam Integer doc_id) {
+        documentsService.read(doc_id);
+    }
+
 
 
     @PostMapping("/editStatus")     //결재 승인 및 반려 처리

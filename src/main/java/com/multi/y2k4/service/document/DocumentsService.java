@@ -40,17 +40,14 @@ public class DocumentsService {
     public int editStatus(Integer doc_id, Integer status, String comments){
         int result = documentsMapper.editStatus(doc_id, status,comments);
 
-        Documents doc = documentsMapper.searchById(doc_id);
-
-        if (result > 0 && doc != null && doc.getReq_id() != null) {
-            alertService.creatAlert(
-                    doc.getReq_id(),  // 기안자 ID
-                    doc.getDoc_id()   // 문서 ID
-            );
+        if (result > 0) {
+            Documents doc = documentsMapper.searchById(doc_id);
+            if (doc != null) {
+                // 기안자 & 결재자 둘 다 카운트 갱신
+                alertService.onDocumentStatusChanged(doc.getReq_id());
+            }
         }
-
         return result;
-//        return documentsMapper.editStatus(doc_id, status,comments);
     };
 
     @Transactional
@@ -58,6 +55,24 @@ public class DocumentsService {
         DocumentBodyBuilder documentBodyBuilder = new DocumentBodyBuilder(objectMapper);
         String body_html = documentBodyBuilder.buildBody(doc.getQuery());
         doc.setContent(body_html);
-        alertService.createAlertForApprover(doc.getDoc_id(), 0);
+        documentsMapper.addDocument(doc);
+        alertService.onDocumentCreated(doc.getAppr_id());
     }
+
+    public List<Documents> searchByUnchecked(Long req_id){
+        Documents doc = new Documents();
+        doc.setReq_id(req_id);
+        return documentsMapper.searchByUnchecked(doc);
+    }
+
+    public List<Documents> searchByAppr(Long appr_id){
+        Documents doc = new Documents();
+        doc.setAppr_id(appr_id);
+        return documentsMapper.searchByAppr(doc);
+    }
+
+    public int read(Integer doc_id){
+        return documentsMapper.read(doc_id);
+    }
+
 }

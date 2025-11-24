@@ -1,8 +1,14 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script>
+    const CURRENT_EMP_ID =
+            window.opener && typeof window.opener.CURRENT_EMP_ID !== 'undefined'
+                    ? window.opener.CURRENT_EMP_ID
+                    : null;
+  </script>
   <title>결재 문서 정보</title>
   <style>
     /* 기본 리셋 */
@@ -285,31 +291,31 @@
     }
 
     try {
-      const document = await $.ajax({
+      const doc = await $.ajax({
         url: '/api/doc/searchById',
         method: 'GET',
         data: { doc_id: doc_id },
         dataType: 'json'
       });
 
-      if (!document) {
+      if (!doc) {
         contentDiv.innerHTML = '<p style="color:red;">해당 문서 정보를 찾을 수 없습니다.</p>';
         return;
       }
 
-      const title       = document.title ?? '(제목 없음)';
-      const req_date    = document.req_date ?? '';
-      const appr_date   = document.appr_date ?? '';
-      const cat         = getCatLabel(document.cat_id);
-      const tb          = getTbLabel(document.cat_id, document.tb_id);
-      const cd          = getCDLabel(document.cd_id);
-      const statusObj   = getStatusInfo(document.status);
-      const req_name    = document.req_name ?? '';
-      const appr_name   = document.appr_name ?? '';
-      const contentHtml = document.content ?? '';
-      const comments    = document.comments ?? '';
+      const title       = doc.title ?? '(제목 없음)';
+      const req_date    = doc.req_date ?? '';
+      const appr_date   = doc.appr_date ?? '';
+      const cat         = getCatLabel(doc.cat_id);
+      const tb          = getTbLabel(doc.cat_id, doc.tb_id);
+      const cd          = getCDLabel(doc.cd_id);
+      const statusObj   = getStatusInfo(doc.status);
+      const req_name    = doc.req_name ?? '';
+      const appr_name   = doc.appr_name ?? '';
+      const contentHtml = doc.content ?? '';
+      const comments    = doc.comments ?? '';
 
-      const statusNum   = Number(document.status);
+      const statusNum   = Number(doc.status);
 
 
       let commentsSectionHtml = '';
@@ -337,7 +343,7 @@ ${comments || ''}</textarea>
           <div>
             <div class="doc-title">${title}</div>
             <div class="sub-meta">
-              문서 번호: ${document.doc_id ?? ''} · 카테고리: ${cat} / ${tb} · 분류: ${cd}
+              문서 번호: ${doc.doc_id ?? ''} · 카테고리: ${cat} / ${tb} · 분류: ${cd}
             </div>
           </div>
           <span class="status-badge" style="background-color:${statusObj.color};">
@@ -351,11 +357,11 @@ ${comments || ''}</textarea>
           <div class="info-row two-cols">
             <div class="info-item">
               <div class="info-label">기안자</div>
-              <div class="info-value">${req_name} (${document.req_id ?? ''})</div>
+              <div class="info-value">${req_name} (${doc.req_id ?? ''})</div>
             </div>
             <div class="info-item">
               <div class="info-label">결재자</div>
-              <div class="info-value">${appr_name} (${document.appr_id ?? ''})</div>
+              <div class="info-value">${appr_name} (${doc.appr_id ?? ''})</div>
             </div>
           </div>
 
@@ -401,11 +407,39 @@ ${comments || ''}</textarea>
         $('#btn-approve').prop('disabled', true);
         $('#btn-reject').prop('disabled', true);
       }
+      const isMyDoc = CURRENT_EMP_ID != null &&
+              Number(CURRENT_EMP_ID) === Number(doc.req_id);    //내가 req_id인 문서인지
+
+      const isFinished = (statusNum === 1 || statusNum === 2);  //결재가 이미 처리되었는지
+
+      const isUnchecked =
+              doc.is_checked === false ||
+              doc.is_checked === 0 ||
+              doc.is_checked === "false";   //이미 읽었는지 여부
+
+      console.log("CURRENT_EMP_ID : "+CURRENT_EMP_ID);
+      console.log(doc.req_id);
+
+      console.log("isUnchecked : " + isUnchecked);
+      console.log("isMyDoc : " + isMyDoc);
+      console.log("isFinished: " + isFinished);
+      if (isMyDoc && isFinished && isUnchecked) {
+        $.ajax({
+          url: '/api/doc/read',
+          method: 'GET',
+          data: { doc_id: doc_id }
+        }).done(() => {
+          console.log('문서를 읽음 처리했습니다.');
+        }).fail(err => {
+          console.error('읽음 처리 실패:', err);
+        });
+      }
 
     } catch (err) {
       console.error("로딩 실패:", err);
       contentDiv.innerHTML = '<p style="color: red;">🚨 데이터 로딩 중 오류가 발생했습니다.</p>';
     }
+
   }
 
   async function changeStatus() {

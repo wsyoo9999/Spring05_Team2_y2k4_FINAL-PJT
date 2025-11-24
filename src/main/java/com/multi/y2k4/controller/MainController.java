@@ -8,6 +8,8 @@ import com.multi.y2k4.service.db.TenantSchemaService;
 import com.multi.y2k4.service.document.DocumentsService;
 import com.multi.y2k4.service.hr.EmployeeService;
 import com.multi.y2k4.service.management.UserService;
+import com.multi.y2k4.sse.EmitterRepository;
+import com.multi.y2k4.sse.SseEmitterService;
 import com.multi.y2k4.vo.alert.Alert;
 import com.multi.y2k4.vo.hr.Employee;
 import com.multi.y2k4.vo.user.UserVO;
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -32,8 +35,10 @@ public class MainController {
     private final DBService dbService;
     private final TenantSchemaService tenantSchemaService;
     private final EmployeeService employeeService;
+    private final SseEmitterService sseEmitterService;
     private final AlertService alertService;
     private final DocumentsService documentsService;
+    private final EmitterRepository emitterRepository;
 
 
     @GetMapping({"/"})
@@ -42,6 +47,14 @@ public class MainController {
         httpSession.setAttribute("me", 1);
         httpSession.setAttribute("supervisor", 1);
         httpSession.setAttribute("authLevel", 1);
+        Object empObj = httpSession.getAttribute("emp_id");
+        if (empObj instanceof Integer empId) {
+            alertService.notifyDocCountChanged(empId.longValue());
+        } else {
+            // 로그인 안 된 상태거나 아직 emp_id가 없는 경우
+            System.out.println("emp_id not found in session, skip SSE notify");
+        }
+
         return "main";
     }
 
@@ -85,6 +98,7 @@ public class MainController {
                 httpSession.setAttribute("emp_id", me.getEmp_id());        // 내 사번
                 httpSession.setAttribute("position", me.getPosition());    // 내 직급/권한
                 httpSession.setAttribute("supervisor", me.getSupervisor()); // 내 상급자
+
 
                 System.out.println("=== 로그인 세션 세팅 ===");
                 System.out.println("emp_id      = " + httpSession.getAttribute("emp_id"));
@@ -193,23 +207,38 @@ public class MainController {
     }
 
     // 2. JSON 데이터 반환
-    @GetMapping("/api/alerts")
-    @ResponseBody
-    public List<Alert> getMyAlerts(HttpSession session) {
-        Integer empIdInt = (Integer) session.getAttribute("emp_id");
-
-        if (empIdInt == null) {
-            return new ArrayList<>();
-        }
-
-        Long emp_id = empIdInt.longValue();
-
-        return alertService.selectAlerts(emp_id);
-    }
+//    @GetMapping("/api/alerts")
+//    @ResponseBody
+//    public List<Alert> getMyAlerts(HttpSession session) {
+//        Integer empIdInt = (Integer) session.getAttribute("emp_id");
+//
+//        if (empIdInt == null) {
+//            return new ArrayList<>();
+//        }
+//
+//        Long emp_id = empIdInt.longValue();
+//
+//        return alertService.selectAlerts(emp_id);
+//    }
 
     @GetMapping("/logout")
     public String logout(HttpSession httpSession) {
-        httpSession.invalidate(); // 세션 만료
+        Object empObj = httpSession.getAttribute("emp_id");
+        Long empId = null;
+
+        if (empObj instanceof Integer i) {
+            empId = i.longValue();
+        } else if (empObj instanceof Long l) {
+            empId = l;
+        }
+
+        if (empId != null) {
+            if (emitterRepository.findById(empId) != null) {
+                sseEmitterService.unsubscribe(empId);
+            }
+        }
+
+        httpSession.invalidate();
         return "redirect:/login";
     }
     @GetMapping({"/document"})

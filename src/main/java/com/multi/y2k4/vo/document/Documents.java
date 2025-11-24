@@ -22,5 +22,6 @@ public class Documents {
     private Long appr_id;        // 결재자 ID
     private String appr_name;
     private String query;
+    private boolean is_checked;
 }
 

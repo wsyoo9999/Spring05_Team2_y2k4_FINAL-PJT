@@ -30,4 +30,10 @@ public interface DocumentsMapper {
     int editStatus(@Param("doc_id") Integer doc_id,
                    @Param("status") Integer status,
                    @Param("comments") String comments);
+
+    List<Documents> searchByUnchecked(Documents doc);
+
+    List<Documents> searchByAppr(Documents doc);
+
+    int read(@Param("doc_id") Integer docId);
 }
