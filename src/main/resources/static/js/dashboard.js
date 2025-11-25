@@ -10,7 +10,7 @@ export async function show_charts(formData) {
       <div class="table-scroll-wrapper">
         <div style="padding: 20px; display: flex; justify-content: center;">
           <div style="max-width: 400px; width: 100%;">
-            <h3 style="text-align:center; margin-bottom: 10px;">대시보드 테스트 도넛 차트</h3>
+            <h3 style="text-align:center; margin-bottom: 10px;">최근 1년 판매금액 TOP5</h3>
             <canvas id="test1"></canvas>
           </div>
           <div style="max-width: 400px; width: 100%;">
@@ -24,53 +24,58 @@ export async function show_charts(formData) {
     // 2) 차트 그리기는 setTimeout으로 예약
     //    (listClick에서 table.innerHTML = html 이 끝난 뒤에 실행되도록)
     setTimeout(() => {
-        // const canvas = document.getElementById('dashboardDonutChart');
-        // if (!canvas) {
-        //     console.error('dashboardDonutChart 캔버스를 찾을 수 없습니다.');
-        //     return;
-        // }
-        // if (typeof Chart === 'undefined') {
-        //     console.error('Chart.js가 로드되지 않았습니다.');
-        //     return;
-        // }
-
         const ctx1 = document.getElementById('test1');
         const ctx2 = document.getElementById('test2');
 
+        if (!ctx1 || !ctx2) {
+            console.error('대시보드 차트용 캔버스를 찾을 수 없습니다.');
+            return;
+        }
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js가 로드되지 않았습니다.');
+            return;
+        }
 
-        // 하드코딩된 예시 데이터
-        const labels = ['A 상품', 'B 상품', 'C 상품'];
-        const data = [30, 15, 25];
+        $.get('/api/dashboard/showChart/saleDonut')
+            .done((res) => {
+                console.log('💾 /api/dashboard/showChart/saleDonut 응답:', res);
+                // res 예시: [{ stock_id:1, stock_name:'A상품', total_price_sum:123000 }, ...]
+                const labels = res.map(r => r.stock_name);
+                const data   = res.map(r => r.total_price_sum);
 
-        new Chart(ctx1, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: '테스트 비율',
-                    data: data,
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.7)',
-                        'rgba(54, 162, 235, 0.7)',
-                        'rgba(255, 206, 86, 0.7)',
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                cutout: '60%', // 도넛 구멍 크기
-                plugins: {
-                    legend: {
-                        position: 'bottom'
+                // 기존 차트가 있으면 제거 (대시보드 다시 클릭할 때 대비)
+                const existing1 = Chart.getChart(ctx1);
+                if (existing1) existing1.destroy();
+
+                new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(54, 162, 235, 0.7)',
+                                'rgba(255, 206, 86, 0.7)',
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(153, 102, 255, 0.7)'
+                            ],
+                            borderWidth: 1
+                        }]
                     },
-                    title: {
-                        display: true,
-                        text: '하드코딩 도넛 차트 (Dashboard 테스트)'
+                    options: {
+                        responsive: true,
+                        cutout: '60%', // 도넛 구멍 크기
+                        plugins: {
+                            legend: { position: 'bottom' },
+                        }
                     }
-                }
-            }
-        });
+                });
+            })
+            .fail((err) => {
+                console.error('/showChart 호출 중 에러 발생', err);
+            });
+
         new Chart(ctx2, {
             type: 'doughnut',
             data: {
@@ -87,7 +92,11 @@ export async function show_charts(formData) {
             options: {
                 responsive: true,
                 cutout: '60%',
-                plugins: { legend: { position: 'bottom' } }
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
             }
         });
     }, 0);

@@ -12,4 +12,7 @@ public class SaleDetails {
     private int qty;
     private double price_per_unit;
     private double total_price;
+
+    // 대쉬보드 출력용
+    private double total_price_sum;
 }
