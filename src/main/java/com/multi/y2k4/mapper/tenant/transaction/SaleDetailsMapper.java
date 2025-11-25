@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface SaleDetailsMapper {
@@ -16,4 +17,5 @@ public interface SaleDetailsMapper {
 
     public int deleteSaleDetails(@Param("sale_id") int sale_id);
 
+    public List<Map<String, Object>> selectSalesForDashboard();
 }

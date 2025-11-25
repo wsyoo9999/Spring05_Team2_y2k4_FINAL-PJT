@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -21,4 +22,8 @@ public class SaleDetailsService {
     }
 
     public int deleteSaleDetails(int sale_id) {return saleDetailsMapper.deleteSaleDetails(sale_id);}
+
+    public List<Map<String, Object>> selectSalesForDashboard() {
+        return saleDetailsMapper.selectSalesForDashboard();
+    }
 }
