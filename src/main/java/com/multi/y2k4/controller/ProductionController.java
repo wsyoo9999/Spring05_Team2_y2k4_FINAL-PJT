@@ -11,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpSession;
+import com.multi.y2k4.service.hr.EmployeeService;
+import com.multi.y2k4.vo.hr.Employee;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,6 +30,7 @@ public class ProductionController {
     private final DocumentsService documentsService;
     private final StockService stockService;
     private final ObjectMapper objectMapper;
+    private final EmployeeService employeeService;
 
     // 1. 작업지시서 목록 조회
     @GetMapping("/work_order")
@@ -76,15 +80,23 @@ public class ProductionController {
     @PostMapping("/work_order/add")
     public boolean addWorkOrder(
             @RequestParam Long stock_id,
-            @RequestParam Long emp_id,
+            @RequestParam Long emp_id, // 폼에서 선택한 담당자 (결재자가 됨)
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start_date,
-            @RequestParam Integer target_qty
+            @RequestParam Integer target_qty,
+            HttpSession session // 세션 추가
     ) {
         try {
+            // 0. 현재 로그인한 사용자(기안자) 확인
+            Integer currentEmpId = (Integer) session.getAttribute("emp_id");
+            if (currentEmpId == null) {
+                System.out.println("로그인 정보가 없습니다.");
+                return false;
+            }
+
             // 1. 작업 지시서 객체 생성 및 DB 저장 (선저장)
             WorkOrder newWorkOrder = new WorkOrder();
             newWorkOrder.setStock_id(stock_id);
-            newWorkOrder.setEmp_id(emp_id);
+            newWorkOrder.setEmp_id(emp_id); // 작업지시서상의 담당자는 선택된 사람으로 유지
             newWorkOrder.setStart_date(start_date);
             newWorkOrder.setTarget_qty(target_qty);
             newWorkOrder.setRequest_date(LocalDateTime.now());
@@ -98,29 +110,39 @@ public class ProductionController {
             Stock stock = stockService.selectStockById(stock_id.intValue());
             if (stock != null) {
                 stockName = stock.getStock_name();
+                newWorkOrder.setStock_name(stockName); // VO에 이름 세팅
             }
+
+            String empName = "담당자 미상";
+            Employee emp = employeeService.getEmployeeDetail(emp_id.intValue());
+            if (emp != null) {
+                empName = emp.getEmp_name();
+                newWorkOrder.setEmp_name(empName); // VO에 이름 세팅
+            }
+
+            // DB 저장
+            productionService.addWorkOrder(newWorkOrder);
 
             // 2. 결재 문서용 JSON 데이터 생성
             Map<String, Object> payload = new HashMap<>();
-            payload.put("cat_id", 2);   // 카테고리: 생산/제조
-            payload.put("tb_id", 0);    // 테이블: 작업지시서
-            payload.put("cd_id", 0);    // 동작: 추가
-
-            // 생성된 PK를 문서에 저장 (나중에 승인 시 이 PK로 update함)
+            payload.put("cat_id", 2);
+            payload.put("tb_id", 0);
+            payload.put("cd_id", 0);
             payload.put("pk", newWorkOrder.getWork_order_id());
 
-            // 상세 보기를 위해 객체 정보도 같이 넣어둠 (선택 사항)
+            // 이름 정보가 포함된 객체를 담음
             payload.put("workOrder", newWorkOrder);
 
             // 3. 결재 문서 객체 생성
             Documents doc = new Documents();
             doc.setTitle("작업지시서 등록 요청 - " + stockName);
-            doc.setReq_id(emp_id);
+            doc.setReq_id(Long.valueOf(currentEmpId));
+            doc.setAppr_id(emp_id);
             doc.setReq_date(LocalDate.now());
-            doc.setStatus(0); // 대기
-            doc.setCat_id(2); // 생산/제조
-            doc.setTb_id(0);  // 작업지시서
-            doc.setCd_id(0);  // 추가
+            doc.setStatus(0);
+            doc.setCat_id(2);
+            doc.setTb_id(0);
+            doc.setCd_id(0);
 
             String query = objectMapper.writeValueAsString(payload);
             doc.setQuery(query);
@@ -136,8 +158,15 @@ public class ProductionController {
     }
 
     @DeleteMapping("/work_order/{work_order_id}")
-    public boolean deleteWorkOrder(@PathVariable Long work_order_id) {
+    public boolean deleteWorkOrder(@PathVariable Long work_order_id, HttpSession session) {
         try {
+            // 0. 현재 로그인한 사용자(기안자) 확인
+            Integer currentEmpId = (Integer) session.getAttribute("emp_id");
+            if (currentEmpId == null) {
+                System.out.println("로그인 정보가 없습니다.");
+                return false;
+            }
+
             // 1. 대상 정보 조회
             WorkOrder targetWo = productionService.getWorkOrderDetail(work_order_id);
             if (targetWo == null) return false;
@@ -175,7 +204,12 @@ public class ProductionController {
             String stockName = targetWo.getStock_name() != null ? targetWo.getStock_name() : "ID:" + work_order_id;
             doc.setTitle("작업지시서 " + titleSuffix + " - " + stockName);
 
-            doc.setReq_id(targetWo.getEmp_id());
+            // 기안자(req_id) = 현재 로그인한 사람
+            doc.setReq_id(Long.valueOf(currentEmpId));
+
+            // 결재자(appr_id) = 작업지시서 담당자
+            doc.setAppr_id(targetWo.getEmp_id());
+
             doc.setReq_date(LocalDate.now());
             doc.setStatus(0); // 대기
             doc.setCat_id(2);
