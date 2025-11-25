@@ -15,9 +15,7 @@ public class SseController {
     private final SseEmitterService sseEmitterService;
     private final DocumentsService documentsService;
     private final AlertService alertService;
-    /**
-     * 클라이언트의 이벤트 구독을 수락한다. text/event-stream은 SSE를 위한 Mime Type이다. 서버 -> 클라이언트로 이벤트를 보낼 수 있게된다.
-     */
+
     @GetMapping(value = "/subscribe/{userId}", produces = "text/event-stream")
     public SseEmitter subscribe(@PathVariable Long userId) {    /*UserId는 로그인 사용자의 emp_id로 한다*/
         System.out.println("subscribe : " + userId);
@@ -31,17 +29,4 @@ public class SseController {
         return emitter;
     }
 
-//    /**
-//     * 이벤트를 구독 중인 클라이언트에게 데이터를 전송한다.
-//     */
-//    @PostMapping("/broadcast/{userId}")
-//    public void broadcast(@PathVariable Long userId) {
-//        Documents documents = new Documents();
-//        documents.setReq_id(userId);
-//        documents.setAppr_id(userId);
-//        int unchecked = documentsService.searchByUnchecked(userId).size();
-//        int unApprove = documentsService.searchByAppr(userId).size();
-//        Integer unchecking = unchecked + unApprove;
-//        sseEmitterService.broadcast(userId,unchecking);
-//    }
 }

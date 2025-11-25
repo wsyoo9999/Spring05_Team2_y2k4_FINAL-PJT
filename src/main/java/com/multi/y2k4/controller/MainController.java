@@ -168,6 +168,12 @@ public class MainController {
             // 7) 해당 테넌트 DB의 인사(human_resource) 테이블에 추가
             employeeService.addEmployee(newEmployee);
 
+            if(exists==0){
+                int emp_id = newEmployee.getEmp_id();
+                newEmployee.setSupervisor(emp_id);
+                employeeService.updateEmployee(newEmployee);
+            }
+
         } catch (Exception e) {
             // 직원 등록에 실패하더라도 사용자 계정은 생성된 상태
             System.err.println("회원가입은 성공했으나, 테넌트 DB 직원 등록 실패: " + e.getMessage());

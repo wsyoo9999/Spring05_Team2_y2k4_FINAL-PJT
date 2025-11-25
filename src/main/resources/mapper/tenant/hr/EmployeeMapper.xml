@@ -57,7 +57,7 @@
         WHERE emp_id = #{emp_id}
     </update>
 
-    <insert id="addEmployee" parameterType="com.multi.y2k4.vo.hr.Employee" useGeneratedKeys="true" keyProperty="emp_id">
+    <insert id="addEmployee" parameterType="com.multi.y2k4.vo.hr.Employee" useGeneratedKeys="true" keyProperty="emp_id" keyColumn="emp_id">
         INSERT INTO human_resource
         (emp_name, dept_name, position, hire_date, status, phone_number, login_id, supervisor)
         VALUES

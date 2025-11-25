@@ -127,6 +127,7 @@ CREATE TABLE documents (
                            status     tinyint,  /*0(처리중), 1(승인), 2(반려)*/
                            comments   Text,
                            query Text,
+                           is_checked boolean,
                            CONSTRAINT fk_doc_req  FOREIGN KEY (req_id)  REFERENCES human_resource(emp_id),
                            CONSTRAINT fk_doc_appr FOREIGN KEY (appr_id) REFERENCES human_resource(emp_id)
 );
@@ -232,20 +233,3 @@ CREATE TABLE unpaid (
 
                         UNIQUE KEY uq_unpaid_business (cat_id, tb_id, ref_pk)
 );
-
--- CREATE TABLE alerts (
---                         alert_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
---                         emp_id BIGINT UNSIGNED NOT NULL,
---                         doc_id BIGINT UNSIGNED NOT NULL,
---                         alert_type TINYINT NOT NULL,
---                         is_read TINYINT DEFAULT 0,
---                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
---
---     -- FK 제약조건
---                         FOREIGN KEY (doc_id) REFERENCES documents(doc_id) ON DELETE CASCADE,
---                         FOREIGN KEY (emp_id) REFERENCES human_resource(emp_id) ON DELETE CASCADE,
---
---     -- 인덱스 (조회 성능 향상)
---                         INDEX idx_emp_read_created (emp_id, is_read, created_at DESC)
--- )
-
