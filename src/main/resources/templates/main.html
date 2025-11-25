@@ -9,6 +9,7 @@
         window.CURRENT_EMP_ID = /*[[${session.emp_id}]]*/ null;
         /*]]>*/
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Y2K4 ERP 대시보드</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -463,6 +464,18 @@
         <div class="accordion-item">
 
             <button class="accordion-header">
+                대시보드 <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="accordion-content">
+
+                <button class="menu" data-file="dashboard" data-fn="show_charts" data-table="dashboard">대시보드</button>
+
+            </div>
+
+        </div>
+        <div class="accordion-item">
+
+            <button class="accordion-header">
                 재무/회계 <i class="fas fa-chevron-right"></i>
             </button>
             <div class="accordion-content">
@@ -594,8 +607,7 @@
 
     // 초기 로딩 시
     document.addEventListener('DOMContentLoaded', () => {
-        /*
-        const initialMenu = document.querySelector('.menu[data-file="finance"][data-fn="documents_listAll"]');
+        const initialMenu = document.querySelector('.menu[data-file="dashboard"][data-fn="show_charts"]');
         if (initialMenu) {
             initialMenu.classList.add('selected');
             const sectionTitle = document.querySelector('.section-title span');
@@ -610,10 +622,8 @@
                     header.classList.add('active');
                 }
             }
-
             initialMenu.click();
         }
-        */
     });
 
 </script>
@@ -629,6 +639,7 @@
 
     // 왼쪽 메뉴(file) 클릭 시 활성화할 상단 탭(topnav) 지도
     const fileToTopnavMap = {
+        'dashboard': 'dashboard',
         'finance': 'finance',
         'transaction': 'sales',
         'production': 'production',
@@ -827,7 +838,7 @@
     // [!! 수정 !!] 상단 메뉴 ↔ 왼쪽 아코디언 연동 로직 수정
     (function() {
         const map = {
-            dashboard: null,
+            dashboard: { file: 'dashboard', fn: 'show_charts' },
             finance:  { file: 'finance', fn: 'profit_listAll' },
             sales:    { file: 'transaction', fn: 'sale_listAll' },
             production: { file: 'production', fn: 'work_order_listAll' },
