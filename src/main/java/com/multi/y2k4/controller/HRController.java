@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/hr")
@@ -27,6 +28,10 @@ public class HRController {
     private final AttendanceService attendanceService;
     private final DocumentsService documentsService;
     private final ObjectMapper objectMapper;
+
+    private static final String POSITION_EMP = "사원";
+    private static final String POSITION_MID = "중간 관리자";
+    private static final String POSITION_TOP = "최상위 관리자";
 
     // ================================================================
     // 1. 직원 관리  실제 DB 연동)
@@ -59,9 +64,72 @@ public class HRController {
      * 직원 정보 수정
      */
     @PutMapping("/employees/{empId}")
-    public boolean updateEmployee(@PathVariable Integer empId, @RequestBody Employee updatedEmp) {
-        updatedEmp.setEmp_id(empId); // URL의 ID를 VO에 설정
-        // EmployeeService (실제 DB) 호출
+    public boolean updateEmployee(@PathVariable Integer empId,
+                                  @RequestBody Employee updatedEmp,
+                                  HttpSession session) {
+
+        // 1. 내 정보(요청자) 확인
+        Integer myId = (Integer) session.getAttribute("emp_id");
+        if (myId == null) return false;
+        Employee me = employeeService.getEmployeeDetail(myId);
+
+        // 2. 대상 정보(타겟) 확인
+        Employee target = employeeService.getEmployeeDetail(empId);
+        if (target == null) return false;
+
+        updatedEmp.setEmp_id(empId); // ID 고정
+
+        // ================== 권한 검증 로직 시작 ==================
+
+        // A. 부서 이동 (dept_name 변경 시)
+        if (updatedEmp.getDept_name() != null && !updatedEmp.getDept_name().equals(target.getDept_name())) {
+            if (POSITION_EMP.equals(me.getPosition())) {
+                System.out.println("권한 없음: 사원은 부서 이동 불가");
+                return false;
+            }
+            if (POSITION_MID.equals(me.getPosition())) {
+                // 중간관리자는 "자기 부서"의 "사원"만 이동 가능
+                boolean isMyDept = Objects.equals(me.getDept_name(), target.getDept_name());
+                boolean isTargetEmp = POSITION_EMP.equals(target.getPosition());
+                if (!isMyDept || !isTargetEmp) {
+                    System.out.println("권한 없음: 중간관리자는 자기 부서 사원만 이동 가능");
+                    return false;
+                }
+            }
+            // 최고관리자는 제약 없음
+        }
+
+        // B. 직급 변경 (position 변경 시)
+        if (updatedEmp.getPosition() != null && !updatedEmp.getPosition().equals(target.getPosition())) {
+            if (POSITION_EMP.equals(me.getPosition())) {
+                System.out.println("권한 없음: 사원은 직급 변경 불가");
+                return false;
+            }
+            if (POSITION_MID.equals(me.getPosition())) {
+                // 중간관리자는 "자기 부서"의 "사원"을 -> "중간관리자"로만 변경 가능
+                boolean isMyDept = Objects.equals(me.getDept_name(), target.getDept_name());
+                boolean isTargetEmp = POSITION_EMP.equals(target.getPosition());
+                boolean isPromotingToMid = POSITION_MID.equals(updatedEmp.getPosition());
+
+                if (!isMyDept || !isTargetEmp || !isPromotingToMid) {
+                    System.out.println("권한 없음: 중간관리자 권한 범위 초과");
+                    return false;
+                }
+            }
+            // 최고관리자는 제약 없음 (사원 <-> 중간관리자 등 자유)
+        }
+
+        // C. 직속상관 변경 (supervisor 변경 시)
+        if (updatedEmp.getSupervisor() != null && !Objects.equals(updatedEmp.getSupervisor(), target.getSupervisor())) {
+            // 오직 최고관리자만 변경 가능
+            if (!POSITION_TOP.equals(me.getPosition())) {
+                System.out.println("권한 없음: 직속상관 변경은 최고관리자만 가능");
+                return false;
+            }
+        }
+
+        // ================== 권한 검증 로직 종료 ==================
+
         return employeeService.updateEmployee(updatedEmp);
     }
 
@@ -169,16 +237,31 @@ public class HRController {
             HttpSession session) {
 
         try {
-            // 1. 세션에서 내 ID 가져오기
+            // 1. 세션에서 내 정보 가져오기
             Integer empIdObj = (Integer) session.getAttribute("emp_id");
             String empName = (String) session.getAttribute("emp_name");
 
             if (empIdObj == null) return false;
-            Long requesterEmpId = Long.valueOf(empIdObj);
-
-            // 내 상세 정보 조회 (직속 상사 ID를 알기 위해)
             Employee me = employeeService.getEmployeeDetail(empIdObj);
-            Integer supervisorId = me.getSupervisor(); // 내 상사의 ID
+
+            Long requesterEmpId = Long.valueOf(empIdObj);
+            Long approverId = null;
+
+            // 2. 직급별 결재자(appr_id) 지정 로직
+            if (POSITION_EMP.equals(me.getPosition())) {
+                // 사원 -> 직속상관 (없으면 최고관리자 로직 등 추가 가능, 일단 직속상관)
+                if (me.getSupervisor() != null) {
+                    approverId = Long.valueOf(me.getSupervisor());
+                }
+            } else if (POSITION_MID.equals(me.getPosition())) {
+                // 중간관리자 -> 최고관리자 (중간관리자의 직속상관은 보통 최고관리자)
+                if (me.getSupervisor() != null) {
+                    approverId = Long.valueOf(me.getSupervisor());
+                }
+            } else if (POSITION_TOP.equals(me.getPosition())) {
+                // 최고관리자 -> 스스로 승인
+                approverId = requesterEmpId;
+            }
 
             // 2. JSON 데이터 생성
             Map<String, Object> payload = new HashMap<>();
@@ -196,15 +279,11 @@ public class HRController {
             doc.setReq_id(requesterEmpId);
             doc.setReq_date(LocalDate.now());
             doc.setQuery(objectMapper.writeValueAsString(payload));
+            doc.setStatus(0); // 대기
+            doc.setAppr_id(approverId); // 계산된 결재자 ID
 
             doc.setStatus(0); // 대기
 
-            // 4. 결재자를 내 직속 상사로 지정
-            if (supervisorId != null) {
-                doc.setAppr_id(Long.valueOf(supervisorId)); // 상사 지정
-            } else {
-                doc.setAppr_id(null); // 상사가 없으면(최고관리자 등) 미지정
-            }
 
             documentsService.addDocument(doc);
 
@@ -222,25 +301,35 @@ public class HRController {
     @PostMapping("/employees/request-status-change")
     public boolean requestStatusChange(@RequestBody Map<String, Object> reqData, HttpSession session) {
         try {
-            // 1. 세션 정보 (기안자)
+            // 1. 기안자 정보
             Integer requesterId = (Integer) session.getAttribute("emp_id");
             if (requesterId == null) return false;
-
-            // [추가] 기안자의 상세 정보 조회 (상사 ID 확인용)
             Employee me = employeeService.getEmployeeDetail(requesterId);
-            Integer supervisorId = me.getSupervisor();
 
-            // 2. 데이터 파싱
+            Long approverId = null;
+
+            // 2. 직급별 결재자(appr_id) 지정 로직 (휴가와 동일 원칙)
+            if (POSITION_EMP.equals(me.getPosition())) {
+                // 사원 -> 직속상관 (또는 최고관리자)
+                if (me.getSupervisor() != null) approverId = Long.valueOf(me.getSupervisor());
+            } else if (POSITION_MID.equals(me.getPosition())) {
+                // 중간관리자 -> 최고관리자
+                if (me.getSupervisor() != null) approverId = Long.valueOf(me.getSupervisor());
+            } else if (POSITION_TOP.equals(me.getPosition())) {
+                // 최고관리자 -> 스스로 승인
+                approverId = Long.valueOf(requesterId);
+            }
+
+            // 3. 데이터 파싱 및 문서 생성
             Integer targetEmpId = Integer.parseInt(reqData.get("emp_id").toString());
             String targetEmpName = (String) reqData.get("emp_name");
             String currentStatus = (String) reqData.get("currentStatus");
             String newStatus = (String) reqData.get("newStatus");
             String reason = (String) reqData.get("reason");
 
-            // 3. JSON Payload
             Map<String, Object> payload = new HashMap<>();
             payload.put("cat_id", 4);
-            payload.put("tb_id", 1);
+            payload.put("tb_id", 1); // 퇴직/상태변경
             payload.put("cd_id", 1);
             payload.put("targetEmpId", targetEmpId);
             payload.put("targetEmpName", targetEmpName);
@@ -248,21 +337,13 @@ public class HRController {
             payload.put("newStatus", newStatus);
             payload.put("reason", reason);
 
-            // 4. 문서 생성
             Documents doc = new Documents();
-            doc.setTitle("[인사발령] " + targetEmpName + " " + newStatus + " 처리 요청");
+            doc.setTitle("[인사발령] " + targetEmpName + " " + newStatus + " 신청");
             doc.setReq_id(Long.valueOf(requesterId));
             doc.setReq_date(LocalDate.now());
             doc.setQuery(objectMapper.writeValueAsString(payload));
-
             doc.setStatus(0);
-
-            // [수정] 결재자를 기안자의 직속 상사로 지정
-            if (supervisorId != null) {
-                doc.setAppr_id(Long.valueOf(supervisorId));
-            } else {
-                doc.setAppr_id(null);
-            }
+            doc.setAppr_id(approverId); // 계산된 결재자
 
             documentsService.addDocument(doc);
             return true;
