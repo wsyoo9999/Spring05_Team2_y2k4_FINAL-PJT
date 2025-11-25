@@ -61,4 +61,3 @@ public class TenantContextInterceptor implements HandlerInterceptor {
         return true;
     }
 }
-
