@@ -47,7 +47,7 @@ app:
     username: root
     password: 1234
     # dbName만 바꿔 끼우는 JDBC URL 패턴
-    urlPattern: jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=utf8
+    urlPattern: jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=utf8&allowPublicKeyRetrieval=true
 
 logging:
   level:
