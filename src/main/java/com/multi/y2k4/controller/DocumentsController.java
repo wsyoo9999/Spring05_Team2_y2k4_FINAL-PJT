@@ -113,7 +113,7 @@ public class DocumentsController {
     @PostMapping("/editStatus")     //결재 승인 및 반려 처리
     public boolean editStatus(@RequestParam Integer doc_id,
                               @RequestParam Integer status,
-                              @RequestParam(required = false) String comments) {
+                              @RequestParam(required = false) String comments,HttpSession session) {
         Documents doc = documentsService.searchById(doc_id);
         String query = doc.getQuery();
         HashMap<String, Object> map = null;
@@ -272,34 +272,34 @@ public class DocumentsController {
 
                 /*===============================인사 관련=================================================*/
 
-            } if (cat_id == 4) { // 인사
-                if (tb_id == 0) {  // 휴가 및 퇴직 처리
-                    if (cd_id == 0) {  // [추가] 휴가 신청 처리
+            }else if (cat_id == 4) {
+                Integer currentEmpId = (Integer) session.getAttribute("emp_id");
+                if (currentEmpId == null) return false; // 로그인 안됨
 
-                        if (status == 1) { // [승인] 시 실제 DB 반영
-
+                // 문서에 지정된 결재자(appr_id)와 현재 로그인한 사람(currentEmpId)이 다르면 거부
+                if (doc.getAppr_id() == null || doc.getAppr_id().longValue() != currentEmpId.longValue()) {
+                    System.out.println("결재 권한 없음: 인사 문서는 지정된 결재자만 처리 가능합니다.");
+                    return false;
+                }
+                if (tb_id == 0) {  // 휴가
+                    if (cd_id == 0) {
+                        if (status == 1) { // 승인 시 근태 반영
                             Integer reqId = doc.getReq_id().intValue();
                             LocalDate startDate = LocalDate.parse((String) map.get("startDate"));
                             LocalDate endDate = LocalDate.parse((String) map.get("endDate"));
-
-                            // [수정] 서비스 메서드 호출로 간단하게 처리
                             attendanceService.applyVacation(reqId, startDate, endDate);
-                        } else if (status == 2) { // [반려]
-                            // 반려 시 별도 DB 작업 없음 (문서 상태만 '반려'로 변경됨)
                         }
                     }
                 }
-                else if (tb_id == 1) {
+                else if (tb_id == 1) { // 퇴직/상태변경
                     if (cd_id == 1) {
-                        if (status == 1) {
+                        if (status == 1) { // 승인 시 상태 업데이트
                             int targetEmpId = Integer.parseInt(String.valueOf(map.get("targetEmpId")));
                             String newStatus = (String) map.get("newStatus");
 
                             com.multi.y2k4.vo.hr.Employee emp = new com.multi.y2k4.vo.hr.Employee();
                             emp.setEmp_id(targetEmpId);
                             emp.setStatus(newStatus);
-
-                            // 수정된 Mapper가 null이 아닌 필드(status)만 업데이트함
                             employeeService.updateEmployee(emp);
                         }
                     }

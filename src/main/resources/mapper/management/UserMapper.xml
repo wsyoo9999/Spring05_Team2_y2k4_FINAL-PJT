@@ -7,10 +7,9 @@
     <select id="checkLogin" resultType="com.multi.y2k4.vo.user.UserVO">
         SELECT u.*, hr.emp_id, hr.login_id, hr.supervisor, hr.position
         FROM userDB.user u
-        LEFT JOIN `db_104-81-53114`.human_resource hr
-            ON hr.login_id COLLATE utf8mb4_0900_ai_ci = u.id
+                 LEFT JOIN `db_104-81-53114`.human_resource hr
+                           ON hr.login_id COLLATE utf8mb4_0900_ai_ci = u.id
         WHERE u.id = #{id}
-          AND u.password = #{password}
     </select>
 
     <insert id="addUser" parameterType="com.multi.y2k4.vo.user.UserVO">
@@ -29,8 +28,8 @@
     <select id="selectById" parameterType="string" resultType="com.multi.y2k4.vo.user.UserVO">
         SELECT u.*, hr.dept_name, hr.position
         FROM userDB.user u
-        LEFT JOIN `db_104-81-53114`.human_resource hr
-               ON hr.login_id COLLATE utf8mb4_0900_ai_ci = u.id
+                 LEFT JOIN `db_104-81-53114`.human_resource hr
+                           ON hr.login_id COLLATE utf8mb4_0900_ai_ci = u.id
         WHERE id = #{id}
     </select>
 
@@ -45,8 +44,5 @@
             </if>
         </set>
         WHERE id = #{id}
-        <if test="newPassword != null and newPassword != ''">
-            AND password = #{currentPassword}
-        </if>
     </update>
 </mapper>
