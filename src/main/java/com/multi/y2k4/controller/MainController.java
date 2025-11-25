@@ -44,9 +44,7 @@ public class MainController {
     @GetMapping({"/"})
     public String index(HttpSession httpSession) {
         //추후 httpSession.getAttribute("id");를 통해 현재 로그인중인 사람의 정보 가져오는 기능 필요
-        httpSession.setAttribute("me", 1);
-        httpSession.setAttribute("supervisor", 1);
-        httpSession.setAttribute("authLevel", 1);
+
         Object empObj = httpSession.getAttribute("emp_id");
         if (empObj instanceof Integer empId) {
             alertService.notifyDocCountChanged(empId.longValue());
@@ -59,7 +57,10 @@ public class MainController {
     }
 
     @GetMapping("/login")
-    public String login() {
+    public String login(@RequestParam(value = "needLogin", required = false) String needLogin,  Model model) {
+        if (needLogin != null) {
+            model.addAttribute("login_alert", "로그인이 필요합니다.\\n로그인 페이지로 이동합니다.");
+        }
         return "login";
     }
 

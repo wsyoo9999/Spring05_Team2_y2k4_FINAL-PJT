@@ -41,7 +41,7 @@
 
     <select id="searchByUnchecked" parameterType="com.multi.y2k4.vo.document.Documents" resultType="com.multi.y2k4.vo.document.Documents">
         SELECT * FROM documents
-        WHERE req_id = #{req_id} AND is_checked = false AND (status = 1 OR status = 2);
+        WHERE req_id = #{req_id} AND checked = false AND (status = 1 OR status = 2);
     </select>
 
     <select id="searchByAppr" parameterType="com.multi.y2k4.vo.document.Documents" resultType="com.multi.y2k4.vo.document.Documents">
@@ -67,7 +67,7 @@
     </update>
 
     <update id="read">
-        UPDATE documents set is_checked = true WHERE doc_id = #{doc_id}
+        UPDATE documents set checked = true WHERE doc_id = #{doc_id}
     </update>
 
 </mapper>

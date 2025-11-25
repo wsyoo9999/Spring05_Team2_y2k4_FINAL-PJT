@@ -402,24 +402,27 @@ ${comments || ''}</textarea>
         ${commentsSectionHtml}
       `;
 
+      const isFinished = (statusNum === 1 || statusNum === 2);  //결재가 이미 처리되었는지
 
-      if (statusNum === 1 || statusNum === 2) {
+      if (isFinished || doc.appr_id !== CURRENT_EMP_ID) {
         $('#btn-approve').prop('disabled', true);
         $('#btn-reject').prop('disabled', true);
       }
       const isMyDoc = CURRENT_EMP_ID != null &&
               Number(CURRENT_EMP_ID) === Number(doc.req_id);    //내가 req_id인 문서인지
 
-      const isFinished = (statusNum === 1 || statusNum === 2);  //결재가 이미 처리되었는지
+
+
 
       const isUnchecked =
-              doc.is_checked === false ||
-              doc.is_checked === 0 ||
-              doc.is_checked === "false";   //이미 읽었는지 여부
+              doc.checked === false ||
+              doc.checked === 0 ||
+              doc.checked === "false";   //이미 읽었는지 여부
 
       console.log("CURRENT_EMP_ID : "+CURRENT_EMP_ID);
       console.log(doc.req_id);
 
+      console.log("doc.checked : "+doc.checked);
       console.log("isUnchecked : " + isUnchecked);
       console.log("isMyDoc : " + isMyDoc);
       console.log("isFinished: " + isFinished);

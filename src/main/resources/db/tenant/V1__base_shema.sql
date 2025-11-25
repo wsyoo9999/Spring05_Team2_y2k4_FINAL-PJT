@@ -14,7 +14,7 @@ CREATE TABLE stock (
                        stock_name   VARCHAR(100) NOT NULL,
                        qty          INT UNSIGNED NOT NULL DEFAULT 0,
                        unit_price   DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-                       aquired_qty  INT NOT NULL DEFAULT 0,
+                       acquired_qty  INT NOT NULL DEFAULT 0,
                        location     VARCHAR(30),
                        ac_id        BIGINT UNSIGNED,
                        type         tinyint,
@@ -127,7 +127,7 @@ CREATE TABLE documents (
                            status     tinyint,  /*0(처리중), 1(승인), 2(반려)*/
                            comments   Text,
                            query Text,
-                           is_checked boolean,
+                           checked boolean default  false,
                            CONSTRAINT fk_doc_req  FOREIGN KEY (req_id)  REFERENCES human_resource(emp_id),
                            CONSTRAINT fk_doc_appr FOREIGN KEY (appr_id) REFERENCES human_resource(emp_id)
 );

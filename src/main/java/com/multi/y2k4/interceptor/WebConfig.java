@@ -10,6 +10,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new TenantContextInterceptor())
                 .addPathPatterns("/**")        // 모든 요청에 적용
-                .excludePathPatterns("/login", "/logout", "/addUser", "/check-id","/alerts", "/popup/findCompany.html"); // 로그인/정적 리소스는 제외 11.14 .html 추가
+                .excludePathPatterns("/login", "/logout", "/addUser", "/error","/check-id","/alerts", "/popup/findCompany.html"); // 로그인/정적 리소스는 제외 11.14 .html 추가
     }
 }

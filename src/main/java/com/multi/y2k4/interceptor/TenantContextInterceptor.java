@@ -1,6 +1,7 @@
 package com.multi.y2k4.interceptor;
 
 import com.multi.y2k4.db.TenantContext;
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -18,26 +19,39 @@ public class TenantContextInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
+        String uri = request.getRequestURI();
+        DispatcherType dispatcherType = request.getDispatcherType();
+
+        if (dispatcherType == DispatcherType.ERROR || dispatcherType == DispatcherType.ASYNC) {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                String dbName = (String) session.getAttribute("LOGIN_DB_NAME");
+                if (dbName != null) {
+                    TenantContext.setCurrentDb(dbName);
+                }
+            }
+            return true;
+        }
+
         HttpSession session = request.getSession(false);
 
-        if (session == null || session.getAttribute("id") == null) { // 로그인이 안 되어 있으면
-            response.setCharacterEncoding("UTF-8");
-            response.setContentType("text/html; charset=UTF-8");
-            System.out.println("session is null");
-            // JS로 alert 후 로그인 페이지로 이동
-            String script = """
-                    <script>
-                        alert('로그인이 필요합니다.\\n로그인 페이지로 이동합니다.');
-                        location.href = '/login';
-                    </script>
-                    """;
+        if (session == null || session.getAttribute("id") == null) {
+            System.out.println("session is null, uri = " + uri);
 
-            response.getWriter().write(script);
-            response.getWriter().flush();
 
-            // 더 이상 컨트롤러로 진행하지 않음
+            if (uri.startsWith("/sse/")) {
+
+                return false;
+            }
+
+
+            if (!response.isCommitted()) {
+                response.sendRedirect("/login?needLogin=true");
+            }
             return false;
         }
+
         System.out.println("session is not null");
         String dbName = (String) session.getAttribute("LOGIN_DB_NAME");
         if (dbName != null) {

@@ -15,7 +15,7 @@ public class AlertService {
 
     /**
      * memberId 기준으로 "내가 처리해야 할 문서 개수" 계산해서 SSE로 송신
-     * - 기안자: 내가 만든 문서 중 아직 안 읽은 것(is_checked = false)
+     * - 기안자: 내가 만든 문서 중 아직 안 읽은 것(checked = false)
      * - 결재자: 내가 결재해야 하는 문서 중 status = 0(대기)
      */
     public void notifyDocCountChanged(Long emp_id) {

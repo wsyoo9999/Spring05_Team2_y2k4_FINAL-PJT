@@ -3,6 +3,7 @@ package com.multi.y2k4.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.multi.y2k4.service.alert.AlertService;
 import com.multi.y2k4.service.document.DocumentsService;
 import com.multi.y2k4.service.finance.UnpaidService;
 import com.multi.y2k4.service.hr.AttendanceService;
@@ -49,6 +50,7 @@ public class DocumentsController {
 
     /*************재고 수정 관련**********/
     private final StockService stockService;
+    private final AlertService alertService;
 
     @GetMapping("/list")
     public List<Documents> list(@RequestParam(required = false) Integer doc_id,
@@ -104,8 +106,10 @@ public class DocumentsController {
     }
 
     @GetMapping("/read")
-    public void read(@RequestParam Integer doc_id) {
+    public void read(@RequestParam Integer doc_id, HttpSession session) {
         documentsService.read(doc_id);
+        Integer emp_id = (Integer) session.getAttribute("emp_id");
+        alertService.notifyDocCountChanged(emp_id.longValue());
     }
 
 

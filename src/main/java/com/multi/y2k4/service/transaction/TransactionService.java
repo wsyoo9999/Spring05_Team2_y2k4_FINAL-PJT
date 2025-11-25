@@ -861,9 +861,13 @@ public class TransactionService {
     }
 
     private ApprovalContext getApprovalContext(HttpSession session) {
-        Integer me = (Integer) session.getAttribute("me");
+        Integer me = (Integer) session.getAttribute("emp_id");
         Integer sup = (Integer) session.getAttribute("supervisor");
-        Integer authLevel = (Integer) session.getAttribute("authLevel");
+        int authLevel =1 ;
+        String position   = (String) session.getAttribute("position");
+        if(position.equals("최상위 관리자")){
+            authLevel = 0;
+        }
         ApprovalContext ctx = new ApprovalContext(me, sup, authLevel);
         return ctx.isValid() ? ctx : null;
     }
@@ -919,7 +923,7 @@ public class TransactionService {
 
         Documents doc = new Documents();
         fillCommonDocHeader(doc, ctx, 1, 0, 0);
-        doc.setTitle("sale_add 테스트중 " + LocalDate.now());
+        doc.setTitle("물품 신규 판매 주문 결재 문서(일시:"+LocalDate.now()+" )");
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("cat_id", 1);
@@ -1050,6 +1054,7 @@ public class TransactionService {
         edit_sale.setTotal_price(total_price);
 
         Documents doc = new Documents();
+        doc.setTitle("판매 물품 수정 결재 문서(일시:"+LocalDate.now()+" )");
         fillCommonDocHeader(doc, ctx, 1, 0, 1); // cat=1, tb=0(판매), cd=1(수정)
 
         Map<String, Object> payload = new HashMap<>();
@@ -1205,6 +1210,7 @@ public class TransactionService {
         purchase.setTotal_price(total_price);
 
         Documents doc = new Documents();
+        doc.setTitle("신규 구매 물품 결재 문서(일시:"+LocalDate.now()+" )");
         fillCommonDocHeader(doc, ctx, 1, 1, 0); // cat=1, tb=1(구매), cd=0(추가)
 
         Map<String, Object> payload = new HashMap<>();
@@ -1320,7 +1326,7 @@ public class TransactionService {
 
         Documents doc = new Documents();
         fillCommonDocHeader(doc, ctx, 1, 1, 1); // cat=1, tb=1(구매), cd=1(수정)
-        doc.setTitle("구매 수정 테스트 " + LocalDate.now());
+        doc.setTitle("구매 물품 수정 결재 문서(일시:"+LocalDate.now()+" )");
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("before_purchase", before_purchase);
