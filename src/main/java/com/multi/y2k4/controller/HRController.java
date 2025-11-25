@@ -68,71 +68,43 @@ public class HRController {
                                   @RequestBody Employee updatedEmp,
                                   HttpSession session) {
 
-        // 1. 내 정보(요청자) 확인
         Integer myId = (Integer) session.getAttribute("emp_id");
         if (myId == null) return false;
+
         Employee me = employeeService.getEmployeeDetail(myId);
-
-        // 2. 대상 정보(타겟) 확인
         Employee target = employeeService.getEmployeeDetail(empId);
-        if (target == null) return false;
 
-        updatedEmp.setEmp_id(empId); // ID 고정
+        if (me == null || target == null) return false;
 
-        // ================== 권한 검증 로직 시작 ==================
+        updatedEmp.setEmp_id(empId);
 
-        // A. 부서 이동 (dept_name 변경 시)
+
+        // A. 부서 이동
         if (updatedEmp.getDept_name() != null && !updatedEmp.getDept_name().equals(target.getDept_name())) {
-            if (POSITION_EMP.equals(me.getPosition())) {
-                System.out.println("권한 없음: 사원은 부서 이동 불가");
-                return false;
-            }
+            if (POSITION_EMP.equals(me.getPosition())) return false;
             if (POSITION_MID.equals(me.getPosition())) {
-                // 중간관리자는 "자기 부서"의 "사원"만 이동 가능
                 boolean isMyDept = Objects.equals(me.getDept_name(), target.getDept_name());
                 boolean isTargetEmp = POSITION_EMP.equals(target.getPosition());
-                if (!isMyDept || !isTargetEmp) {
-                    System.out.println("권한 없음: 중간관리자는 자기 부서 사원만 이동 가능");
-                    return false;
-                }
+                if (!isMyDept || !isTargetEmp) return false;
             }
-            // 최고관리자는 제약 없음
         }
 
-        // B. 직급 변경 (position 변경 시)
+        // B. 직급 변경
+        // -> 요청자가 '최상위 관리자'가 아니면 무조건 차단
         if (updatedEmp.getPosition() != null && !updatedEmp.getPosition().equals(target.getPosition())) {
-            if (POSITION_EMP.equals(me.getPosition())) {
-                System.out.println("권한 없음: 사원은 직급 변경 불가");
-                return false;
-            }
-            if (POSITION_MID.equals(me.getPosition())) {
-                // 중간관리자는 "자기 부서"의 "사원"을 -> "중간관리자"로만 변경 가능
-                boolean isMyDept = Objects.equals(me.getDept_name(), target.getDept_name());
-                boolean isTargetEmp = POSITION_EMP.equals(target.getPosition());
-                boolean isPromotingToMid = POSITION_MID.equals(updatedEmp.getPosition());
-
-                if (!isMyDept || !isTargetEmp || !isPromotingToMid) {
-                    System.out.println("권한 없음: 중간관리자 권한 범위 초과");
-                    return false;
-                }
-            }
-            // 최고관리자는 제약 없음 (사원 <-> 중간관리자 등 자유)
-        }
-
-        // C. 직속상관 변경 (supervisor 변경 시)
-        if (updatedEmp.getSupervisor() != null && !Objects.equals(updatedEmp.getSupervisor(), target.getSupervisor())) {
-            // 오직 최고관리자만 변경 가능
             if (!POSITION_TOP.equals(me.getPosition())) {
-                System.out.println("권한 없음: 직속상관 변경은 최고관리자만 가능");
+                System.out.println("권한 없음: 직급 변경은 최상위 관리자만 가능합니다.");
                 return false;
             }
         }
 
-        // ================== 권한 검증 로직 종료 ==================
+        // C. 직속상관 변경
+        if (updatedEmp.getSupervisor() != null && !Objects.equals(updatedEmp.getSupervisor(), target.getSupervisor())) {
+            if (!POSITION_TOP.equals(me.getPosition())) return false;
+        }
 
         return employeeService.updateEmployee(updatedEmp);
     }
-
     /**
      * [추가] 신규 직원 등록 (addEmployee.html 팝업에서 호출)
      */
@@ -144,9 +116,28 @@ public class HRController {
             @RequestParam String status,
             @RequestParam(required = false) String dept_name,
             @RequestParam(required = false) String phone_number,
-            @RequestParam(required = false) Integer supervisor
+            @RequestParam(required = false) Integer supervisor,
+            HttpSession session
     ) {
         try {
+
+            Integer myId = (Integer) session.getAttribute("emp_id");
+            Employee me = employeeService.getEmployeeDetail(myId);
+
+            // (1) 사원은 아예 등록 불가
+            if (POSITION_EMP.equals(me.getPosition())) {
+                System.out.println("권한 없음: 사원은 직원을 등록할 수 없습니다.");
+                return false;
+            }
+
+            // (2) 중간 관리자는 '최상위 관리자'를 생성할 수 없음
+            if (POSITION_MID.equals(me.getPosition())) {
+                if (POSITION_TOP.equals(position)) {
+                    System.out.println("권한 없음: 중간 관리자는 최상위 관리자를 생성할 수 없습니다.");
+                    return false;
+                }
+            }
+
             Employee newEmployee = new Employee();
             newEmployee.setEmp_name(emp_name);
             newEmployee.setPosition(position);
@@ -229,6 +220,45 @@ public class HRController {
 //        return null;
 //    }
 
+    //최상위 관리자 로직
+    private Long determineApprover(Employee me) {
+        // 1. 본인이 최상위 관리자라면 스스로 승인
+        if (POSITION_TOP.equals(me.getPosition())) {
+            return Long.valueOf(me.getEmp_id());
+        }
+
+        // 2. 직속 상사가 지정되어 있다면 -> 직속 상사에게 결재 요청
+        if (me.getSupervisor() != null) {
+            return Long.valueOf(me.getSupervisor());
+        }
+
+        // 3. 직속 상사가 없다면 -> '최상위 관리자'를 찾아서 결재 요청
+        List<Employee> topManagers = employeeService.getEmployeeList(null, null, POSITION_TOP, null);
+        if (topManagers != null && !topManagers.isEmpty()) {
+            // 최상위 관리자가 여러 명일 경우 첫 번째 사람 지정
+            return Long.valueOf(topManagers.get(0).getEmp_id());
+        }
+
+        // 4. 상사도 없고 최상위 관리자도 없는 경우 (예외 상황)
+        return null;
+    }
+
+    private int getRank(String position) {
+        if (position == null) return 0;
+
+        // 공백 유무 등 유연하게 처리하기 위해 contains 또는 trim 사용 권장
+        String pos = position.trim();
+
+        if (POSITION_TOP.equals(pos) || "최고관리자".equals(pos) || "최상위 관리자".equals(pos)) {
+            return 3;
+        }
+        if (POSITION_MID.equals(pos) || "중간관리자".equals(pos) || "중간 관리자".equals(pos)) {
+            return 2;
+        }
+        return 1; // 사원 및 기타
+    }
+
+
     @PostMapping("/requestVacation")
     public boolean requestVacation(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -245,23 +275,8 @@ public class HRController {
             Employee me = employeeService.getEmployeeDetail(empIdObj);
 
             Long requesterEmpId = Long.valueOf(empIdObj);
-            Long approverId = null;
 
-            // 2. 직급별 결재자(appr_id) 지정 로직
-            if (POSITION_EMP.equals(me.getPosition())) {
-                // 사원 -> 직속상관 (없으면 최고관리자 로직 등 추가 가능, 일단 직속상관)
-                if (me.getSupervisor() != null) {
-                    approverId = Long.valueOf(me.getSupervisor());
-                }
-            } else if (POSITION_MID.equals(me.getPosition())) {
-                // 중간관리자 -> 최고관리자 (중간관리자의 직속상관은 보통 최고관리자)
-                if (me.getSupervisor() != null) {
-                    approverId = Long.valueOf(me.getSupervisor());
-                }
-            } else if (POSITION_TOP.equals(me.getPosition())) {
-                // 최고관리자 -> 스스로 승인
-                approverId = requesterEmpId;
-            }
+            Long approverId = determineApprover(me);
 
             // 2. JSON 데이터 생성
             Map<String, Object> payload = new HashMap<>();
@@ -306,22 +321,19 @@ public class HRController {
             if (requesterId == null) return false;
             Employee me = employeeService.getEmployeeDetail(requesterId);
 
-            Long approverId = null;
-
-            // 2. 직급별 결재자(appr_id) 지정 로직 (휴가와 동일 원칙)
-            if (POSITION_EMP.equals(me.getPosition())) {
-                // 사원 -> 직속상관 (또는 최고관리자)
-                if (me.getSupervisor() != null) approverId = Long.valueOf(me.getSupervisor());
-            } else if (POSITION_MID.equals(me.getPosition())) {
-                // 중간관리자 -> 최고관리자
-                if (me.getSupervisor() != null) approverId = Long.valueOf(me.getSupervisor());
-            } else if (POSITION_TOP.equals(me.getPosition())) {
-                // 최고관리자 -> 스스로 승인
-                approverId = Long.valueOf(requesterId);
-            }
 
             // 3. 데이터 파싱 및 문서 생성
             Integer targetEmpId = Integer.parseInt(reqData.get("emp_id").toString());
+            Employee target = employeeService.getEmployeeDetail(targetEmpId);
+
+
+            if (getRank(me.getPosition()) < getRank(target.getPosition())) {
+                System.out.println("권한 없음: 하위 직급자가 상위 직급자의 인사 발령을 신청할 수 없습니다.");
+                return false;
+            }
+
+            Long approverId = determineApprover(me);
+
             String targetEmpName = (String) reqData.get("emp_name");
             String currentStatus = (String) reqData.get("currentStatus");
             String newStatus = (String) reqData.get("newStatus");
