@@ -306,6 +306,12 @@
             background-color: var(--bg-light);
             font-weight: 600;
             color: var(--text-dark);
+
+            /* [수정] 헤더 고정 스타일 추가 */
+            position: sticky;
+            top: 0;
+            z-index: 2; /* 본문 내용보다 위에 오도록 설정 */
+            box-shadow: 0 1px 0 var(--border-color);
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
