@@ -92,20 +92,19 @@
      * [수정됨] 상사 목록 로드 함수
      * - 사원: 같은 부서의 '중간관리자'만 표시
      * - 중간관리자: 부서 상관없이 '최상위 관리자'만 표시
-     * - 최상위 관리자: 상사 없음 (표시 안 함)
+     * - [중요] 기존 설정된 상사는 필터링 규칙에 맞지 않아도 목록에 반드시 포함시킴
      */
     async function loadSupervisors(deptName, targetPosition, selectedSupervisorId = null) {
         const $supervisorSelect = $('#supervisor');
         $supervisorSelect.empty();
         $supervisorSelect.append('<option value="">선택 안함</option>');
 
-        // 직급에 따른 후보군이 없으면 바로 리턴 (예: 최상위 관리자는 상사 없음)
-        if (targetPosition === '최상위 관리자') { // 수정됨
+        // 최상위 관리자는 상사가 없음
+        if (targetPosition === '최상위 관리자') {
             return;
         }
 
         try {
-            // 전체 직원 목록 조회 (부서 필터링 없이 전체 로드 후 JS에서 처리)
             const employees = await $.ajax({
                 url: '/api/hr/employees',
                 method: 'GET',
@@ -113,28 +112,33 @@
             });
 
             employees.forEach(emp => {
-                // 1. 본인은 상사 목록에서 제외
+                // 1. 본인은 제외
                 const isNotSelf = String(emp.emp_id) !== String(currentEmpId);
+
+                // 2. 현재 선택된 상사인지 확인
+                const isCurrentSupervisor = selectedSupervisorId && (String(emp.emp_id) === String(selectedSupervisorId));
+
                 let isCandidate = false;
 
-                // 2. 직급별 상사 조건 확인
+                // 3. 직급별 후보군 조건 확인
                 if (targetPosition === '사원' || targetPosition === '미지정') {
                     // 사원 -> 같은 부서의 '중간관리자'
-                    if (emp.position === '중간관리자' && emp.dept_name === deptName) {
+                    if (emp.position === '중간 관리자' && emp.dept_name === deptName) {
                         isCandidate = true;
                     }
-                } else if (targetPosition === '중간관리자') {
-                    // 중간관리자 -> 부서 상관없이 '최상위 관리자'
-                    if (emp.position === '최상위 관리자') { // 수정됨
+                } else if (targetPosition === '중간 관리자') {
+                    // 중간관리자 -> '최상위 관리자'
+                    if (emp.position === '최상위 관리자') {
                         isCandidate = true;
                     }
                 }
 
-                // 3. 조건에 맞는 경우 목록에 추가
-                if (isNotSelf && isCandidate) {
-                    const isSelected = (selectedSupervisorId && String(emp.emp_id) === String(selectedSupervisorId)) ? 'selected' : '';
+                // [핵심 수정] 후보군이거나, "이미 설정된 상사"라면 목록에 추가
+                if (isNotSelf && (isCandidate || isCurrentSupervisor)) {
+                    const isSelected = isCurrentSupervisor ? 'selected' : '';
 
-                    // 이름 (직급 - 부서) 형태로 표시
+                    // 기존 상사인데 규칙에 안 맞는 경우 표시를 다르게 해줄 수도 있음 (선택사항)
+                    // 예: "이름 (규칙 불일치)"
                     $supervisorSelect.append(
                         `<option value="${emp.emp_id}" ${isSelected}>${emp.emp_name} (${emp.position} - ${emp.dept_name})</option>`
                     );
@@ -173,7 +177,7 @@
 
                 initialStatus = data.status;
 
-                // 초기 로드 시 상사 목록 채우기
+                // 초기 로드 시 상사 목록 채우기 (기존 상사 ID 전달)
                 await loadSupervisors(data.dept_name, data.position, data.supervisor);
 
                 document.getElementById('loading').style.display = 'none';
@@ -193,6 +197,8 @@
     document.getElementById('dept_name').addEventListener('change', function() {
         const newDept = this.value;
         const currentPos = document.getElementById('position').value;
+        // 부서를 바꾸면 기존 상사 선택은 의미가 없어질 수 있으므로 초기화(null) 또는 유지 정책 결정
+        // 여기서는 "새 부서의 기준"으로 목록을 다시 불러오되, 현재 선택되어 있던 값은 유지하지 않음 (목록에 없을 수도 있으므로)
         loadSupervisors(newDept, currentPos, null);
     });
 
@@ -218,63 +224,54 @@
             if (!confirm(`직원의 상태를 '${initialStatus}'에서 '${status}'(으)로 변경하시겠습니까?\n이 작업은 관리자 승인이 필요합니다.`)) {
                 return;
             }
-            const reason = prompt("상태 변경 사유를 입력해주세요:", "인사 발령");
+            const reason = "인사 발령 요청";
 
-            try {
-                const result = await $.ajax({
-                    url: '/api/hr/employees/request-status-change',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        emp_id: currentEmpId,
-                        emp_name: empName,
-                        currentStatus: initialStatus,
-                        newStatus: status,
-                        reason: reason
-                    })
-                });
-
-                if (result === true) {
-                    alert('✅ 인사 발령 결재 요청이 전송되었습니다.\n승인 완료 후 반영됩니다.');
+            $.ajax({
+                url: '/api/hr/employees/request-status-change',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    emp_id: currentEmpId,
+                    emp_name: empName,
+                    currentStatus: initialStatus,
+                    newStatus: status,
+                    reason: reason
+                }),
+                success: function(res) {
+                    alert(`✅ ${res}`);
                     window.close();
-                } else {
-                    alert('❌ 요청 전송 실패');
+                },
+                error: function(xhr) {
+                    let msg = xhr.responseText || '요청 처리에 실패했습니다.';
+                    alert(`❌ 요청 실패:\n${msg}`);
                 }
-            } catch (err) {
-                console.error(err);
-                alert('오류가 발생했습니다.');
-            }
+            });
             return;
         }
 
         // [Case 2] 일반 정보(부서, 직급, 상사 등) 수정 -> 즉시 반영
-        try {
-            const result = await $.ajax({
-                url: `${API_BASE_URL}/${currentEmpId}`,
-                method: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    dept_name: dept_name,
-                    position: position,
-                    status: status,
-                    supervisor: supervisor // 상사 정보 포함
-                })
-            });
-
-            if (result === true) {
-                alert('✅ 직원 정보가 수정되었습니다.');
+        $.ajax({
+            url: `${API_BASE_URL}/${currentEmpId}`,
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                dept_name: dept_name,
+                position: position,
+                status: status,
+                supervisor: supervisor
+            }),
+            success: function(res) {
+                alert(`✅ ${res}`);
                 if (window.opener && !window.opener.closed) {
                     window.opener.location.reload();
                 }
                 window.close();
-            } else {
-                alert('❌ 수정 실패');
+            },
+            error: function(xhr) {
+                let msg = xhr.responseText || '수정에 실패했습니다.';
+                alert(`❌ 수정 실패:\n${msg}`);
             }
-
-        } catch (error) {
-            console.error('정보 수정 실패:', error);
-            alert('❌ 서버 통신 중 오류가 발생했습니다.');
-        }
+        });
     });
 
     $(document).ready(loadEmployeeDetail);

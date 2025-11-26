@@ -138,59 +138,48 @@
     document.getElementById('updateForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        // ▼ [수정] 시간 값을 가져와서 YYYY-MM-DDTHH:MM 형식으로 조합
         const status = document.getElementById('status').value;
-        const checkInTime = document.getElementById('check_in_time').value; // "HH:MM"
-        const checkOutTime = document.getElementById('check_out_time').value; // "HH:MM"
+        const checkInTime = document.getElementById('check_in_time').value;
+        const checkOutTime = document.getElementById('check_out_time').value;
 
         if (!currentWorkDate) {
             alert('오류: 근무 일자 정보가 없습니다.');
             return;
         }
 
-        // 서버의 LocalDateTime 형식(YYYY-MM-DDTHH:MM)으로 조합
         const checkInDateTime = `${currentWorkDate}T${checkInTime}`;
         const checkOutDateTime = `${currentWorkDate}T${checkOutTime}`;
-        // ▲ [수정]
 
-        // PUT 요청으로 서버에 수정된 데이터 전송
+        // [수정됨] AJAX 호출 방식 변경
         try {
-            const result = await $.ajax({
+            const response = await $.ajax({
                 url: `${API_BASE_URL}/${currentAttendanceId}`,
                 method: 'PUT',
                 contentType: 'application/json',
-
                 data: JSON.stringify({
                     attendance_status: status,
                     check_in: checkInDateTime,
                     check_out: checkOutDateTime
                 })
-
             });
 
-            if (result === true) {
-                alert('✅ 근태 상태가 성공적으로 수정되었습니다.');
+            // 성공 시 (HTTP 200)
+            alert(`✅ ${response}`); // "근태 상태가 성공적으로..."
 
-                if (window.opener && !window.opener.closed) {
-
-                    const menu = window.opener.document.querySelector('.menu[data-file="hr"][data-fn="attendance_listAll"]');
-                    if (menu) {
-                        menu.click();
-                    } else {
-                        window.opener.location.reload(); // 최후의 수단
-                    }
-                }
-                window.close();
-            } else {
-                alert('❌ 상태 수정에 실패했습니다.');
+            if (window.opener && !window.opener.closed) {
+                const menu = window.opener.document.querySelector('.menu[data-file="hr"][data-fn="attendance_listAll"]');
+                if (menu) menu.click();
+                else window.opener.location.reload();
             }
+            window.close();
 
-        } catch (error) {
-            console.error('상태 수정 실패:', error);
-            alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        } catch (xhr) {
+            // 실패 시 (HTTP 403 등)
+            console.error('상태 수정 실패:', xhr);
+            let msg = xhr.responseText || '서버 통신 중 오류가 발생했습니다.';
+            alert(`❌ 수정 실패:\n${msg}`);
         }
     });
-
 
     $(document).ready(loadAttendanceDetail);
 </script>

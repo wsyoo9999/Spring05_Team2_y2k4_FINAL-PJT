@@ -164,6 +164,7 @@ public class MainController {
             newEmployee.setHire_date(LocalDate.now()); // 오늘 날짜로 자동 입사 처리
             newEmployee.setLogin_id(userVO.getId());
             newEmployee.setStatus("재직"); // 재직 상태
+            newEmployee.setPhone_number(userVO.getPhone());
             newEmployee.setPosition(defaultPosition); // 첫 사용자인지 여부에 따라 직급 부여
 
             // 7) 해당 테넌트 DB의 인사(human_resource) 테이블에 추가
@@ -198,6 +199,10 @@ public class MainController {
         Map<String, Object> result = new HashMap<>();
 
         UserVO user = userService.selectById(loginId);
+
+
+        String position = (String) session.getAttribute("position");
+        result.put("position", position);
 
         if (user != null) {
             result.put("name", user.getName());

@@ -477,28 +477,28 @@ export function salary_detail_popup(salaryId) {
  * [추가] 일일 근태 생성 API 호출 함수
  */
 export async function generate_daily_attendance() {
-    if (!confirm("오늘 날짜로 모든 재직 직원의 '정상' 출근 기록(09:00~18:00)을 일괄 생성하시겠습니까?\n이미 기록이 있다면 덮어씁니다.")) {
+    if (!confirm("오늘 날짜로 모든 재직 직원의 '정상' 출근 기록(09:00~18:00)을 일괄 생성하시겠습니까?\n(이미 기록이 있다면 덮어씁니다.)")) {
         return;
     }
 
     try {
-        const result = await $.ajax({
+        // dataType을 제거하거나 'text'로 설정 (서버가 문자열을 반환하므로)
+        const response = await $.ajax({
             url: `${API_BASE_URL}/attendance/generate`,
-            method: 'POST',
-            dataType: 'json'
+            method: 'POST'
         });
 
-        if (result === true) {
-            alert('✅ 일일 근태 기록이 성공적으로 생성/업데이트되었습니다.');
-            // 현재 메뉴(근태 현황)를 다시 클릭하여 목록 새로고침
-            const menu = document.querySelector('.menu[data-file="hr"][data-fn="attendance_listAll"]');
-            if (menu) menu.click();
-        } else {
-            alert('❌ 생성에 실패했습니다.');
-        }
+        // 성공 시 (HTTP 200)
+        alert(`✅ ${response}`);
 
-    } catch (error) {
-        console.error('일괄 생성 실패:', error);
-        alert('❌ 서버 통신 중 오류가 발생했습니다.');
+        // 목록 새로고침
+        const menu = document.querySelector('.menu[data-file="hr"][data-fn="attendance_listAll"]');
+        if (menu) menu.click();
+
+    } catch (xhr) {
+        // 실패 시 (HTTP 403, 500 등)
+        console.error('일괄 생성 실패:', xhr);
+        let msg = xhr.responseText || '서버 통신 중 오류가 발생했습니다.';
+        alert(`❌ 생성 실패:\n${msg}`);
     }
 }
