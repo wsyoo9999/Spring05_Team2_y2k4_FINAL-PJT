@@ -238,6 +238,45 @@ public class ProductionService {
             return false;
         }
         Long workOrderId = targetLot.getWork_order_id();
+        WorkOrder wo = productionMapper.getWorkOrderDetail(workOrderId);
+
+        // 1. 해당 Lot에 연관된 불량 수량 집계 (양품 수량 계산용)
+        List<Defect> allDefects = productionMapper.getWorkOrderDefects(workOrderId);
+        int lotDefectQty = allDefects.stream()
+                .filter(d -> d.getLot_id().equals(lot_id))
+                .mapToInt(Defect::getDefect_qty)
+                .sum();
+
+        // 2. 삭제되는 Lot의 실질 양품 수량 계산
+        int lotGoodQty = targetLot.getLot_qty() - lotDefectQty;
+        if (lotGoodQty < 0) lotGoodQty = 0;
+
+        // 3. BOM 조회를 통해 원자재 소모량 역산 및 복구
+        List<BOM> bomList = productionMapper.getBOMListByParentId(wo.getStock_id());
+
+        if (bomList != null && !bomList.isEmpty()) {
+            List<Integer> childStockIds = new ArrayList<>();
+            List<Integer> quantities = new ArrayList<>();       // 실제 재고 복구용 (총 생산량 기준)
+            List<Integer> acquiredQuantities = new ArrayList<>(); // 요청 수량 복구용 (양품 기준)
+
+            for (BOM bom : bomList) {
+                childStockIds.add(bom.getChild_stock_id().intValue());
+
+                // (1) 실제 재고 복구: 소모했던 자재만큼 다시 채움 (+)
+                // addLot에서 '총 생산량(lot_qty)'만큼 차감했으므로 동일하게 복구
+                int realAmount = bom.getRequired_qty() * targetLot.getLot_qty();
+                quantities.add(realAmount);
+
+                // (2) 요청 수량 복구: 해제했던 예약만큼 다시 잡음 (+)
+                // addLot에서 '양품 수량(goodQty)'만큼만 예약 해제했으므로 동일하게 복구(예약)
+                int acquiredAmount = bom.getRequired_qty() * lotGoodQty;
+                acquiredQuantities.add(acquiredAmount);
+            }
+
+            // manageStock type 1: 증가 (롤백)
+            stockService.manageStock(childStockIds, quantities, acquiredQuantities, 1);
+        }
+        // =================================================================
 
         // FK 제약조건 해결 위해 불량 먼저 삭제
         productionMapper.deleteDefectsByLotId(lot_id);

@@ -27,33 +27,34 @@ export async function work_order_listAll() {
             $.each(data, function(i, row) {
                 // [수정] '상태' 데이터 셀 추가 (배지 스타일 적용)
                 tbody += `<tr data-work-order-id="${row.work_order_id}">
-                            <td><strong>${row.work_order_id}</strong></td>
-                            <td>${row.stock_name ?? (row.stock_id ?? '-')}</td>
-                            <td>${formatDate(row.start_date)}</td>
-                            <td>${formatDate(row.due_date)}</td>
-                            <td>${numberFormat(row.target_qty)}</td>
-                            <td><span class="status-badge ${getStatusClass(row.order_status)}">${row.order_status}</span></td>
-                            <td class="actions">
-                                <button class="btn-detail"
-                                        data-action="detail"
-                                        data-file="production"
-                                        data-fn="work_order_detail_popup"
-                                        data-work-order-id="${row.work_order_id}"
-                                        data-value="${row.work_order_id}"
-                                        title="상세 보기">
-                                    <i class="fas fa-info-circle"></i>
-                                </button>
-                                
-                                <button class="btn-delete"
-                                        data-action="delete"
-                                        data-file="production"
-                                        data-fn="deleteWorkOrder"
-                                        data-work-order-id="${row.work_order_id}"
-                                        title="삭제">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                </td>
-                          </tr>`;
+            <td><strong>${row.work_order_id}</strong></td>
+            <td>${row.stock_name ?? (row.stock_id ?? '-')}</td>
+            <td>${formatDate(row.start_date)}</td>
+            <td>${formatDate(row.due_date)}</td>
+            <td>${numberFormat(row.target_qty)}</td>
+            <td><span class="status-badge ${getStatusClass(row.order_status)}">${row.order_status}</span></td>
+            <td class="actions">
+                <button class="btn-detail"
+                        data-action="detail"
+                        data-file="production"
+                        data-fn="work_order_detail_popup"
+                        data-work-order-id="${row.work_order_id}"
+                        data-value="${row.work_order_id}"
+                        title="상세 보기">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+                
+                <button class="btn-delete"
+                        data-action="delete"
+                        data-file="production"
+                        data-fn="deleteWorkOrder"
+                        data-work-order-id="${row.work_order_id}"
+                        data-status="${row.order_status}" 
+                        title="삭제/폐기 요청">
+                    <i class="fas fa-trash"></i>
+                </button>
+                </td>
+          </tr>`;
             });
         } else {
             tbody += `<tr><td colspan="7" style="text-align:center;">조회된 작업 지시서가 없습니다.</td></tr>`;
@@ -112,7 +113,8 @@ export async function work_order_search_form() {
                     <option value="대기">대기</option>
                     <option value="진행중">진행중</option>
                     <option value="완료">완료</option>
-                    <option value="폐기">폐기</option> </select>
+                    <option value="폐기">폐기</option>
+                    </select>
             </div>
             <div class="form-group">
                 <label for="stock_name">제품명</label>
@@ -178,33 +180,34 @@ export async function work_order_list(formData) {
         if (data && data.length > 0) {
             $.each(data, function(i, row) {
                 tbody += `<tr data-work-order-id="${row.work_order_id}">
-                            <td><strong>${row.work_order_id}</strong></td>
-                            <td>${row.stock_name ?? (row.stock_id ?? '-')}</td>
-                            <td>${formatDate(row.start_date)}</td>
-                            <td>${formatDate(row.due_date)}</td>
-                            <td>${numberFormat(row.target_qty)}</td>
-                            <td><span class="status-badge ${getStatusClass(row.order_status)}">${row.order_status}</span></td>
-                            <td class="actions">
-                                <button class="btn-detail"
-                                        data-action="detail"
-                                        data-file="production"
-                                        data-fn="work_order_detail_popup"
-                                        data-work-order-id="${row.work_order_id}"
-                                        data-value="${row.work_order_id}"
-                                        title="상세 보기">
-                                    <i class="fas fa-info-circle"></i>
-                                </button>
-                                
-                                <button class="btn-delete"
-                                        data-action="delete"
-                                        data-file="production"
-                                        data-fn="deleteWorkOrder"
-                                        data-work-order-id="${row.work_order_id}"
-                                        title="삭제">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                </td>
-                          </tr>`;
+            <td><strong>${row.work_order_id}</strong></td>
+            <td>${row.stock_name ?? (row.stock_id ?? '-')}</td>
+            <td>${formatDate(row.start_date)}</td>
+            <td>${formatDate(row.due_date)}</td>
+            <td>${numberFormat(row.target_qty)}</td>
+            <td><span class="status-badge ${getStatusClass(row.order_status)}">${row.order_status}</span></td>
+            <td class="actions">
+                <button class="btn-detail"
+                        data-action="detail"
+                        data-file="production"
+                        data-fn="work_order_detail_popup"
+                        data-work-order-id="${row.work_order_id}"
+                        data-value="${row.work_order_id}"
+                        title="상세 보기">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+                
+                <button class="btn-delete"
+                        data-action="delete"
+                        data-file="production"
+                        data-fn="deleteWorkOrder"
+                        data-work-order-id="${row.work_order_id}"
+                        data-status="${row.order_status}" 
+                        title="삭제/폐기 요청">
+                    <i class="fas fa-trash"></i>
+                </button>
+                </td>
+          </tr>`;
             });
         } else {
             tbody += `<tr><td colspan="7" style="text-align:center;">검색 결과가 없습니다.</td></tr>`;
@@ -876,14 +879,34 @@ export function addWorkOrder(){
 
 export async function deleteWorkOrder(e) {
     const work_order_id = e.dataset.workOrderId;
+    const status = e.dataset.status; // 위에서 추가한 status 값 가져오기
 
     if (!work_order_id) {
         alert('삭제할 작업지시서 ID를 찾을 수 없습니다.');
         return;
     }
 
-    // 사용자에게 삭제 확인
-    if (confirm(`정말로 작업지시서 ${work_order_id}번을 삭제하시겠습니까?`)) {
+    // 1. [예외 처리] 완료되거나 이미 폐기된 경우 삭제 불가 알림
+    if (status === '완료' || status === '폐기') {
+        alert(`현재 '${status}' 상태인 작업지시서는 삭제하거나 폐기할 수 없습니다.`);
+        return;
+    }
+    if (status === '승인대기') {
+        alert('이미 결재가 진행 중인 문서입니다.\n결재가 완료되거나 반려될 때까지 기다려주세요.');
+        return;
+    }
+
+    // 2. [분기 처리] 상태에 따라 안내 메시지 다르게 설정
+    let confirmMsg = '';
+    if (status === '진행중') {
+        confirmMsg = `⚠️ 현재 '진행중'인 작업지시서입니다.\n\n정말로 작업을 중단하고 [폐기 요청] 결재를 요청하시겠습니까?\n(승인 시 상태가 '폐기'로 변경됩니다.)`;
+    } else {
+        // 대기 상태 등
+        confirmMsg = `작업지시서 ${work_order_id}번을 [삭제 요청] 결재를 요청하시겠습니까?\n(승인 시 데이터가 삭제됩니다.)`;
+    }
+
+    // 3. 사용자 확인 후 API 호출
+    if (confirm(confirmMsg)) {
         try {
             const result = await $.ajax({
                 url: `/api/production/work_order/${work_order_id}`,
@@ -892,19 +915,25 @@ export async function deleteWorkOrder(e) {
             });
 
             if (result === true) {
-                alert('✅ 삭제되었습니다.');
-                // 삭제 성공 시, 현재 목록을 새로고침
+                // 메시지도 상태에 따라 다르게 보여주면 더 좋습니다.
+                if (status === '진행중') {
+                    alert('✅ 폐기 요청 결재 문서가 기안되었습니다.');
+                } else {
+                    alert('✅ 삭제 요청 결재 문서가 기안되었습니다.');
+                }
+
+                // 목록 새로고침
                 const currentMenu = window.document.querySelector('.menu[data-fn="work_order_listAll"].selected');
                 if (currentMenu) {
-                    currentMenu.click(); // 현재 메뉴를 다시 클릭하여 목록 갱신
+                    currentMenu.click();
                 } else {
-                    window.location.reload(); // 비상시 페이지 새로고침
+                    window.location.reload();
                 }
             } else {
-                alert('❌ 삭제에 실패했습니다.');
+                alert('❌ 요청에 실패했습니다. (이미 처리 중이거나 권한이 없을 수 있습니다.)');
             }
         } catch (error) {
-            console.error('삭제 중 오류 발생:', error);
+            console.error('삭제 요청 중 오류 발생:', error);
             alert('❌ 서버 통신 중 오류가 발생했습니다.');
         }
     }

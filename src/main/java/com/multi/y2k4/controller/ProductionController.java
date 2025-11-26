@@ -163,7 +163,6 @@ public class ProductionController {
             // 0. 현재 로그인한 사용자(기안자) 확인
             Integer currentEmpId = (Integer) session.getAttribute("emp_id");
             if (currentEmpId == null) {
-                System.out.println("로그인 정보가 없습니다.");
                 return false;
             }
 
@@ -171,54 +170,71 @@ public class ProductionController {
             WorkOrder targetWo = productionService.getWorkOrderDetail(work_order_id);
             if (targetWo == null) return false;
 
-            // 2. 상태 확인
-            String statusStr = targetWo.getOrder_status(); // "대기", "진행중", "완료" ...
+            String statusStr = targetWo.getOrder_status();
+            if ("승인대기".equals(statusStr)) {
+                System.out.println("이미 결재 진행 중인 건입니다.");
+                return false;
+            }
+            if ("완료".equals(statusStr) || "폐기".equals(statusStr)) {
+                return false;
+            }
             int cd_id;
             String titleSuffix;
+            int originalStatusCode=0;
             Map<String, Object> payload = new HashMap<>();
 
-            if ("완료".equals(statusStr) || "폐기".equals(statusStr)) {
-                // [완료/폐기] 상태는 삭제/폐기 불가
-                System.out.println("완료되거나 이미 폐기된 작업지시서는 삭제할 수 없습니다.");
-                return false;
-            } else if ("진행중".equals(statusStr)) {
-                // [진행중] -> 폐기 요청 (수정 문서 생성)
-                cd_id = 1; // 수정(Update)
+            // 진행중인 작업 폐기 요청 시 상세 정보(Lot, Defect) 조회하여 추가
+            if ("진행중".equals(statusStr)) {
+                cd_id = 1; // 수정(Update) -> 폐기 요청 처리
                 titleSuffix = "폐기 요청";
                 payload.put("newStatus", 3); // 3: 폐기 상태 코드
-            } else {
-                // [대기] (또는 승인대기) -> 삭제 요청 (삭제 문서 생성)
+
+                // 1) Lot 목록 조회
+                List<Lot> lots = productionService.getWorkOrderLots(work_order_id);
+                payload.put("lots", lots);
+
+                // 2) 불량 내역 조회
+                List<Defect> defects = productionService.getWorkOrderDefects(work_order_id);
+                payload.put("defects", defects);
+
+            } else if ("대기".equals(statusStr) || "승인대기".equals(statusStr)) { // 단순 삭제
                 cd_id = 2; // 삭제(Delete)
                 titleSuffix = "삭제 요청";
+            } else {
+                return false; // 완료/폐기 상태는 삭제 불가
             }
 
             // 3. Payload 구성
+            payload.put("originalStatus", originalStatusCode);
             payload.put("cat_id", 2);
             payload.put("tb_id", 0);
             payload.put("cd_id", cd_id);
             payload.put("pk", work_order_id);
-            payload.put("workOrder", targetWo); // 상세 정보 표시용
+
+            // 이름 정보(stock_name, emp_name)가 포함된 최신 targetWo를 담아야 함
+            payload.put("workOrder", targetWo);
 
             // 4. 문서 생성
             Documents doc = new Documents();
             String stockName = targetWo.getStock_name() != null ? targetWo.getStock_name() : "ID:" + work_order_id;
             doc.setTitle("작업지시서 " + titleSuffix + " - " + stockName);
 
-            // 기안자(req_id) = 현재 로그인한 사람
+            // 기안자: 로그인한 본인
             doc.setReq_id(Long.valueOf(currentEmpId));
-
-            // 결재자(appr_id) = 작업지시서 담당자
+            // 결재자: 작업지시서 담당자
             doc.setAppr_id(targetWo.getEmp_id());
 
             doc.setReq_date(LocalDate.now());
             doc.setStatus(0); // 대기
             doc.setCat_id(2);
             doc.setTb_id(0);
-            doc.setCd_id(cd_id); // 1(폐기) or 2(삭제)
+            doc.setCd_id(cd_id);
 
             doc.setQuery(objectMapper.writeValueAsString(payload));
 
             documentsService.addDocument(doc);
+
+            productionService.updateWorkOrderStatus(work_order_id, 99);
 
             return true;
 
