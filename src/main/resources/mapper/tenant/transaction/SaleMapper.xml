@@ -73,4 +73,28 @@
         DELETE FROM sale WHERE sale_id = #{sale_id}
     </delete>
 
+    <!-- 대시보드용 1년간 판매 지표 -->
+    <select id="selectMonthlySales" resultType="com.multi.y2k4.vo.transaction.Sale">
+        SELECT
+            DATE_FORMAT(s.order_date, '%Y-%m') AS month,
+        SUM(s.total_price) AS total_price_sum
+        FROM sale s
+        WHERE s.status = 2
+          AND s.order_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+        GROUP BY DATE_FORMAT(s.order_date, '%Y-%m')
+        ORDER BY month ASC
+    </select>
+
+    <!-- 금월/전월 총 판매금액 KPI -->
+    <select id="selectThisAndLastMonthSaleTotal" resultType="map">
+        SELECT
+            COALESCE(SUM(CASE
+                WHEN DATE_FORMAT(s.order_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+                    THEN s.total_price END), 0) AS this_month_sale,
+            COALESCE(SUM(CASE
+                WHEN DATE_FORMAT(s.order_date, '%Y-%m') = DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m')
+                    THEN s.total_price END), 0) AS last_month_sale
+        FROM sale s
+        WHERE s.status = 2
+    </select>
 </mapper>

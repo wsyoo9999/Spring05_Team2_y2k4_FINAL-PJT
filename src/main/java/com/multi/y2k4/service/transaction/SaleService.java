@@ -9,8 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -42,5 +45,46 @@ public class SaleService {
 
     public Sale searchById(Integer sale_id) {
         return saleMapper.searchById(sale_id);
+    }
+
+//--------------------대시보드--------------------
+    public List<Sale> getMonthlySales() {
+        return saleMapper.selectMonthlySales();
+    }
+
+    public Map<String, Long> getThisAndLastMonthSaleTotal() {
+        Map<String, Object> raw = saleMapper.selectThisAndLastMonthSaleTotal();
+
+        if (raw == null) {
+            raw = new HashMap<>();
+        }
+
+        long thisMonth = toLong(raw.getOrDefault("this_month_sale", 0L));  // 0L = long 타입 0
+        long lastMonth = toLong(raw.getOrDefault("last_month_sale", 0L));
+
+        Map<String, Long> result = new HashMap<>();
+        result.put("this_month_sale", thisMonth);
+        result.put("last_month_sale", lastMonth);
+
+        return result;
+    }
+
+    private long toLong(Object value){
+        if (value == null) return 0L;
+
+        if (value instanceof BigDecimal) {
+            return ((BigDecimal) value).longValue();
+        } else {
+            return Long.parseLong(value.toString());
+        }
+    }
+
+    // 컨트롤러에서 바로 쓰기 편하게 분리 메서드도 만들 수 있음
+    public long getThisMonthSaleTotal() {
+        return getThisAndLastMonthSaleTotal().getOrDefault("this_month_sale", 0L);
+    }
+
+    public long getLastMonthSaleTotal() {
+        return getThisAndLastMonthSaleTotal().getOrDefault("last_month_sale", 0L);
     }
 }

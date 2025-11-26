@@ -13,4 +13,7 @@ public class PurchaseDetails {
     private int qty;        //도착 수량
     private double price_per_unit;
     private double total_price;
+
+    // 대쉬보드 출력용
+    private double total_price_sum;
 }

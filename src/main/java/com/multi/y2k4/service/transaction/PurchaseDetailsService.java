@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -26,5 +27,9 @@ public class PurchaseDetailsService {
     }
     public int editPurchaseDetailsQTY(int pd_id, int qty){
         return purchaseDetailsMapper.editPurchaseDetailsQTY(pd_id,qty);
+    }
+
+    public List<Map<String, Object>> selectPurchasesForDashboard() {
+        return purchaseDetailsMapper.selectPurchasesForDashboard();
     }
 }

@@ -16,4 +16,8 @@ public class Sale {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) private LocalDate due_date;
     private double total_price;
     private int status;
+
+    // 대시보드 출력용
+    private String month;
+    private Long total_price_sum;
 }

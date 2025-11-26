@@ -23,6 +23,7 @@ public class SaleDetailsService {
 
     public int deleteSaleDetails(int sale_id) {return saleDetailsMapper.deleteSaleDetails(sale_id);}
 
+//--------------------대시보드--------------------
     public List<Map<String, Object>> selectSalesForDashboard() {
         return saleDetailsMapper.selectSalesForDashboard();
     }

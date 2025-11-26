@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface SaleMapper {
@@ -25,4 +26,9 @@ public interface SaleMapper {
     public int deleteSale(@Param("sale_id")Integer sale_id);
 
     public Sale searchById(@Param("sale_id")Integer sale_id);
+
+    public List<Sale> selectMonthlySales();
+    public Map<String, Object> selectThisAndLastMonthSaleTotal();
+
+
 }
