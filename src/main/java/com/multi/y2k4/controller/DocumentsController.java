@@ -21,14 +21,13 @@ import com.multi.y2k4.vo.transaction.SaleDetails;
 import com.multi.y2k4.vo.production.WorkOrder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/doc/")
@@ -93,12 +92,25 @@ public class DocumentsController {
         if (emp_id == null) {
             return Collections.emptyList();
         }
+        Long empIdLong = emp_id.longValue();
 
-        // 서비스의 list 메서드 호출:
-        // appr_id = emp_id (본인), status = 0 (대기)
-        // 나머지 필터는 null
-        return documentsService.list(null, null, null, null, null, null, emp_id, null, 0, null);
+        // DocumentsService 쪽에서 mapper 호출한다고 가정 (너가 기존에 쓰던 메서드 그대로 사용)
+        List<Documents> uncheckedDocs = documentsService.searchByUnchecked(empIdLong); // req_id=empId, checked=false
+        List<Documents> apprDocs      = documentsService.searchByAppr(empIdLong);      // appr_id=empId, status=0
+
+        // 중복(doc_id 중복) 제거해서 합치기
+        Map<Long, Documents> merged = new LinkedHashMap<>();
+        for (Documents d : uncheckedDocs) {
+            merged.put(d.getDoc_id(), d);
+        }
+        for (Documents d : apprDocs) {
+            merged.putIfAbsent(d.getDoc_id(), d);
+        }
+
+        return new ArrayList<>(merged.values());
     }
+
+
 
     @GetMapping("/searchById")
     public Documents searchById(@RequestParam Integer doc_id){
@@ -109,7 +121,9 @@ public class DocumentsController {
     public void read(@RequestParam Integer doc_id, HttpSession session) {
         documentsService.read(doc_id);
         Integer emp_id = (Integer) session.getAttribute("emp_id");
-        alertService.notifyDocCountChanged(emp_id.longValue());
+        if (emp_id != null) {
+            alertService.notifyDocCountChanged(emp_id.longValue());
+        }
     }
 
 

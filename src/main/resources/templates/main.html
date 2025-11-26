@@ -456,7 +456,7 @@
     </nav>
 
     <div class="nav-right">
-        <button class="nav-icon-btn" title="알림" aria-label="알림" onclick="window.location.href='/alerts'">
+        <button class="nav-icon-btn" id="alert-bell-btn" title="알림" aria-label="알림">
             <i class="fas fa-bell"></i>
             <span id="doc-alert-badge" class="alert-badge" style="display:none;">0</span>
         </button>
@@ -967,8 +967,55 @@
 
     }
 
-    // 페이지 로드 시 SSE 연결 시도
-    document.addEventListener('DOMContentLoaded', initSse);
+    async function alert_doc(id) {
+        if (!id) {
+            alert('사번 정보를 찾을 수 없습니다. 다시 로그인 후 이용해 주세요.');
+            return;
+        }
+
+        // Spring Boot 정적 리소스 기준 경로
+        const base = '/popup/alert/alert.html';
+        const url  = `${base}?emp_id=${encodeURIComponent(id)}`;
+
+        const width = 1000;
+        const height = 700;
+        const left = (window.screen.availWidth - width) / 2;
+        const top  = (window.screen.availHeight - height) / 2;
+
+        const features = [
+            `width=${width}`,
+            `height=${height}`,
+            `left=${left}`,
+            `top=${top}`,
+            'resizable=no',
+            'scrollbars=yes'
+        ].join(',');
+
+        const child = window.open(url, 'alert_document', features);
+
+        // 팝업 차단된 경우 처리
+        if (!child || child.closed || typeof child.closed === 'undefined') {
+            alert('팝업이 차단되었습니다. 브라우저의 팝업 허용 설정을 확인해 주세요.');
+            return;
+        }
+
+        child.focus();
+    }
+
+    // 페이지 로드 시 SSE 연결 + 종 버튼 클릭 이벤트 바인딩
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1) SSE 연결
+        initSse();
+
+        // 2) 종 모양 버튼 클릭 시 팝업 열기
+        const bellBtn = document.getElementById('alert-bell-btn');
+        if (bellBtn) {
+            bellBtn.addEventListener('click', () => {
+                alert_doc(window.CURRENT_EMP_ID);
+            });
+        }
+    });
+
 </script>
 </body>
 </html>

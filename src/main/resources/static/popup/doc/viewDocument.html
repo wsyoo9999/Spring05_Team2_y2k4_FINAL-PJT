@@ -5,9 +5,11 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script>
     const CURRENT_EMP_ID =
-            window.opener && typeof window.opener.CURRENT_EMP_ID !== 'undefined'
+            (window.opener && typeof window.opener.CURRENT_EMP_ID !== 'undefined')
                     ? window.opener.CURRENT_EMP_ID
-                    : null;
+                    : (window.opener && window.opener.opener && typeof window.opener.opener.CURRENT_EMP_ID !== 'undefined')
+                            ? window.opener.opener.CURRENT_EMP_ID
+                            : null;
   </script>
   <title>결재 문서 정보</title>
   <style>
@@ -508,6 +510,13 @@ ${comments || ''}</textarea>
           data: { doc_id: doc_id }
         }).done(() => {
           console.log('문서를 읽음 처리했습니다.');
+          try {
+            if (window.opener && typeof window.opener.loadPendingApprovals === 'function') {
+              window.opener.loadPendingApprovals();
+            }
+          } catch (e) {
+            console.warn('알림 팝업 목록 갱신 실패(읽음 처리 후):', e);
+          }
         }).fail(err => {
           console.error('읽음 처리 실패:', err);
         });

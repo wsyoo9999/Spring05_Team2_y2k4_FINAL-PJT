@@ -44,7 +44,18 @@ public class DocumentsService {
             Documents doc = documentsMapper.searchById(doc_id);
             if (doc != null) {
                 // 기안자 & 결재자 둘 다 카운트 갱신
-                alertService.onDocumentStatusChanged(doc.getReq_id());
+                Long reqId  = doc.getReq_id();
+                Long apprId = doc.getAppr_id();
+
+                // 1) 기안자 쪽 카운트 갱신 (결과 확인해야 할 문서 증가)
+                if (reqId != null) {
+                    alertService.onDocumentStatusChanged(reqId);
+                }
+
+                // 2) 결재자 쪽 카운트 갱신 (결재해야 할 문서 감소)
+                if (apprId != null) {
+                    alertService.notifyDocCountChanged(apprId);
+                }
             }
         }
         return result;

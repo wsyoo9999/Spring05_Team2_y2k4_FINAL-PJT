@@ -23,23 +23,27 @@ public class AlertService {
         if (!sseEmitterService.isSubscribed(emp_id)) {
             return;
         }
+        try {
+            // 1) 내가 기안한 문서 중 아직 안 읽은 것
+            Documents cond1 = new Documents();
+            cond1.setReq_id(emp_id);
+            int unchecked = documentsMapper.searchByUnchecked(cond1).size();
 
-        // 1) 내가 기안한 문서 중 아직 안 읽은 것
-        Documents cond1 = new Documents();
-        cond1.setReq_id(emp_id);
-        int unchecked = documentsMapper.searchByUnchecked(cond1).size();
+            // 2) 내가 결재자인데 아직 처리 안 된 문서들
+            Documents cond2 = new Documents();
+            cond2.setAppr_id(emp_id);
+            int unApprove = documentsMapper.searchByAppr(cond2).size();
 
-        // 2) 내가 결재자인데 아직 처리 안 된 문서들
-        Documents cond2 = new Documents();
-        cond2.setAppr_id(emp_id);
-        int unApprove = documentsMapper.searchByAppr(cond2).size();
-
-        int total = unchecked + unApprove;
-        System.out.println("unchecked : "+ unchecked);
-        System.out.println("unApprove : "+unApprove);
-        System.out.println("total : " + total);
-        // SSE로 전송
-        sseEmitterService.broadcast(emp_id, total);
+            int total = unchecked + unApprove;
+            System.out.println("unchecked : "+ unchecked);
+            System.out.println("unApprove : "+unApprove);
+            System.out.println("total : " + total);
+            // SSE로 전송
+            sseEmitterService.broadcast(emp_id, total);
+        } catch (Exception e) {
+            // 여기서 예외를 먹어버리면 컨트롤러까지 안 올라감
+            System.out.println("[AlertService] notifyDocCountChanged 중 예외 발생 emp_id=" + emp_id + " / " + e);
+        }
     }
 
     /**
