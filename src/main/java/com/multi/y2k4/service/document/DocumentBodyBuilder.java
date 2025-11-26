@@ -716,11 +716,11 @@ public class DocumentBodyBuilder {
 
                 /*===============================인사 관련=================================================*/
 
-            }else if (cat_id == 4) { // 인사
-                if (tb_id == 0) {  // 휴가 및 퇴직 처리
-                    if (cd_id == 0) {  // [추가] 휴가 신청
+            }else if (cat_id == 4) {
 
-                        // 휴가 신청서 HTML 생성
+                // [1] 휴가 신청 (tb_id = 0)
+                if (tb_id == 0) {
+                    if (cd_id == 0) {
                         sb.append("<h3 class=\"doc-section-title\">휴가 신청서</h3>");
                         sb.append("<table class=\"doc-map-table\"><tbody>");
 
@@ -745,8 +745,12 @@ public class DocumentBodyBuilder {
                                 .append("</td></tr>");
 
                         sb.append("</tbody></table>");
+                    }
+                }
 
-                    }else if (cd_id == 1) {  //수정
+                // [2] 인사 발령 / 상태 변경
+                else if (tb_id == 1) {
+                    if (cd_id == 1) { // 수정(인사발령 요청)
                         sb.append("<h3 class=\"doc-section-title\">인사 발령(퇴직) 요청서</h3>");
                         sb.append("<table class=\"doc-map-table\"><tbody>");
 
@@ -770,10 +774,6 @@ public class DocumentBodyBuilder {
                                 .append("</td></tr>");
 
                         sb.append("</tbody></table>");
-
-                    } else if (cd_id == 2) {  //삭제
-
-
                     }
                 }
             }
