@@ -193,58 +193,40 @@ public class DocumentsController {
 
             }
             /*===============================생산 제조 관련=================================================*/
-            else if (cat_id == 2) { // 생산/제조
-                if (tb_id == 0) {  // 작업 지시서
+            else if (cat_id == 2) {
+                if (tb_id == 0) { // 작업지시서
+                    int pk = Integer.parseInt(map.get("pk").toString());
 
-                    // JSON에서 workOrder 객체 추출 (추가/삭제 공통 사용)
-                    Object workOrderObj = map.get("workOrder");
-                    WorkOrder workOrder = (workOrderObj != null)
-                            ? objectMapper.convertValue(workOrderObj, WorkOrder.class)
-                            : null;
-
-                    if (cd_id == 0) {  // [추가] 요청 처리
-                        // JSON에서 저장해둔 PK 추출
-                        int pk = Integer.parseInt(map.get("pk").toString());
-
-                        if (status == 1) {
-                            // [승인]
-                            // 1. 상태를 '0'(대기)으로 변경하여 활성화
-                            productionService.updateWorkOrderStatus((long) pk, 0);
-
-                            // 2. [추가됨] 재고(acquired_qty) 변동 사항 반영
-                            productionService.confirmWorkOrderCreation((long) pk);
-
-                        } else if (status == 2) {
-                            // [반려] 임시 저장된 데이터 삭제
+                    // 공통: 반려 시 상태 복구 로직 (추가/수정/삭제 모두 적용 가능)
+                    if (status == 2) { // [반려]
+                        if (map.containsKey("originalStatus")) {
+                            int origin = (int) map.get("originalStatus");
+                            // 상태를 원래대로 복구 (예: 99 -> 1 or 0)
+                            productionService.updateWorkOrderStatus((long) pk, origin);
+                        } else if (cd_id == 0) {
+                            // 추가 요청의 반려는 데이터 삭제 (기존 로직 유지)
                             productionService.deleteWorkOrder((long) pk);
                         }
+                    }
 
-                    } else if(cd_id == 1) { // [수정] -> 여기서는 '폐기' 상태 변경용
-                        int pk = Integer.parseInt(map.get("pk").toString());
-
-                        if (status == 1) { // [승인]
-                            // payload에 담긴 newStatus(3:폐기)로 상태 변경
+                    // [승인] 로직 (기존 유지)
+                    else if (status == 1) {
+                        if (cd_id == 0) { // 추가 승인
+                            productionService.updateWorkOrderStatus((long) pk, 0); // 대기로 활성화
+                            productionService.confirmWorkOrderCreation((long) pk);
+                        } else if (cd_id == 1) { // 수정(폐기) 승인
                             if (map.containsKey("newStatus")) {
                                 int newStatus = (int) map.get("newStatus");
-                                productionService.updateWorkOrderStatus((long)pk, newStatus);
-
-                                // (선택 사항) 폐기 시, 잡아놓았던 재고(acquired_qty)를 해제하려면
-                                // 여기서 productionService.releaseStockForDiscard((long)pk) 등을 호출해야 함
+                                productionService.updateWorkOrderStatus((long) pk, newStatus);
+                                // productionService.releaseStockForDiscard((long)pk); // 필요 시 재고 복구
                             }
+                        } else if (cd_id == 2) { // 삭제 승인
+                            productionService.deleteWorkOrder((long) pk);
                         }
-                        // 반려 시 아무 작업 안 함 (기존 상태 유지)
-
-                    } else if (cd_id == 2) {  // [삭제] 요청 처리
-                        // [수정] 추가 처리와 동일하게 pk를 맵에서 직접 꺼내 사용
-                        int pk = Integer.parseInt(map.get("pk").toString());
-
-                        if (status == 1) {    // 1: 승인 -> DB 데이터 DELETE
-                            // 객체 확인 없이 pk로 바로 삭제
-                            productionService.deleteWorkOrder((long)pk);
-                        }
-                        // 반려(2) 시에는 삭제하지 않고 유지 (별도 로직 없음)
                     }
                 }
+
+
 
                 /*===============================재고 관련=================================================*/
 

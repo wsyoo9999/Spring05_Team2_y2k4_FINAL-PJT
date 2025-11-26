@@ -7,6 +7,9 @@ import com.multi.y2k4.vo.transaction.PurchaseDetails;
 import com.multi.y2k4.vo.transaction.Sale;
 import com.multi.y2k4.vo.transaction.SaleDetails;
 import com.multi.y2k4.vo.production.WorkOrder;
+import com.multi.y2k4.vo.production.Lot;
+import com.multi.y2k4.vo.production.Defect;
+import java.text.NumberFormat;
 
 import java.util.*;
 
@@ -643,59 +646,83 @@ public class DocumentBodyBuilder {
                         }
 
                         // 2. 수정(1) 요청
-                    } else if (cd_id == 1) {
-                        Object data_obj = payload_map.get("data");
-                        WorkOrder before = null;
-                        WorkOrder after = null;
+                    } else if (cd_id == 1 && payload_map.containsKey("newStatus") && (int)payload_map.get("newStatus") == 3) {
 
-                        if (data_obj != null) {
-                            Map<String, Object> data_map =
-                                    objectMapper.convertValue(data_obj, new TypeReference<Map<String, Object>>() {});
+                        Object wo_obj = payload_map.get("workOrder");
+                        Object lots_obj = payload_map.get("lots");
+                        Object defects_obj = payload_map.get("defects");
 
-                            if (data_map.get("before") != null) {
-                                before = objectMapper.convertValue(data_map.get("before"), WorkOrder.class);
+                        WorkOrder wo = (wo_obj != null) ? objectMapper.convertValue(wo_obj, WorkOrder.class) : null;
+                        List<Lot> lots = (lots_obj != null) ? objectMapper.convertValue(lots_obj, new TypeReference<List<Lot>>() {
+                        }) : Collections.emptyList();
+                        List<Defect> defects = (defects_obj != null) ? objectMapper.convertValue(defects_obj, new TypeReference<List<Defect>>() {
+                        }) : Collections.emptyList();
+
+                        sb.append("<h3 class=\"doc-section-title\" style=\"color:#e74c3c;\">작업 지시서 폐기 요청서</h3>");
+
+                        // 1. 기본 정보 & 진행률
+                        if (wo != null) {
+                            int target = wo.getTarget_qty() != null ? wo.getTarget_qty() : 0;
+                            int good = wo.getGood_qty() != null ? wo.getGood_qty() : 0;
+                            int defect = wo.getDefect_qty() != null ? wo.getDefect_qty() : 0;
+                            double progress = target > 0 ? (double) good / target * 100 : 0;
+
+                            sb.append("<h4 class=\"doc-subtitle\">진행 현황</h4>");
+                            sb.append("<table class=\"doc-map-table\"><tbody>");
+
+                            sb.append("<tr><th class=\"doc-data-label\">작업지시번호</th><td class=\"doc-data-value\">").append(wo.getWork_order_id()).append("</td></tr>");
+                            sb.append("<tr><th class=\"doc-data-label\">제품명</th><td class=\"doc-data-value\">").append(escape_html(wo.getStock_name())).append("</td></tr>");
+                            sb.append("<tr><th class=\"doc-data-label\">담당자</th><td class=\"doc-data-value\">").append(escape_html(wo.getEmp_name())).append("</td></tr>");
+
+                            sb.append("<tr><th class=\"doc-data-label\">생산 수량</th><td class=\"doc-data-value\">")
+                                    .append("목표: <b>").append(target).append("</b> / ")
+                                    .append("양품: <b style='color:#27ae60'>").append(good).append("</b> / ")
+                                    .append("불량: <b style='color:#e74c3c'>").append(defect).append("</b>")
+                                    .append("</td></tr>");
+
+                            sb.append("<tr><th class=\"doc-data-label\">진행률</th><td class=\"doc-data-value\">")
+                                    .append(String.format("%.1f%%", progress))
+                                    .append("</td></tr>");
+
+                            sb.append("</tbody></table>");
+                        }
+
+                        // 2. Lot 내역
+                        sb.append("<h4 class=\"doc-subtitle\">생산 실적 (Lot) 내역</h4>");
+                        if (!lots.isEmpty()) {
+                            sb.append("<table class=\"doc-list-table\"><thead><tr>")
+                                    .append("<th>Lot ID</th><th>생산일</th><th>수량</th>")
+                                    .append("</tr></thead><tbody>");
+                            for (Lot lot : lots) {
+                                sb.append("<tr>")
+                                        .append("<td>").append(lot.getLot_id()).append("</td>")
+                                        .append("<td>").append(escape_html(String.valueOf(lot.getLot_date()))).append("</td>")
+                                        .append("<td>").append(lot.getLot_qty()).append("</td>")
+                                        .append("</tr>");
                             }
-                            if (data_map.get("after") != null) {
-                                after = objectMapper.convertValue(data_map.get("after"), WorkOrder.class);
+                            sb.append("</tbody></table>");
+                        } else {
+                            sb.append("<p class=\"doc-info\">등록된 Lot 실적이 없습니다.</p>");
+                        }
+
+                        // 3. 불량 내역
+                        sb.append("<h4 class=\"doc-subtitle\" style=\"color:#e74c3c;\">불량 상세 내역</h4>");
+                        if (!defects.isEmpty()) {
+                            sb.append("<table class=\"doc-list-table\"><thead><tr>")
+                                    .append("<th>불량코드</th><th>관련 Lot ID</th><th>불량 수량</th><th>발생일</th>")
+                                    .append("</tr></thead><tbody>");
+                            for (Defect d : defects) {
+                                sb.append("<tr>")
+                                        .append("<td>").append(d.getDefect_code()).append("</td>")
+                                        .append("<td>").append(d.getLot_id()).append("</td>")
+                                        .append("<td style='color:#e74c3c; font-weight:bold;'>").append(d.getDefect_qty()).append("</td>")
+                                        .append("<td>").append(escape_html(String.valueOf(d.getDefect_date()))).append("</td>")
+                                        .append("</tr>");
                             }
+                            sb.append("</tbody></table>");
+                        } else {
+                            sb.append("<p class=\"doc-info\">등록된 불량 내역이 없습니다.</p>");
                         }
-
-                        sb.append("<h3 class=\"doc-section-title\">작업 지시서 수정 내역</h3>");
-
-                        sb.append("<table class=\"doc-list-table\">")
-                                .append("<thead><tr>")
-                                .append("<th style='width:15%'>구분</th>")
-                                .append("<th>제품명</th>")
-                                .append("<th>담당자</th>")
-                                .append("<th>시작일</th>")
-                                .append("<th>완료일</th>")
-                                .append("<th>목표수량</th>")
-                                .append("</tr></thead><tbody>");
-
-                        // 변경 전 행
-                        if (before != null) {
-                            sb.append("<tr>")
-                                    .append("<td style='background-color:#f8f9fa; font-weight:bold;'>변경 전</td>")
-                                    .append("<td>").append(escape_html(before.getStock_name())).append("</td>")
-                                    .append("<td>").append(escape_html(before.getEmp_name())).append("</td>")
-                                    .append("<td>").append(escape_html(String.valueOf(before.getStart_date()))).append("</td>")
-                                    .append("<td>").append(escape_html(String.valueOf(before.getDue_date()))).append("</td>")
-                                    .append("<td>").append(escape_html(String.valueOf(before.getTarget_qty()))).append("</td>")
-                                    .append("</tr>");
-                        }
-
-                        // 변경 후 행
-                        if (after != null) {
-                            sb.append("<tr style='background-color:#e8f4ff;'>")
-                                    .append("<td style='color:#0056b3; font-weight:bold;'>변경 후</td>")
-                                    .append("<td>").append(escape_html(after.getStock_name())).append("</td>")
-                                    .append("<td>").append(escape_html(after.getEmp_name())).append("</td>")
-                                    .append("<td>").append(escape_html(String.valueOf(after.getStart_date()))).append("</td>")
-                                    .append("<td>").append(escape_html(String.valueOf(after.getDue_date()))).append("</td>")
-                                    .append("<td style='font-weight:bold;'>").append(escape_html(String.valueOf(after.getTarget_qty()))).append("</td>")
-                                    .append("</tr>");
-                        }
-                        sb.append("</tbody></table>");
                     }
                 }
 
