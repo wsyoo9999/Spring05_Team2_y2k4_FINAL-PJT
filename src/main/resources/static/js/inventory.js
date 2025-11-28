@@ -207,6 +207,7 @@ export async function inbound_listAll() {
                     <th>단가(원)</th>
                     <th>총액</th>
                     <th>담당자</th>
+                    <th>비고</th>
                     <th>관리</th>                    
                 </tr>
             </thead>
@@ -236,6 +237,7 @@ export async function inbound_listAll() {
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${Number(total_price).toLocaleString()}</td>
                 <td>${row.emp_name}</td>  
+                <td>${row.remark}</td>
                 <td class="actions">
                     <button id="inbound_edit" data-value="${row.inbound_id}">
                         <i class="fas fa-edit"></i>
@@ -277,6 +279,7 @@ export async function inbound_list(formData) {
                     <th>단가(원)</th>
                     <th>총액</th>
                     <th>담당자</th>
+                    <th>비고</th>
                     <th>관리</th>            
                 </tr>
             </thead>
@@ -300,6 +303,7 @@ export async function inbound_list(formData) {
                 <td>${Number(row.unit_price).toLocaleString()}</td>
                 <td>${Number(total_price).toLocaleString()}</td>
                 <td>${row.emp_name}</td>  
+                <td>${row.remark}</td>
                 <td class="actions">
                     <button id="inbound_edit" data-value="${row.inbound_id}">
                         <i class="fas fa-edit"></i>
@@ -389,6 +393,7 @@ export async function outbound_listAll() {
                     <th>수량(개)</th>
                     <th>출고처</th>
                     <th>담당자</th>
+                    <th>비고</th>
                     <th>관리</th>                    
                 </tr>
             </thead>
@@ -415,7 +420,8 @@ export async function outbound_listAll() {
                 </td>
                 <td>${row.outbound_qty}</td>
                 <td>${row.ac_name}</td>  
-                <td>${row.emp_name}</td>  
+                <td>${row.emp_name}</td>
+                <td>${row.remark}</td>
                 <td class="actions">
                     <button id="outbound_edit" data-value="${row.outbound_id}">
                         <i class="fas fa-edit"></i>
@@ -456,6 +462,7 @@ export async function outbound_list(formData) {
                     <th>수량(개)</th>
                     <th>출고처</th>
                     <th>담당자</th>
+                    <th>비고</th>
                     <th>관리</th>                    
                 </tr>
             </thead>
@@ -477,6 +484,7 @@ export async function outbound_list(formData) {
                 <td>${row.ac_name}</td>  
                 <td>${row.emp_name}</td>  
                 <td>${row.outbound_date}</td>
+                <td>${row.remark}</td>
                 <td class="actions">
                     <button id="outbound_edit" data-value="${row.outbound_id}">
                         <i class="fas fa-edit"></i>
