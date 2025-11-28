@@ -14,47 +14,47 @@ export async function show_charts(formData) {
       ">
 
         <!-- KPI 영역 -->
-        <div style="flex: 1 1 260px; display: flex;">
-  <div style="
-    width: 100%;
-    border-radius: 24px;
-    border: 1px solid #4A90E2;
-    padding: 32px 36px;
-    box-sizing: border-box;
-    text-align: center;
-    background-color: #4A90E2;    /* 🔵 배경 파란색 */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  ">
-    <div style="font-size: 15px; color: #FFFFFF; margin-bottom: 18px;">
-      금월 총 판매금액
-    </div>
-
-    <div id="kpi-this-month-amount"
-         style="font-size: 34px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">
-      0원
-    </div>
-
-    <div id="kpi-change-rate"
-         style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #FFFFFF;">
-      0.0%
-    </div>
-
-    <div style="font-size: 14px; color: #FFFFFF; margin-bottom: 6px;">
-      전월 총 판매금액
-    </div>
-
-    <div id="kpi-last-month-amount"
-         style="font-size: 20px; font-weight: 500; color: #FFFFFF;">
-      0원
-    </div>
-  </div>
-</div>
+        <div style=" flex: 1.5 1 260px; display: flex; ">
+          <div style="
+            width: 100%;
+            border-radius: 24px;
+            border: 1px solid #4A90E2;
+            padding: 32px 36px;
+            box-sizing: border-box;
+            text-align: center;
+            background-color: #4A90E2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+          ">
+            <div style="font-size: 15px; color: #FFFFFF; margin-bottom: 18px;">
+              금월 총 판매금액
+            </div>
+        
+            <div id="kpi-this-month-amount"
+                 style="font-size: 34px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">
+              0원
+            </div>
+        
+            <div id="kpi-change-rate"
+                 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #FFFFFF;">
+              0.0%
+            </div>
+        
+            <div style="font-size: 14px; color: #FFFFFF; margin-bottom: 6px;">
+              전월 총 판매금액
+            </div>
+        
+            <div id="kpi-last-month-amount"
+                 style="font-size: 20px; font-weight: 500; color: #FFFFFF;">
+              0원
+            </div>
+          </div>
+        </div>
 
         <!-- 선 그래프 (폭 900px) -->
-        <div style="
-          flex: 1 1 400px;
+       <div style="
+          flex: 8.5 1 400px;       
           display: flex;
           justify-content: center;
         ">
@@ -66,8 +66,8 @@ export async function show_charts(formData) {
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            width: 800px;          /* 🔹 요청한 너비 */
-            max-width: 100%;       /* 화면 작으면 자동 축소 */
+            width: 100%;           
+            max-width: 100%;     
           ">
             <div style="font-size: 15px; font-weight: 600; color: #333; margin-bottom: 10px;">
               월별 총 판매금액 추이
@@ -89,8 +89,9 @@ export async function show_charts(formData) {
       ">
         <!-- 판매 도넛 -->
         <div style="
-          flex: 1 1 320px;
-          max-width: 420px;
+          flex: 1 1 0;              
+          min-width: 320px;
+          max-width: 600px;
           border-radius: 24px;
           border: 1px solid #EEEEEE;
           background-color: #fff;
@@ -109,8 +110,9 @@ export async function show_charts(formData) {
 
         <!-- 구매 도넛 -->
         <div style="
-          flex: 1 1 320px;
-          max-width: 420px;
+          flex: 1 1 0;      
+          min-width: 320px;
+          max-width: 600px;
           border-radius: 24px;
           border: 1px solid #EEEEEE;
           background-color: #fff;

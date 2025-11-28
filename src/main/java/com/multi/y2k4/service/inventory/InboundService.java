@@ -27,48 +27,6 @@ public class InboundService {
     public Inbound selectInboundById(Integer inbound_id) { return inboundMapper.selectInboundById(inbound_id);  }
 
     public int updateInbound(Inbound inbound) {
-        // 기존 입고 정보 조회
-        Inbound oldInbound = inboundMapper.selectInboundById(inbound.getInbound_id());
-
-        if (oldInbound == null) {
-            return 0;
-        }
-
-        // 승인 상태 변경 감지
-        Integer oldApproval = oldInbound.getApproval();
-        Integer newApproval = inbound.getApproval();
-
-        // 대기(0) > 승인(1): 재고 증가
-        if (oldApproval != null && oldApproval == 0 &&
-                newApproval != null && newApproval == 1) {
-            stockService.manageStockQty(
-                    oldInbound.getStock_id(),
-                    1,  // 증가
-                    oldInbound.getInbound_qty()
-            );
-        }
-
-        // 승인(1) > 대기(0): 재고 감소 (취소)
-        else if (oldApproval != null && oldApproval == 1 &&
-                newApproval != null && newApproval == 0) {
-            stockService.manageStockQty(
-                    oldInbound.getStock_id(),
-                    2,  // 감소
-                    oldInbound.getInbound_qty()
-            );
-        }
-
-        // 승인(1) > 반려(2): 재고 감소 (취소)
-        else if (oldApproval != null && oldApproval == 1 &&
-                newApproval != null && newApproval == 2) {
-            stockService.manageStockQty(
-                    oldInbound.getStock_id(),
-                    2,  // 감소
-                    oldInbound.getInbound_qty()
-            );
-        }
-
-        // 입고 정보 수정
         return inboundMapper.updateInbound(inbound);
     }
 
