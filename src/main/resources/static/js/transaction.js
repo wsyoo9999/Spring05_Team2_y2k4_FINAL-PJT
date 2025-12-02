@@ -55,9 +55,9 @@ export async function sale_listAll(){
         }
         else if(row.status==0){
             editStatus = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSaleStatus">
-                                <i class="fas fa-gear"></i></button>`;
+                                <i class="fas fa-edit"></i></button>`;
             edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
-                                <i class="fas fa-edit"></i></button>`
+                                <i class="fas fa-gear"></i></button>`
             statusText = `배송 준비중`
             statusColor = '#e74c3c'
         }else{
@@ -197,9 +197,9 @@ export async function sale_list(formData){
         }
         else if(row.status==0){
             editStatus = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSaleStatus">
-                                <i class="fas fa-gear"></i></button>`;
+                                <i class="fas fa-edit"></i></button>`;
             edit = `<button data-action = "edit" data-file="transaction" data-value="${row.sale_id}" data-fn="editSale">
-                                <i class="fas fa-edit"></i></button>`
+                                <i class="fas fa-gear"></i></button>`
             statusText = `배송 준비중`
             statusColor = '#e74c3c'
         }else{
@@ -306,20 +306,20 @@ export async function purchase_listAll(){
         if(row.status==1){
             editStatus = `<button type="button"
                                   onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
-                        <i class="fas fa-gear"></i>
+                        <i class="fas fa-edit"></i>
                         </button>`;
             edit = `<button type="button"
                                   onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-gear"></i>
                             </button>`
             statusText = `도착 완료`
             statusColor = '#27ae60'
         }else if(row.status==0){
             editStatus = ` <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchaseStatus">
-                                <i class="fas fa-gear"></i>
+                                <i class="fas fa-edit"></i>
                             </button>`;
             edit= `<button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-gear"></i>
                             </button>`
 
             statusText = `배송 준비`
@@ -327,11 +327,11 @@ export async function purchase_listAll(){
         }else{
             editStatus = `<button type="button"
                                   onClick="alert('아직 결재 전')">
-                        <i class="fas fa-gear"></i>
+                        <i class="fas fa-edit"></i>
                         </button>`;
             edit = `<button type="button"
                                   onClick="alert('아직 결재 전')">
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-gear"></i>
                             </button>`
             statusText = `결재 전`
             statusColor = '#e74c3c'
@@ -438,20 +438,20 @@ export async function purchase_list(formData){
         if(row.status==1){
             editStatus = `<button type="button"
                                   onClick="alert('이미 도착완료인 주문은 상태 변경 불가합니다')">
-                        <i class="fas fa-gear"></i>
+                        <i class="fas fa-edit"></i>
                         </button>`;
             edit = `<button type="button"
                                   onClick="alert('이미 도착완료인 주문은 수정 및 변경 불가합니다')">
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-gear"></i>
                             </button>`
             statusText = `도착 완료`
             statusColor = '#27ae60'
         }else if(row.status==0){
             editStatus = ` <button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchaseStatus">
-                                <i class="fas fa-gear"></i>
+                                <i class="fas fa-edit"></i>
                             </button>`;
             edit= `<button data-action = "edit" data-file="transaction" data-value="${row.purchase_id}" data-fn="editPurchase">
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-gear"></i>
                             </button>`
 
             statusText = `배송 준비`
@@ -459,11 +459,11 @@ export async function purchase_list(formData){
         }else{
             editStatus = `<button type="button"
                                   onClick="alert('아직 결재 전')">
-                        <i class="fas fa-gear"></i>
+                        <i class="fas fa-edit"></i>
                         </button>`;
             edit = `<button type="button"
                                   onClick="alert('아직 결재 전')">
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-gear"></i>
                             </button>`
             statusText = `결재 전`
             statusColor = '#e74c3c'

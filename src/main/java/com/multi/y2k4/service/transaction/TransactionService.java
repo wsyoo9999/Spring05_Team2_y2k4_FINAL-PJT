@@ -1417,7 +1417,7 @@ public class TransactionService {
 
         Purchase origin = purchaseService.searchById(purchase_id);
         if (origin == null) return false;
-
+        double T = origin.getTotal_price();
         origin.setTotal_price(total_price);
         purchaseService.editPurchase(origin);
 
@@ -1431,7 +1431,7 @@ public class TransactionService {
         Spend spend = new Spend();
         spend.setCat_id(1);
         spend.setTb_id(1);
-        spend.setSpend(total_price);
+        spend.setSpend(T);
         spend.setSpend_date(LocalDateTime.now());
         spend.setSpend_comment("구매ID " + purchase_id + " 실제 도착 수량 기준 정산");
 
